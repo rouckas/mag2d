@@ -1,0 +1,10 @@
+ + add runtime evaluation of svmax to class t_argon DONE
+ + solve "particle array full" error for non-zero dt with neutral particles DONE
+ + implement adaptive lifetime ... it is not needed actually
+ - possible optimization is to precompute the sigma*v during initialization, saves one sqrt()
+ - possible optimization: compute the null collision cross section and check it first
+ - possible optimization: resolve special treatment of equdistantly sampled sigma
+ - check if all possible e-O2 interactions are implemented
+ - implement collisions O2+ - Ar
+ - maybe implement elastic collision O2+ - O2
+ - change the lifetime during equilibriation ???

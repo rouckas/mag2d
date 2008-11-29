@@ -1,0 +1,96 @@
+# sample config file for plasma2d
+# comments start with #
+
+# probe voltage
+u_probe =  -10.0		#[V]
+
+# probe dimensions
+probe_radius = 1e-4		#[m]
+probe_length = 1e-2		#[m]
+
+# x component of external field
+extern_field = 500.0		#[V/m]
+
+# total number of particles in simulation
+n_particles_total = 400000
+macroparticle_factor = 1
+
+# mesh dimension
+r_sampl = 100
+z_sampl = 100
+
+# working area dimension
+r_max = 1.34e-2	#[m]
+z_max = 4.5e-2	#[m]
+
+# number of timesteps
+niter = 4000
+
+# the factor by which the source area is smaller
+# than working area, positive integer
+src_fact = 4
+
+# one for selfconsistent simulation, 0 for simulation
+# in constant homogenous extern_field
+selfconsistent = 1
+
+# simulation state is printed each t_print timesteps
+t_print = 100
+
+# after t_equilib timesteps the results are averaged
+t_equilib = 1000
+
+# obvious
+do_plot = 1
+
+# if particle_reload==1 simulation state is reloaded
+# from directory particle reload_dir
+particle_reload = 0
+particle_reload_dir = 1e-10s
+
+# method of advancing particles, possible
+# values are 
+# ADVANCE2, ADVANCE2_EULER, ADVANCE_OLD, ADVANCE_PROB
+advancer = ADVANCE2_EULER
+
+# specification of plasma parameters
+# energy is defined as 3.0/2.0*k_B*temperature !!!
+# or at least should be...
+
+# you can specify temperature or energy, it is the
+# same but with different units
+# similarly pressure or density specifies the same
+[ARGON]
+pressure = ${* 133.0 1e-4}		#[Pa]
+temperature = 300.0		#[K]
+dt = 0				#[s]
+
+[ARGON_POS]
+density = 1e15			#[m^-3]
+temperature = 300.0		#[K]
+dt = 1e-8			#[s]
+
+[O2_POS]
+density = 0e15			#[m^-3]
+temperature = 300.0		#[K]
+dt = 1e-8			#[s]
+
+[O2_NEG]
+density = 0e15			#[m^-3]
+temperature = 300.0		#[K]
+dt = 1e-8			#[s]
+
+[ELECTRON]
+density = 1e15			#[m^-3]
+energy = 3.0			#[eV]
+dt = 1e-11			#[s]
+
+[O2]
+pressure = 0.0			#[Pa]
+temperature = 300.0		#[K]
+dt = 1				#[s]
+
+[O_NEG]
+density = 0e15			#[m^-3]
+temperature = 300.0		#[K]
+dt = 1e-8			#[s]
