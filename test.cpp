@@ -2,6 +2,7 @@
 #include "param.cpp"
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <fstream>
 #include "pic.cpp"
@@ -59,8 +60,8 @@ int main(int argc, char *argv[])
 
     t_particle *p_p = &(pic.species_list[ELECTRON]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
-    p_p->z = 1.1e-2;
-    p_p->vr = 0;
+    p_p->z = 2.1e-2;
+    p_p->vr = 1e5;
     p_p->vz = 0;
     p_p->vt = 0;
 
@@ -73,10 +74,10 @@ int main(int argc, char *argv[])
     {
 
 	pic.advance();
-	fwt1 << p_p->r <<' '<< p_p->z <<endl;
-	fwt2 << p_p[1].r <<' '<< p_p[1].z <<endl;
+	fwt1 << p_p->r <<' '<< setprecision(10) << p_p->z <<endl;
+	fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
 	fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
-	fwv1 << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
+	fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
 	pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)

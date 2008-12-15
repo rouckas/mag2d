@@ -399,6 +399,10 @@ void Species::advance()
     //double prob = dt/lifetime;
     //probe_current = 0;
 
+    double B = 3e-2;
+    double Bz = 1.0, Br = 0, Bt = 0;
+    double tan_theta = charge*B*dt/(2.0*mass);
+
 
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
     {
@@ -411,9 +415,25 @@ void Species::advance()
 
 
 	// advance velocities as in cartesian coords
+	// use HARHA in magnetic field
 	//cout << fr <<' '<< fz <<endl;
-	I->vr -= fr*qmdt;
-	I->vz -= fz*qmdt;
+	// half acceleration:
+	I->vr -= fr*qmdt/2.0;
+	I->vz -= fz*qmdt/2.0;
+
+	// rotation
+	double t = -tan_theta;
+	// s = -sin theta, c = cos theta
+	double s = 2.0*t/(1+SQR(t));
+	double c = (1-SQR(t))/(1+SQR(t));
+	double vr_tmp = I->vr;
+	I->vr = c*I->vr + s*I->vt;
+	I->vt = -s*vr_tmp + c*I->vt;
+
+
+	// half acceleration:
+	I->vr -= fr*qmdt/2.0;
+	I->vz -= fz*qmdt/2.0;
 
 	//advance position (Birdsall pp. 338):
 	double x2 = I->r + I->vr*dt;
@@ -424,7 +444,7 @@ void Species::advance()
 	//rotate the speed vector
 	double sa = y2/I->r;
 	double ca = x2/I->r;
-	double vr_tmp = I->vr;
+	vr_tmp = I->vr;
 	I->vr = ca*I->vr + sa*I->vt;
 	I->vt = -sa*vr_tmp + ca*I->vt;
 
