@@ -80,11 +80,10 @@ int main(int argc, char *argv[])
 	fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
 	fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
 	fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
-	pic.dist_sample();
+	if(i%500==0) pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)
 	{
-	    cout << "printing status\n";
 	    pic.print_status(fw);
 	    pic.field.u.print(fw1);
 	    if(param.do_plot) pic.plot();
