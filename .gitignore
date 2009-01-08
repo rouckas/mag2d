@@ -3,3 +3,4 @@ output/*
 *.swp
 grafy.gnuplot
 plot.dat
+gmon.out
