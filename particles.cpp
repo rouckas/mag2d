@@ -400,8 +400,8 @@ void Species::advance()
     //probe_current = 0;
 
     double B = 3e-2;
-    double Bz = 1.0, Br = 0, Bt = 0;
-    double tan_theta = charge*B*dt/(2.0*mass);
+    double Bz = 0.1, Br = 0, Bt = 0.1;
+    //double tan_theta = charge*B*dt/(2.0*mass);
 
 
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
@@ -422,6 +422,28 @@ void Species::advance()
 	I->vz -= fz*qmdt/2.0;
 
 	// rotation
+	//use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+	double tmp = charge*dt/(2.0*mass);
+	double tr = Br*tmp;
+	double tt = Bt*tmp;
+	double tz = Bz*tmp;
+
+	//XXX check orientation
+	// use (r, theta, z)
+	double vprime_r = I->vr + I->vt*tz - I->vz*tt;
+	double vprime_t = I->vt + I->vz*tr - I->vr*tz;
+	double vprime_z = I->vz + I->vr*tt - I->vt*tr;
+
+	tmp = 2.0/(1+SQR(tr)+SQR(tt)+SQR(tz));
+	double sr = tr*tmp;
+	double st = tt*tmp;
+	double sz = tz*tmp;
+
+	I->vr = I->vr + vprime_t*sz - vprime_z*st;
+	I->vt = I->vt + vprime_z*sr - vprime_r*sz;
+	I->vz = I->vz + vprime_r*st - vprime_t*sr;
+
+	/*
 	double t = -tan_theta;
 	// s = -sin theta, c = cos theta
 	double s = 2.0*t/(1+SQR(t));
@@ -429,6 +451,7 @@ void Species::advance()
 	double vr_tmp = I->vr;
 	I->vr = c*I->vr + s*I->vt;
 	I->vt = -s*vr_tmp + c*I->vt;
+*/
 
 
 	// half acceleration:
@@ -444,9 +467,9 @@ void Species::advance()
 	//rotate the speed vector
 	double sa = y2/I->r;
 	double ca = x2/I->r;
-	vr_tmp = I->vr;
+	tmp = I->vr;
 	I->vr = ca*I->vr + sa*I->vt;
-	I->vt = -sa*vr_tmp + ca*I->vt;
+	I->vt = -sa*tmp + ca*I->vt;
 
 	if( rnd->uni() < prob)
 	{
