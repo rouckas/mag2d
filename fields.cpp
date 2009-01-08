@@ -39,6 +39,8 @@ class t_grid
 	Matrix<double> voltage;
 	t_grid(Param &param);
 	Param *p_param;
+	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
+	bool is_free(double r, double z);
 };
 class Field : public Matrix<double>
 {
@@ -140,31 +142,17 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 		mask[i][j] = FIXED;
 		voltage[i][j] = -i*p_param->dr*p_param->extern_field + p_param->r_max*p_param->extern_field*0.5;
 		voltage[i][j] = 0.0;
-		/*
-	    }else if(SQR(i*dr-p_param->r_max/2) + SQR(j*dz-p_param->z_max/2) <= SQR(p_param->probe_radius))
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = p_param->u_probe;
-		*/
-	    /*
-	    }
-	    else if(r>1.57e-2/2.0 && r<1.67e-2/2.0 && z>1e-3 && z<25e-3) // retarding electrode
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = -5.0;
-	    }
-	    else if((r<1.46e-2/2 && z>15e-3 && z<16e-3)
-		    || (r<7e-3/2 && z>12e-3 && z<19e-3)
-		    || (r<1.9e-3 && z>1e-3 && z<12e-3)) // collector
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = 10.0;
-		*/
 	    }else
 	    {
 		mask[i][j] = FREE;
 	    }
 	}
+    square_electrode(1.57e-2/2, 1.67e-2/2, 1e-3, 25e-3, -5);
+
+    // collector
+    square_electrode(0, 1.46e-2/2, 15e-3, 16e-3, 10);
+    square_electrode(0, 7e-3/2, 12e-3, 19e-3, 10);
+    square_electrode(0, 1.9e-3, 1e-3, 12e-3, 10);
 
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)
@@ -176,8 +164,30 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 		    mask[i][j] != FIXED )
 		mask[i][j] = BOUNDARY;
 	}
-
-
+}
+void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax, double _voltage)
+{
+    for(int i=0; i<M; i++)
+	for(int j=0; j<N; j++)
+	{
+	    double r, z;
+	    r = i*dr;
+	    z = j*dz;
+	    // suboptimal, but simple
+	    if(r>rmin && r<rmax && z>zmin && z<zmax) 
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = _voltage;
+	    }
+	}
+}
+bool t_grid::is_free(double r, double z)
+{
+    int i = (int)(r*p_param->idr);
+    int j = (int)(z*p_param->idz);
+    if(mask[i][j]==FREE || mask[i+1][j]==FREE || mask[i][j+1]==FREE || mask[i+1][j+1]==FREE)
+	return true;
+    else return false;
 }
 
 inline void Field::accumulate(double charge, double r, double z)
@@ -214,8 +224,8 @@ inline void Fields::accumulate(double charge, double r, double z)
 }
 Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), nsampl(0)
 {
-    if(param.selfconsistent == false)
-	return;
+    //if(param.selfconsistent == false)
+//	return;
     p_param = &param;
     int i, j, k, l;
     int n;

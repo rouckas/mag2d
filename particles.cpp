@@ -463,6 +463,11 @@ void Species::advance()
 		remove(I);
 		continue;
 	    }
+	    if(!field->grid.is_free(I->r, I->z))
+	    {
+		remove(I);
+		continue;
+	    }
 
 	    /**
 	    if(SQR(I->r-center_r)+SQR(I->z-center_z) < sqpp)

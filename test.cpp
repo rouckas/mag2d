@@ -43,11 +43,11 @@ int main(int argc, char *argv[])
     fs::copy_file(config_file,config_backup);
 
     // initialize Poisson solver
-    Fields fields(param);
+    //Fields fields(param);
     //fields.accumulate(1.0, 0.0, param.z_max/2.0);
-    fields.boundary_solve();
+    //fields.boundary_solve();
     ofstream fw1((param.output_dir+"/u.dat").c_str());
-    fields.u.print(fw1);
+    //fields.u.print(fw1);
 
     // initialize the PIC model !
     Pic pic(param);
@@ -60,9 +60,11 @@ int main(int argc, char *argv[])
 
     t_particle *p_p = &(pic.species_list[ELECTRON]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
-    p_p->z = 2.1e-2;
+    p_p->z = 4.1e-2;
     p_p->vr = 1e5;
-    p_p->vz = 0;
+    p_p->vz = -1e6;
+    p_p->vz = -pic.species_list[ELECTRON]->veV(1);
+    cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
     p_p->vt = 0;
 
     p_p[1].z = 1e-2;
@@ -84,6 +86,7 @@ int main(int argc, char *argv[])
 	{
 	    cout << "printing status\n";
 	    pic.print_status(fw);
+	    pic.field.u.print(fw1);
 	    if(param.do_plot) pic.plot();
 	    if(i<param.t_equilib) pic.dist_reset();
 	}
@@ -110,7 +113,6 @@ int main(int argc, char *argv[])
 	}
 
     }
-    fields.u.print(fw1);
     //getchar();
 
     return 0;

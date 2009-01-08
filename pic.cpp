@@ -89,6 +89,11 @@ class Pic
 
 	    dist_reset();
 	    if(param.do_plot) plot_init();
+	    if(!param.selfconsistent)
+	    {
+		field.boundary_solve();
+		field.reset();
+	    }
 	};
 	~Pic()
 	{

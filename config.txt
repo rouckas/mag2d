@@ -16,7 +16,7 @@ n_particles_total = 400000
 macroparticle_factor = 1
 
 # mesh dimension
-r_sampl = 100
+r_sampl = 200
 z_sampl = 100
 
 # working area dimension
@@ -24,7 +24,7 @@ r_max = 1.34e-2	#[m]
 z_max = 4.5e-2	#[m]
 
 # number of timesteps
-niter = 4000
+niter = 10000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -32,7 +32,7 @@ src_fact = 4
 
 # one for selfconsistent simulation, 0 for simulation
 # in constant homogenous extern_field
-selfconsistent = 1
+selfconsistent = 0
 
 # simulation state is printed each t_print timesteps
 t_print = 500
