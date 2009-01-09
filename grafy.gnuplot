@@ -5,7 +5,7 @@ set pm3d
 unset surface
 set multiplot
 set xrange [0:0.015]
-set yrange [0:0.04]
+set yrange [0:0.055]
 set xtics 0.005
 set view map
 set size ratio 2

@@ -399,8 +399,7 @@ void Species::advance()
     //double prob = dt/lifetime;
     //probe_current = 0;
 
-    double B = 3e-2;
-    double Bz = 0.1, Br = 0, Bt = 0.1;
+    double Bz = 0.03, Br = 0, Bt = 0.0;
     //double tan_theta = charge*B*dt/(2.0*mass);
 
 

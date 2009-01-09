@@ -154,6 +154,11 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
     square_electrode(0, 7e-3/2, 12e-3, 19e-3, 10);
     square_electrode(0, 1.9e-3, 1e-3, 12e-3, 10);
 
+
+    // lenses
+    square_electrode(4e-3, 7e-3, 52e-3, 53e-3, -5);
+    square_electrode(2.5e-3, 7e-3, 46e-3, 47e-3, 0);
+
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)
 	{
