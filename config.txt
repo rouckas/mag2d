@@ -24,7 +24,7 @@ r_max = 1.34e-2	#[m]
 z_max = 5.5e-2	#[m]
 
 # number of timesteps
-niter = 10000
+niter = 100000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -35,7 +35,7 @@ src_fact = 4
 selfconsistent = 0
 
 # simulation state is printed each t_print timesteps
-t_print = 500
+t_print = 50
 
 # after t_equilib timesteps the results are averaged
 t_equilib = 1000

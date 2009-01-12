@@ -9,10 +9,11 @@ set yrange [0:0.055]
 set xtics 0.005
 set view map
 set size ratio 2
-splot "output/u.dat"
+splot "output/potential.dat"
 unset pm3d
 set surface
 splot "output/traj1.dat" u 1:2:(0) w lines
+splot "output/traj2.dat" u 1:2:(0) w lines
 unset multiplot
 
 pause -1

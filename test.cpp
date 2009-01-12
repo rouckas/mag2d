@@ -16,7 +16,7 @@ namespace fs = boost::filesystem;
 
 
 int t_plot = 10;
-int t_print = 100;
+int t_print = 20;
 int t_source_refresh = 0;
 int t_save = 0;
 
@@ -67,11 +67,11 @@ int main(int argc, char *argv[])
     cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
     p_p->vt = 0;
 
-    p_p[1].z = 1e-2;
+    p_p[1].z = 3e-2;
     p_p[1].r = p_p[0].r;
     p_p[1].vr = 0;
-    p_p[1].vz = 0;
     p_p[1].vt = 0;
+    p_p[1].vz = -pic.species_list[ELECTRON]->veV(1);
     for(int i=1; i<param.niter+1; ++i)
     {
 
@@ -80,12 +80,12 @@ int main(int argc, char *argv[])
 	fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
 	fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
 	fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
-	if(i%500==0) pic.dist_sample();
+	if(i%20==0) pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)
 	{
 	    pic.print_status(fw);
-	    pic.field.u.print(fw1);
+	    cout << "plot " <<i<<endl;
 	    if(param.do_plot) pic.plot();
 	    if(i<param.t_equilib) pic.dist_reset();
 	}

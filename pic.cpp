@@ -74,7 +74,7 @@ class Pic
 
 	    //nparticles_spec = int((param.density[ELECTRON]/total_density)*param.n_particles_total);
 	    //species_list[ELECTRON] = make_species(ELECTRON, nparticles_spec*(1+NPARTICL_SAFE),nparticles_spec, param, rnd, field, species_list);
-	    species_list[ELECTRON] = make_species(ELECTRON,2 ,2 , param, rnd, field, species_list);
+	    species_list[ELECTRON] = make_species(ELECTRON,2000,2, param, rnd, field, species_list);
 	    species_list[ELECTRON]->source5_refresh(param.src_fact);
 
 	    species_list[ELECTRON]->lifetime_init();
@@ -116,6 +116,7 @@ class Pic
 
 
 
+	    emit();
 	    for(int i=0; i<NTYPES; i++) if(species_list[i] != 0)
 	    {
 		species_list[i]->advance();
@@ -131,6 +132,24 @@ class Pic
 	    timer.stop();
 
 	    iter++;
+	}
+	void emit()
+	{
+		double fnemit = 0.1;
+		int nemit = (int)fnemit;
+		nemit += (rnd.uni()>fnemit-nemit) ? 0 : 1;
+		for(int i=0; i<nemit; i++)
+		{
+			int ind = species_list[ELECTRON]->insert();
+			t_particle * p_p = &(species_list[ELECTRON]->particles[ind]);
+			p_p->r = 5e-4;
+			p_p->z = 4e-2;
+			p_p->vr = species_list[ELECTRON]->veV(1);
+			p_p->vr = 0;
+			p_p->vz = -500000;
+			p_p->vt = 0;
+			p_p->time_to_death = species_list[ELECTRON]->lifetime * rnd.rexp();
+		}
 	}
 
 	int nsampl;
@@ -234,7 +253,10 @@ class Pic
 	    
 	    //gnuplot_cmd(h1, cmd.c_str());
 	    //gnuplot_cmd(h1, "set zrange [-1e-15:5e-13]");
-	    gnuplot_splot_grid(h1, field.u[0], param.r_sampl, param.z_sampl, "potencial");
+	    //gnuplot_splot_grid(h1, field.u[0], param.r_sampl, param.z_sampl, "potencial");
+	    species_list[ELECTRON]->rho.reset();
+	    species_list[ELECTRON]->accumulate();
+	    gnuplot_splot_grid(h1, species_list[ELECTRON]->rho[0], param.r_sampl, param.z_sampl, "rho");
 
 	    ofstream fw("plot.dat");
 	    for(int ii=0; ii<param.z_sampl; ii++)

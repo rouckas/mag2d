@@ -61,6 +61,7 @@ class Species
 	double veV(double EeV) { return sqrt(EeV*(p_param->q_e)/mass*2.0); }
 	void set_pressure(double pa){ density = pa/(p_param->k_B*temperature);}
 	Field rho;
+	void accumulate();
 
 
 	
@@ -372,7 +373,7 @@ void Species::probe_collect(t_particle *I)
     //compute incidence angle
     //normal vector: n = (r-x0, z-y0)
     // n.v = |n|*|v|*cos(alpha)
-    // (alpha) = acos(n.v/(|n|*|v|))
+    // (alpha) =-acos(n.v/(|n|*|v|))
     double nx = center_r-I->r;
     double ny = center_z-I->z;
     double absV, alpha;
@@ -415,7 +416,6 @@ void Species::advance()
 
 	// advance velocities as in cartesian coords
 	// use HARHA in magnetic field
-	//cout << fr <<' '<< fz <<endl;
 	// half acceleration:
 	I->vr -= fr*qmdt/2.0;
 	I->vz -= fz*qmdt/2.0;
@@ -466,6 +466,11 @@ void Species::advance()
 	//rotate the speed vector
 	double sa = y2/I->r;
 	double ca = x2/I->r;
+	if(I->r==0)
+	{
+		sa = 0;
+		ca = 1;
+	}
 	tmp = I->vr;
 	I->vr = ca*I->vr + sa*I->vt;
 	I->vt = -sa*tmp + ca*I->vt;
@@ -507,6 +512,15 @@ void Species::advance()
     }
     //probe_current /= dt;
     niter++;
+}
+void Species::accumulate()
+{
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+	if(I->empty==true) continue;
+	    // SUMACE NABOJE
+	    rho.accumulate(charge, I->r, I->z);
+    }
 }
 void Species::source5_refresh(unsigned int factor)
 {
