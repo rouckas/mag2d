@@ -39,6 +39,7 @@ class t_grid
 	Matrix<double> voltage;
 	t_grid(Param &param);
 	Param *p_param;
+        void penning_trap();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
 	bool is_free(double r, double z);
 };
@@ -116,8 +117,14 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
     dr(param.dr), dz(param.dz),
     mask(param.r_sampl,param.z_sampl), metrika(param.r_sampl,param.z_sampl), voltage(param.r_sampl,param.z_sampl)
 {
-    int i, j;
     p_param = &param;
+			
+    penning_trap();
+
+}
+void t_grid::penning_trap()
+{
+    int i, j;
     double dr=p_param->dr;
     double dz=p_param->dz;
     double idr=p_param->idr;
@@ -125,8 +132,6 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
     double r_max=p_param->r_max;
     double z_max=p_param->z_max;
     double PROBE_RADIUS=p_param->probe_radius;
-			
-
     /*
      * Vytvoreni sondy
      */
@@ -240,80 +245,132 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
     double dz = p_param->dz;
 
     n = param.r_sampl * param.z_sampl;
-    
+
     // r_i = i*dr
     Ap = new int [n+1];
     Ai = new int [n*5]; //horni odhad pro petibodove diff schema
     Ax = new double [n*5];
 
+    if( param.coord == CYLINDRICAL )
+    {
 
-    l = 0;
-    Ap[0] = 0;
-    for(i=0; i<param.r_sampl; i++)	//cislo radku - radialni souradnice
-	for(j=0; j<param.z_sampl; j++)	//cislo sloupce
-	{
-	    k = j + param.z_sampl*i;
-	    if(grid.mask[i][j]==FIXED)
-	    {
-		Ax[l] = 1;
-		Ai[l] = k;
-		Ap[k+1] = Ap[k]+1;
-		l++;
-	    }
-	    else if(i==0 && j>0 && j<param.z_sampl-1)
-	    {
-		double k2, k3;
-		// psi[j,k-1]
-		k2 = 1.0/(dz*dz);
-		Ax[l] = k2;
-		Ai[l] = k-1;
+        l = 0;
+        Ap[0] = 0;
+        for(i=0; i<param.r_sampl; i++)	//cislo radku - radialni souradnice
+            for(j=0; j<param.z_sampl; j++)	//cislo sloupce
+            {
+                k = j + param.z_sampl*i;
+                if(grid.mask[i][j]==FIXED)
+                {
+                    Ax[l] = 1;
+                    Ai[l] = k;
+                    Ap[k+1] = Ap[k]+1;
+                    l++;
+                }
+                else if(i==0 && j>0 && j<param.z_sampl-1)
+                {
+                    double k2, k3;
+                    // psi[j,k-1]
+                    k2 = 1.0/(dz*dz);
+                    Ax[l] = k2;
+                    Ai[l] = k-1;
 
-		// psi[j,k]
-		k3 = 1.0/(dr*dr*0.25);
-		Ax[l+1] = -2.0*k2 - k3;
-		Ai[l+1] = k;
+                    // psi[j,k]
+                    k3 = 1.0/(dr*dr*0.25);
+                    Ax[l+1] = -2.0*k2 - k3;
+                    Ai[l+1] = k;
 
-		// psi[j,k+1]
-		Ax[l+2] = k2;
-		Ai[l+2] = k+1;
+                    // psi[j,k+1]
+                    Ax[l+2] = k2;
+                    Ai[l+2] = k+1;
 
-		// psi[j+1,k]
-		Ax[l+3] = k3;
-		Ai[l+3] = k+param.z_sampl;
+                    // psi[j+1,k]
+                    Ax[l+3] = k3;
+                    Ai[l+3] = k+param.z_sampl;
 
-		Ap[k+1] = Ap[k]+4;
-		l += 4;
-	    }
-	    else if(grid.mask[i][j]!=FIXED )
-	    {
-		double k1, k2, k3;
-		// psi[j-1,k]
-		k1 = (i-0.5)/(dr*dr*i);
-		Ax[l] = k1;
-		Ai[l] = k-param.z_sampl;
+                    Ap[k+1] = Ap[k]+4;
+                    l += 4;
+                }
+                else if(grid.mask[i][j]!=FIXED )
+                {
+                    double k1, k2, k3;
+                    // psi[j-1,k]
+                    k1 = (i-0.5)/(dr*dr*i);
+                    Ax[l] = k1;
+                    Ai[l] = k-param.z_sampl;
 
-		// psi[j,k-1]
-		k2 = 1.0/(dz*dz);
-		Ax[l+1] = k2;
-		Ai[l+1] = k-1;
+                    // psi[j,k-1]
+                    k2 = 1.0/(dz*dz);
+                    Ax[l+1] = k2;
+                    Ai[l+1] = k-1;
 
-		// psi[j,k]
-		k3 = (i+0.5)/(dr*dr*i);
-		Ax[l+2] = -2.0*k2 - k1 - k3;
-		Ai[l+2] = k;
+                    // psi[j,k]
+                    k3 = (i+0.5)/(dr*dr*i);
+                    Ax[l+2] = -2.0*k2 - k1 - k3;
+                    Ai[l+2] = k;
 
-		// psi[j,k+1]
-		Ax[l+3] = k2;
-		Ai[l+3] = k+1;
+                    // psi[j,k+1]
+                    Ax[l+3] = k2;
+                    Ai[l+3] = k+1;
 
-		// psi[j+1,k]
-		Ax[l+4] = k3;
-		Ai[l+4] = k+param.z_sampl;
+                    // psi[j+1,k]
+                    Ax[l+4] = k3;
+                    Ai[l+4] = k+param.z_sampl;
 
-		Ap[k+1] = Ap[k]+5;
-		l += 5;
-	    }
-	}
+                    Ap[k+1] = Ap[k]+5;
+                    l += 5;
+                }
+            }
+    }
+    else
+    {
+        l = 0;
+        Ap[0] = 0;
+        for(i=0; i<param.r_sampl; i++)		//cislo radku
+            for(j=0; j<param.z_sampl; j++)	//cislo sloupce
+            {
+                k = j + param.z_sampl*i;
+                //if( i>0 && i<M-1 && j>0 && j<N-1)
+                if(grid.mask[i][j]==FREE)
+                {
+                    Ax[l] = Ax[l+1] = Ax[l+3] = Ax[l+4] = 1.0;  
+                    Ax[l+2] = -4;
+                    Ai[l] = k-param.z_sampl;
+                    Ai[l+1] = k-1;
+                    Ai[l+2] = k;
+                    Ai[l+3] = k+1;
+                    Ai[l+4] = k+param.z_sampl;
+                    Ap[k+1] = Ap[k]+5;
+                    l += 5;
+                }
+                /*
+                else if(grid.mask[i][j]==BOUNDARY)
+                {
+                    Ax[l] = 2/((grid.metrika[i][j].t + grid.metrika[i][j].b) * grid.metrika[i][j].t);	//i-1, j
+                    Ax[l+1] = 2/((grid.metrika[i][j].l + grid.metrika[i][j].r) * grid.metrika[i][j].l);	//i, j-1
+                    Ax[l+3] = 2/((grid.metrika[i][j].l + grid.metrika[i][j].r) * grid.metrika[i][j].r);	//i, j+1
+                    Ax[l+4] = 2/((grid.metrika[i][j].t + grid.metrika[i][j].b) * grid.metrika[i][j].b);	//i+1, j
+                    Ax[l+2] = -2*( grid.metrika[i][j].r * grid.metrika[i][j].l + grid.metrika[i][j].t * grid.metrika[i][j].b ) / 
+                        ( grid.metrika[i][j].r * grid.metrika[i][j].l * grid.metrika[i][j].t * grid.metrika[i][j].b );
+                    //printf("[%d][%d] i-1: %g, j-1: %g, j+1: %g, i+1: %g\n", i, j, Ax[l], Ax[l+1], Ax[l+3], Ax[l+4]);
+                    Ai[l] = k-param.y_sampl;
+                    Ai[l+1] = k-1;
+                    Ai[l+2] = k;
+                    Ai[l+3] = k+1;
+                    Ai[l+4] = k+param.y_sampl;
+                    Ap[k+1] = Ap[k]+5;
+                    l += 5;
+                }
+                */
+                else if(grid.mask[i][j]==FIXED)
+                {
+                    Ax[l] = 1;
+                    Ai[l] = k;
+                    Ap[k+1] = Ap[k]+1;
+                    l++;
+                }
+            }
+    }
     /*
     for(i=0;i<param.r_sampl;i++)
 	for(j=0;j<param.z_sampl;j++)
@@ -335,21 +392,36 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
 
 void Fields::boundary_solve()
 {
-    int k;
-    for(int i=0; i<grid.M; i++)		//cislo radku
-	for(int j=0; j<grid.N; j++)	//cislo sloupce
-	{
-	    k = j + grid.N*i;
-	    double dr = p_param->dr;
-	    double dz = p_param->dz;
-	    if(grid.mask[i][j] == FIXED)
-		rho[i][j] = grid.voltage[i][j];
-	    else if(i>0)
-		rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dr*dr*2.0*i*dz)*p_param->macroparticle_factor;
-	    else
-		rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dr*dr*0.25*dz)*p_param->macroparticle_factor;
-	}
-
+    if( p_param->coord == CYLINDRICAL )
+    {
+        int k;
+        for(int i=0; i<grid.M; i++)		//cislo radku
+            for(int j=0; j<grid.N; j++)	//cislo sloupce
+            {
+                k = j + grid.N*i;
+                double dr = p_param->dr;
+                double dz = p_param->dz;
+                if(grid.mask[i][j] == FIXED)
+                    rho[i][j] = grid.voltage[i][j];
+                else if(i>0)
+                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dr*dr*2.0*i*dz)*p_param->macroparticle_factor;
+                else
+                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dr*dr*0.25*dz)*p_param->macroparticle_factor;
+            }
+    }
+    else
+    {
+        int k;
+        for(int i=0; i<grid.M; i++)		//cislo radku
+            for(int j=0; j<grid.N; j++)	//cislo sloupce
+            {
+                k = j + grid.N*i;
+                if(grid.mask[i][j] == FIXED)
+                    rho[i][j] = grid.voltage[i][j];
+                else
+                    rho[i][j] *= -SQR(p_param->dr)/p_param->eps_0/p_param->dV;
+            }
+    }
     (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, u[0], rho[0], Numeric, NULL, NULL) ;
 }
 

@@ -6,6 +6,7 @@
 #include "speclist.hpp"
 using namespace std;
 enum t_advancer { ADVANCE2, ADVANCE_OLD, ADVANCE_PROB, ADVANCE2_EULER };
+enum Coord { CARTESIAN, CYLINDRICAL };
 class t_spec_param
 {
     public:
@@ -40,6 +41,7 @@ class Param
     double dt_elon;
     int niter;
     t_advancer advancer;
+    Coord coord;
     int src_fact;
     bool selfconsistent;
     bool particle_reload;
@@ -99,6 +101,10 @@ class Param
 
 	neutral_density = pressure/(k_B*neutral_temperature);
 	do_plot = config("do_plot",1);
+
+        string coord_str = config("coord","CYLINDRICAL");
+        if(coord_str == "CYLINDRICAL") { coord = CYLINDRICAL; }
+        else { coord = CARTESIAN; }
 
 	//parse plasma parameters
 	double particle_density_total = 0.0;

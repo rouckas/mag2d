@@ -61,7 +61,7 @@ advancer = ADVANCE2_EULER
 # same but with different units
 # similarly pressure or density specifies the same
 [ARGON]
-pressure = ${* 133.0 1e-1}		#[Pa]
+pressure = ${* 133.0 1e-3}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
@@ -83,7 +83,7 @@ dt = 1e-8			#[s]
 [ELECTRON]
 density = 1e15			#[m^-3]
 energy = 3.0			#[eV]
-dt = 1e-10			#[s]
+dt = 5e-11			#[s]
 
 [O2]
 pressure = 0.0			#[Pa]

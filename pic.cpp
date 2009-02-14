@@ -116,7 +116,7 @@ class Pic
 
 
 
-	    emit();
+	    //emit();
 	    for(int i=0; i<NTYPES; i++) if(species_list[i] != 0)
 	    {
 		species_list[i]->advance();

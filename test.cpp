@@ -60,10 +60,11 @@ int main(int argc, char *argv[])
 
     t_particle *p_p = &(pic.species_list[ELECTRON]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
+    p_p->r = 1e-4;
     p_p->z = 4.1e-2;
     p_p->vr = 1e5;
-    p_p->vz = -1e6;
-    p_p->vz = -pic.species_list[ELECTRON]->veV(1);
+    p_p->vz = 1e4;
+    p_p->vr = -pic.species_list[ELECTRON]->veV(1);
     cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
     p_p->vt = 0;
 
