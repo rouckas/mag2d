@@ -141,6 +141,11 @@ class Param
 	//V = n_particles/(rho);
 	macroparticle_factor = config("macroparticle_factor",1e4);
 	V = n_particles_total/particle_density_total;
+        // XXX check this, only in cartesian coords:
+        if(selfconsistent)
+            dV = 1;
+        else
+            dV = V/((r_sampl-1)*(z_sampl-1));
 	cout << "param: V = "<<V<<endl;
 	dth = 2*M_PI/macroparticle_factor;
     }
