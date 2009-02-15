@@ -515,15 +515,8 @@ void Species::advance()
 	    // (r, t, z) ~ (x, y, z)
 	    if(I->empty==true) continue;
 
-	    double K = (0.03-0.003)/(4.1-3.0)*1e2;
-	    double a = 0.03-K*4.1*1e-2;
-	    Bz = K*I->z + a;
-	    Br = -K*0.5*I->r;
-	    if(I->z<3e-2)
-	    {
-		Bz = 0.003;
-		Br = 0;
-	    }
+	    Bt = 0.003;
+	    Bz = Br = 0;
 	    //compute field at (I->r, I->z)
 	    //field->grad(I->r, I->z, fr, fz);
 	    //XXX osetrit castice mimo prac oblast !!!
@@ -568,6 +561,11 @@ void Species::advance()
 	    I->r += I->vr*dt;
 	    I->z += I->vz*dt;
 
+
+	    if( rnd->uni() < prob)
+	    {
+		scatter(*I);
+	    }
 	    // OKRAJOVE PODMINKY
 
 	    //if(p_param->selfconsistent)
