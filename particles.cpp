@@ -404,95 +404,85 @@ void Species::advance()
     //double tan_theta = charge*B*dt/(2.0*mass);
 
 
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-    {
-	if(I->empty==true) continue;
-
-	double K = (0.03-0.003)/(4.1-3.0)*1e2;
-	double a = 0.03-K*4.1*1e-2;
-	Bz = K*I->z + a;
-	Br = -K*0.5*I->r;
-	if(I->z<3e-2)
+    if(p_param->coord == CYLINDRICAL) 
+	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
 	{
-	    Bz = 0.003;
-	    Br = 0;
-	}
-	//compute field at (I->r, I->z)
-	//field->grad(I->r, I->z, fr, fz);
-	//XXX osetrit castice mimo prac oblast !!!
-	//fr=fz=0;
+	    if(I->empty==true) continue;
+
+	    double K = (0.03-0.003)/(4.1-3.0)*1e2;
+	    double a = 0.03-K*4.1*1e-2;
+	    Bz = K*I->z + a;
+	    Br = -K*0.5*I->r;
+	    if(I->z<3e-2)
+	    {
+		Bz = 0.003;
+		Br = 0;
+	    }
+	    //compute field at (I->r, I->z)
+	    //field->grad(I->r, I->z, fr, fz);
+	    //XXX osetrit castice mimo prac oblast !!!
+	    //fr=fz=0;
 
 
-	// advance velocities as in cartesian coords
-	// use HARHA in magnetic field
-	// half acceleration:
-	I->vr -= fr*qmdt/2.0;
-	I->vz -= fz*qmdt/2.0;
+	    // advance velocities as in cartesian coords
+	    // use HARHA in magnetic field
+	    // half acceleration:
+	    I->vr -= fr*qmdt/2.0;
+	    I->vz -= fz*qmdt/2.0;
 
-	// rotation
-	//use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
-	double tmp = charge*dt/(2.0*mass);
-	double tr = Br*tmp;
-	double tt = Bt*tmp;
-	double tz = Bz*tmp;
+	    // rotation
+	    //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+	    double tmp = charge*dt/(2.0*mass);
+	    double tr = Br*tmp;
+	    double tt = Bt*tmp;
+	    double tz = Bz*tmp;
 
-	//XXX check orientation
-	// use (r, theta, z)
-	double vprime_r = I->vr + I->vt*tz - I->vz*tt;
-	double vprime_t = I->vt + I->vz*tr - I->vr*tz;
-	double vprime_z = I->vz + I->vr*tt - I->vt*tr;
+	    //XXX check orientation
+	    // use (r, theta, z)
+	    double vprime_r = I->vr + I->vt*tz - I->vz*tt;
+	    double vprime_t = I->vt + I->vz*tr - I->vr*tz;
+	    double vprime_z = I->vz + I->vr*tt - I->vt*tr;
 
-	tmp = 2.0/(1+SQR(tr)+SQR(tt)+SQR(tz));
-	double sr = tr*tmp;
-	double st = tt*tmp;
-	double sz = tz*tmp;
+	    tmp = 2.0/(1+SQR(tr)+SQR(tt)+SQR(tz));
+	    double sr = tr*tmp;
+	    double st = tt*tmp;
+	    double sz = tz*tmp;
 
-	I->vr = I->vr + vprime_t*sz - vprime_z*st;
-	I->vt = I->vt + vprime_z*sr - vprime_r*sz;
-	I->vz = I->vz + vprime_r*st - vprime_t*sr;
+	    I->vr = I->vr + vprime_t*sz - vprime_z*st;
+	    I->vt = I->vt + vprime_z*sr - vprime_r*sz;
+	    I->vz = I->vz + vprime_r*st - vprime_t*sr;
 
-	/*
-	double t = -tan_theta;
-	// s = -sin theta, c = cos theta
-	double s = 2.0*t/(1+SQR(t));
-	double c = (1-SQR(t))/(1+SQR(t));
-	double vr_tmp = I->vr;
-	I->vr = c*I->vr + s*I->vt;
-	I->vt = -s*vr_tmp + c*I->vt;
-*/
+	    // half acceleration:
+	    I->vr -= fr*qmdt/2.0;
+	    I->vz -= fz*qmdt/2.0;
 
+	    //advance position (Birdsall pp. 338):
+	    double x2 = I->r + I->vr*dt;
+	    double y2 = I->vt*dt;
+	    I->r = sqrt(SQR(x2)+SQR(y2));
+	    I->z += I->vz * dt;
 
-	// half acceleration:
-	I->vr -= fr*qmdt/2.0;
-	I->vz -= fz*qmdt/2.0;
-
-	//advance position (Birdsall pp. 338):
-	double x2 = I->r + I->vr*dt;
-	double y2 = I->vt*dt;
-	I->r = sqrt(SQR(x2)+SQR(y2));
-	I->z += I->vz * dt;
-
-	//rotate the speed vector
-	double sa = y2/I->r;
-	double ca = x2/I->r;
-	if(I->r==0)
-	{
+	    //rotate the speed vector
+	    double sa = y2/I->r;
+	    double ca = x2/I->r;
+	    if(I->r==0)
+	    {
 		sa = 0;
 		ca = 1;
-	}
-	tmp = I->vr;
-	I->vr = ca*I->vr + sa*I->vt;
-	I->vt = -sa*tmp + ca*I->vt;
+	    }
+	    tmp = I->vr;
+	    I->vr = ca*I->vr + sa*I->vt;
+	    I->vt = -sa*tmp + ca*I->vt;
 
-	if( rnd->uni() < prob)
-	{
-	    scatter(*I);
-	}
+	    if( rnd->uni() < prob)
+	    {
+		scatter(*I);
+	    }
 
-	// OKRAJOVE PODMINKY
-	
-	//if(p_param->selfconsistent)
-	//{
+	    // OKRAJOVE PODMINKY
+
+	    //if(p_param->selfconsistent)
+	    //{
 	    if(I->r > p_param->r_max || I->r < 0 
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
@@ -506,20 +496,108 @@ void Species::advance()
 	    }
 
 	    /**
-	    if(SQR(I->r-center_r)+SQR(I->z-center_z) < sqpp)
-	    {
-		probe_collect(&*I);
-		remove(I);
-		probe_current += charge;
-		continue;
-	    }
-	    */
+	      if(SQR(I->r-center_r)+SQR(I->z-center_z) < sqpp)
+	      {
+	      probe_collect(&*I);
+	      remove(I);
+	      probe_current += charge;
+	      continue;
+	      }
+	      */
 
 	    // SUMACE NABOJE
 	    rho.accumulate(charge, I->r, I->z);
-	//}
-    }
-    //probe_current /= dt;
+	    //}
+	}
+    else
+	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+	{
+	    // (r, t, z) ~ (x, y, z)
+	    if(I->empty==true) continue;
+
+	    double K = (0.03-0.003)/(4.1-3.0)*1e2;
+	    double a = 0.03-K*4.1*1e-2;
+	    Bz = K*I->z + a;
+	    Br = -K*0.5*I->r;
+	    if(I->z<3e-2)
+	    {
+		Bz = 0.003;
+		Br = 0;
+	    }
+	    //compute field at (I->r, I->z)
+	    //field->grad(I->r, I->z, fr, fz);
+	    //XXX osetrit castice mimo prac oblast !!!
+	    //fr=fz=0;
+
+
+	    // advance velocities as in cartesian coords
+	    // use HARHA in magnetic field
+	    // half acceleration:
+	    I->vr -= fr*qmdt/2.0;
+	    I->vz -= fz*qmdt/2.0;
+
+	    // rotation
+	    //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+	    double tmp = charge*dt/(2.0*mass);
+	    double tr = Br*tmp;
+	    double tt = Bt*tmp;
+	    double tz = Bz*tmp;
+
+	    //XXX check orientation
+	    // use (r, theta, z)
+	    // use (x, y, z) ~ (r, z, theta) !!!
+	    // sign change
+	    double vprime_r = I->vr - I->vt*tz + I->vz*tt;
+	    double vprime_z = I->vz - I->vr*tt + I->vt*tr;
+	    double vprime_t = I->vt - I->vz*tr + I->vr*tz;
+
+	    tmp = 2.0/(1+SQR(tr)+SQR(tt)+SQR(tz));
+	    double sr = tr*tmp;
+	    double st = tt*tmp;
+	    double sz = tz*tmp;
+
+	    I->vr = I->vr - vprime_t*sz + vprime_z*st;
+	    I->vt = I->vt - vprime_z*sr + vprime_r*sz;
+	    I->vz = I->vz - vprime_r*st + vprime_t*sr;
+
+	    // half acceleration:
+	    I->vr -= fr*qmdt/2.0;
+	    I->vz -= fz*qmdt/2.0;
+
+	    //advance position (Birdsall pp. 338):
+	    I->r += I->vr*dt;
+	    I->z += I->vz*dt;
+
+	    // OKRAJOVE PODMINKY
+
+	    //if(p_param->selfconsistent)
+	    //{
+	    if(I->r > p_param->r_max || I->r < 0 
+		    || I->z > p_param->z_max || I->z < 0 )
+	    {
+		remove(I);
+		continue;
+	    }
+	    if(!field->grid.is_free(I->r, I->z))
+	    {
+		remove(I);
+		continue;
+	    }
+
+	    /**
+	      if(SQR(I->r-center_r)+SQR(I->z-center_z) < sqpp)
+	      {
+	      probe_collect(&*I);
+	      remove(I);
+	      probe_current += charge;
+	      continue;
+	      }
+	      */
+
+	    // SUMACE NABOJE
+	    rho.accumulate(charge, I->r, I->z);
+	    //}
+	}
     niter++;
 }
 void Species::accumulate()
