@@ -2,7 +2,7 @@
 # comments start with #
 
 # geometry
-coord = CARTESIAN
+coord = CYLINDRICAL
 
 # probe voltage
 u_probe =  -10.0		#[V]
@@ -23,8 +23,8 @@ r_sampl = 200
 z_sampl = 100
 
 # working area dimension
-r_max = 2e-2	#[m]
-z_max = 2e-2	#[m]
+r_max = 1.34e-2	#[m]
+z_max = 5.5e-2	#[m]
 
 # number of timesteps
 niter = 100000
