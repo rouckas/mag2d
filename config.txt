@@ -19,7 +19,7 @@ n_particles_total = 400000
 macroparticle_factor = 1
 
 # mesh dimension
-r_sampl = 200
+r_sampl = 100
 z_sampl = 100
 
 # working area dimension
@@ -27,7 +27,7 @@ r_max = 2e-2	#[m]
 z_max = 2e-2	#[m]
 
 # number of timesteps
-niter = 100000
+niter = 100
 
 # the factor by which the source area is smaller
 # than working area, positive integer

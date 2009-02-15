@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     p_p->vt = 0;
 
     p_p[1].z = 3e-2;
-    p_p[1].r = p_p[0].r;
+    p_p[1].r = 5e-3;
     p_p[1].vr = 0;
     p_p[1].vt = 0;
     p_p[1].vz = -pic.species_list[ELECTRON]->veV(1);
