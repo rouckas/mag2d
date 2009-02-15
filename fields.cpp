@@ -40,7 +40,9 @@ class t_grid
 	t_grid(Param &param);
 	Param *p_param;
         void penning_trap();
+        void rf_trap();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
+	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
 	bool is_free(double r, double z);
 };
 class Field : public Matrix<double>
@@ -119,29 +121,55 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 {
     p_param = &param;
 			
-    penning_trap();
+    rf_trap();
 
 }
-void t_grid::penning_trap()
+void t_grid::rf_trap()
 {
     int i, j;
-    double dr=p_param->dr;
-    double dz=p_param->dz;
-    double idr=p_param->idr;
-    //double idz=p_param->idz;
-    double r_max=p_param->r_max;
-    double z_max=p_param->z_max;
-    double PROBE_RADIUS=p_param->probe_radius;
     /*
      * Vytvoreni sondy
      */
     for(i=0; i<M; i++)
 	for(j=0; j<N; j++)
 	{
-	    double r, z;
-	    r = i*dr;
-	    z = j*dz;
-	    //if(i==0 || i==M-1 || j==0 || j==N-1)
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+
+    circle_electrode(5e-3, 1e-2, 2e-3, 1.0);
+    circle_electrode(15e-3, 1e-2, 2e-3, 1.0);
+    circle_electrode(1e-2, 5e-3, 2e-3, -1.0);
+    circle_electrode(1e-2, 15e-3, 2e-3, -1.0);
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
+}
+void t_grid::penning_trap()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
 	    if(i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
@@ -185,6 +213,23 @@ void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax
 	    z = j*dz;
 	    // suboptimal, but simple
 	    if(r>rmin && r<rmax && z>zmin && z<zmax) 
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = _voltage;
+	    }
+	}
+}
+void t_grid::circle_electrode(double rcenter, double zcenter, double radius, double _voltage)
+{
+    double sqradius = SQR(radius);
+    for(int i=0; i<M; i++)
+	for(int j=0; j<N; j++)
+	{
+	    double r, z;
+	    r = i*dr - rcenter;
+	    z = j*dz - zcenter;
+	    // suboptimal, but simple
+	    if(SQR(r) + SQR(z) <= sqradius) 
 	    {
 		mask[i][j] = FIXED;
 		voltage[i][j] = _voltage;
@@ -331,7 +376,14 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
             {
                 k = j + param.z_sampl*i;
                 //if( i>0 && i<M-1 && j>0 && j<N-1)
-                if(grid.mask[i][j]==FREE)
+                if(grid.mask[i][j]==FIXED)
+                {
+                    Ax[l] = 1;
+                    Ai[l] = k;
+                    Ap[k+1] = Ap[k]+1;
+                    l++;
+                }
+                else
                 {
                     Ax[l] = Ax[l+1] = Ax[l+3] = Ax[l+4] = 1.0;  
                     Ax[l+2] = -4;
@@ -362,13 +414,6 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
                     l += 5;
                 }
                 */
-                else if(grid.mask[i][j]==FIXED)
-                {
-                    Ax[l] = 1;
-                    Ai[l] = k;
-                    Ap[k+1] = Ap[k]+1;
-                    l++;
-                }
             }
     }
     /*
