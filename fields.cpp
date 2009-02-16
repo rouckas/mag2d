@@ -41,6 +41,7 @@ class t_grid
 	Param *p_param;
         void penning_trap();
         void rf_trap();
+        void rf_22PT();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
 	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
 	bool is_free(double r, double z);
@@ -123,6 +124,51 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 			
     rf_trap();
 
+}
+void t_grid::rf_22PT()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+
+    double xcenter = 1e-2;
+    double ycenter = 1e-2;
+    double r_22pt = 0.75e-2;
+    double r_rod = 0.05e-2;
+    int npoles = 22;
+    for(int i=0; i<npoles; i++)
+    {
+        double x = xcenter + sin(2*M_PI*i/npoles)*r_22pt;
+        double y = ycenter + cos(2*M_PI*i/npoles)*r_22pt;
+        int sign = i%2==0 ? -1 : 1;
+        circle_electrode(x, y, r_rod, 10.0*sign);
+    }
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
 }
 void t_grid::rf_trap()
 {
