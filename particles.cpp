@@ -510,15 +510,20 @@ void Species::advance()
 	    //}
 	}
     else
+    {
+	double omega = 0.1/dt;
+	double phase = sin(omega*niter*dt);
 	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
 	{
 	    // (r, t, z) ~ (x, y, z)
 	    if(I->empty==true) continue;
 
-	    Bt = 0.003;
+	    Bt = 0.00;
 	    Bz = Br = 0;
 	    //compute field at (I->r, I->z)
-	    //field->grad(I->r, I->z, fr, fz);
+	    field->grad(I->r, I->z, fr, fz);
+	    fr *= phase;
+	    fz *= phase;
 	    //XXX osetrit castice mimo prac oblast !!!
 	    //fr=fz=0;
 
@@ -596,6 +601,7 @@ void Species::advance()
 	    rho.accumulate(charge, I->r, I->z);
 	    //}
 	}
+    }
     niter++;
 }
 void Species::accumulate()
