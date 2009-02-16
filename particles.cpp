@@ -511,7 +511,7 @@ void Species::advance()
 	}
     else
     {
-	double omega = 0.1/dt;
+	double omega = 1.0/(5*dt);
 	double phase = sin(omega*niter*dt);
 	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
 	{

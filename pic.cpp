@@ -6,6 +6,7 @@
 #include "gnuplot_i.h"
 #endif
 #include "argonO2.cpp"
+#include "hydrogen.cpp"
 //#include "oxygen.cpp"
 #include "elon.cpp"
 //#include "elon.cpp"
@@ -32,6 +33,10 @@ Species * make_species(species_type type, int n1, int n2, Param &param, t_random
 	    return new t_argon(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case ELECTRON:
 	    return new t_elon(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	case HYDROGEN:
+	    return new t_hydrogen_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	case H_NEG:
+	    return new t_hydrogen_neg(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	    /*
 	case O2:
 	    return new t_O2_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
@@ -77,7 +82,10 @@ class Pic
 	    species_list[ELECTRON] = make_species(ELECTRON,2000,2, param, rnd, field, species_list);
 	    species_list[ELECTRON]->source5_refresh(param.src_fact);
 
+	    species_list[H_NEG] = make_species(H_NEG,2000,2, param, rnd, field, species_list);
+
 	    species_list[ELECTRON]->lifetime_init();
+	    species_list[H_NEG]->lifetime_init();
 
 	    if(param.particle_reload)
 		for(int ii=0; ii<NTYPES; ii++)

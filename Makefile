@@ -27,7 +27,7 @@ OBJ=gnuplot_i.o
 OPTIM=-march=nocona	-mfpmath=sse -O3 -ffast-math -msse
 #OPTIM=-march=athlon-xp -mfpmath=sse -O3 -ffast-math -msse
 
-SOURCES = test.cpp particles.cpp gnuplot_i.c argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp fields.cpp argonO2.cpp histogram.cpp matrix.cpp speclist.hpp
+SOURCES = test.cpp particles.cpp gnuplot_i.c argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp fields.cpp argonO2.cpp histogram.cpp matrix.cpp speclist.hpp hydrogen.cpp
 
 plasma2d: $(SOURCES)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ test.cpp gnuplot_i.c histogram.cpp $(OPTIM) $(INC) $(LIB) 
