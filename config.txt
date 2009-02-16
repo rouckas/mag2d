@@ -27,7 +27,7 @@ r_max = 2e-2	#[m]
 z_max = 2e-2	#[m]
 
 # number of timesteps
-niter = 100
+niter = 10000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -64,7 +64,7 @@ advancer = ADVANCE2_EULER
 # same but with different units
 # similarly pressure or density specifies the same
 [ARGON]
-pressure = ${* 133.0 1e01}		#[Pa]
+pressure = ${* 133.0 1e-3}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 

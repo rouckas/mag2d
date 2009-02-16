@@ -68,11 +68,12 @@ int main(int argc, char *argv[])
     cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
     p_p->vt = 0;
 
-    p_p[1].z = 3e-2;
-    p_p[1].r = 5e-3;
+    p_p[1].z = 1e-2;
+    p_p[1].r = 1e-2;
     p_p[1].vr = 0;
     p_p[1].vt = 0;
-    p_p[1].vz = -pic.species_list[ELECTRON]->veV(1);
+    p_p[1].vz = -pic.species_list[ELECTRON]->veV(.01);
+    p_p[1].vr = 0.1*p_p[1].vz;
     for(int i=1; i<param.niter+1; ++i)
     {
 
