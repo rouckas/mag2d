@@ -139,7 +139,9 @@ class Param
 	idr = 1.0/dr;
 	idz = 1.0/dz;
 	//V = n_particles/(rho);
+        config.set_prefix("");
 	macroparticle_factor = config("macroparticle_factor",1e4);
+        cout << "macroparticle_factor " << macroparticle_factor <<endl;
 	V = n_particles_total/particle_density_total;
         // XXX check this, only in cartesian coords:
         if(selfconsistent)
