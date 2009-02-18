@@ -40,6 +40,7 @@ class t_grid
 	t_grid(Param &param);
 	Param *p_param;
         void penning_trap();
+        void penning_trap_simple();
         void rf_trap();
         void rf_22PT();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
@@ -122,7 +123,7 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 {
     p_param = &param;
 			
-    rf_trap();
+    penning_trap_simple();
 
 }
 void t_grid::rf_22PT()
@@ -237,6 +238,49 @@ void t_grid::penning_trap()
     // lenses
     square_electrode(4e-3, 7e-3, 52e-3, 53e-3, -5);
     square_electrode(2.5e-3, 7e-3, 46e-3, 47e-3, 0);
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+		mask[i][j] = BOUNDARY;
+	}
+}
+void t_grid::penning_trap_simple()
+{
+    int i, j;
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+    // this trap consists of series of tubes on different potential
+    //
+    double inner_radius = 1e-2;
+    double outer_radius = 1.1e-2;
+    // "injection chamber" at zero potential
+    square_electrode(inner_radius, outer_radius, 0, 1e-2, 0);
+
+    // first closing electrode
+    square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, -5);
+
+    // trap tube
+    square_electrode(inner_radius, outer_radius, 2.1e-2, 6e-2, -1);
+
+    // second closing electrode
+    square_electrode(inner_radius, outer_radius, 6.1e-2, 7e-2, -10);
+
 
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)
