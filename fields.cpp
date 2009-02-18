@@ -40,7 +40,7 @@ class t_grid
 	t_grid(Param &param);
 	Param *p_param;
         void penning_trap();
-        void penning_trap_simple();
+        void penning_trap_simple(double trap_voltage = -1.0);
         void rf_trap();
         void rf_22PT();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
@@ -250,7 +250,7 @@ void t_grid::penning_trap()
 		mask[i][j] = BOUNDARY;
 	}
 }
-void t_grid::penning_trap_simple()
+void t_grid::penning_trap_simple(double trap_voltage)
 {
     int i, j;
     for(i=0; i<M; i++)
@@ -276,7 +276,7 @@ void t_grid::penning_trap_simple()
     square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, -5);
 
     // trap tube
-    square_electrode(inner_radius, outer_radius, 2.1e-2, 6e-2, -1);
+    square_electrode(inner_radius, outer_radius, 2.1e-2, 6e-2, trap_voltage);
 
     // second closing electrode
     square_electrode(inner_radius, outer_radius, 6.1e-2, 7e-2, -10);
