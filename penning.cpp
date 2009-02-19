@@ -59,13 +59,14 @@ int main(int argc, char *argv[])
     ofstream fwv2((param.output_dir+"/vel2.dat").c_str());
 
     t_particle *p_p = &(pic.species_list[ELECTRON]->particles[0]);
-    p_p = &(pic.species_list[H_NEG]->particles[0]);
+    p_p = &(pic.species_list[ELECTRON]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
     p_p->r = 1e-4;
     p_p->z = 4.1e-2;
     p_p->vr = 1e5;
     p_p->vz = 1e4;
     p_p->vr = -pic.species_list[ELECTRON]->veV(1);
+    p_p->vz = pic.species_list[ELECTRON]->veV(1);
     cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
     p_p->vt = 0;
 
@@ -73,7 +74,7 @@ int main(int argc, char *argv[])
     p_p[1].r = 1.1e-2;
     p_p[1].vr = 0;
     p_p[1].vt = 0;
-    p_p[1].vz = -pic.species_list[H_NEG]->veV(.001);
+    p_p[1].vz = -pic.species_list[ELECTRON]->veV(.001);
     p_p[1].vr = 0.3*p_p[1].vz;
     for(int i=1; i<param.niter+1; ++i)
     {

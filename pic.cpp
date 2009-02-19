@@ -79,7 +79,7 @@ class Pic
 
 	    //nparticles_spec = int((param.density[ELECTRON]/total_density)*param.n_particles_total);
 	    //species_list[ELECTRON] = make_species(ELECTRON, nparticles_spec*(1+NPARTICL_SAFE),nparticles_spec, param, rnd, field, species_list);
-	    species_list[ELECTRON] = make_species(ELECTRON,2000,2, param, rnd, field, species_list);
+	    species_list[ELECTRON] = make_species(ELECTRON,100000,2, param, rnd, field, species_list);
 	    species_list[ELECTRON]->source5_refresh(param.src_fact);
 
 	    species_list[H_NEG] = make_species(H_NEG,2000,2, param, rnd, field, species_list);
@@ -123,8 +123,14 @@ class Pic
 	    }
 
 
+            double t0 = 30000;
+            double t1 = 50000;
+            double Ut = 5.0;
+            double dU = Ut/(t1-t0);
 
-	    //emit();
+	    if(iter<t1) emit();
+            //decrease trap potential
+            if(iter>t0 && iter<t1) field.grid.penning_trap_simple(dU*(iter-t0));
 	    for(int i=0; i<NTYPES; i++) if(species_list[i] != 0)
 	    {
 		species_list[i]->advance();
@@ -141,24 +147,28 @@ class Pic
 
 	    iter++;
 	}
-	void emit()
-	{
-		double fnemit = 0.1;
-		int nemit = (int)fnemit;
-		nemit += (rnd.uni()>fnemit-nemit) ? 0 : 1;
-		for(int i=0; i<nemit; i++)
-		{
-			int ind = species_list[ELECTRON]->insert();
-			t_particle * p_p = &(species_list[ELECTRON]->particles[ind]);
-			p_p->r = 5e-4;
-			p_p->z = 4e-2;
-			p_p->vr = species_list[ELECTRON]->veV(1);
-			p_p->vr = 0;
-			p_p->vz = -500000;
-			p_p->vt = 0;
-			p_p->time_to_death = species_list[ELECTRON]->lifetime * rnd.rexp();
-		}
-	}
+        void emit()
+        {
+            double emission_current = 1e-4;     //[mA]
+            double fnemit = 1.0;
+            fnemit = param.dt[ELECTRON]/param.q_e * emission_current/param.macroparticle_factor;
+            int nemit = (int)fnemit;
+            nemit += (rnd.uni()>fnemit-nemit) ? 0 : 1;
+            for(int i=0; i<nemit; i++)
+            {
+                int ind = species_list[ELECTRON]->insert();
+                t_particle * p_p = &(species_list[ELECTRON]->particles[ind]);
+                p_p->r = 2e-3*sqrt(rnd.uni());
+                p_p->z = 0.5e-2;
+                p_p->vr = species_list[ELECTRON]->veV(1);
+                p_p->vz = species_list[ELECTRON]->veV(1);
+                species_list[ELECTRON]->rndv(p_p->vr, p_p->vz, p_p->vt);
+                //p_p->vr = 0;
+                //p_p->vz = -500000;
+                //p_p->vt = 0;
+                p_p->time_to_death = species_list[ELECTRON]->lifetime * rnd.rexp();
+            }
+        }
 
 	int nsampl;
 	void dist_reset()

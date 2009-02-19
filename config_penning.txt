@@ -16,18 +16,18 @@ extern_field = 500.0		#[V/m]
 
 # total number of particles in simulation
 n_particles_total = 400000
-macroparticle_factor = 1
+macroparticle_factor = 2000
 
 # mesh dimension
 r_sampl = 200
 z_sampl = 100
 
 # working area dimension
-r_max = 1.34e-2	#[m]
-z_max = 5.5e-2	#[m]
+r_max = 1.2e-2	#[m]
+z_max = 7.5e-2	#[m]
 
 # number of timesteps
-niter = 100000
+niter = 200000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -35,10 +35,10 @@ src_fact = 4
 
 # one for selfconsistent simulation, 0 for simulation
 # in constant homogenous extern_field
-selfconsistent = 0
+selfconsistent = 1
 
 # simulation state is printed each t_print timesteps
-t_print = 50
+t_print = 500
 
 # after t_equilib timesteps the results are averaged
 t_equilib = 1000
@@ -64,7 +64,7 @@ advancer = ADVANCE2_EULER
 # same but with different units
 # similarly pressure or density specifies the same
 [ARGON]
-pressure = ${* 133.0 1e01}		#[Pa]
+pressure = ${* 133.0 1e-3}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
@@ -85,7 +85,7 @@ dt = 1e-8			#[s]
 
 [ELECTRON]
 density = 1e15			#[m^-3]
-energy = 3.0			#[eV]
+energy = 1.5			#[eV]
 dt = 5e-11			#[s]
 
 [O2]

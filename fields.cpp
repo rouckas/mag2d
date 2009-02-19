@@ -123,7 +123,7 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 {
     p_param = &param;
 			
-    penning_trap_simple();
+    penning_trap_simple(0);
 
 }
 void t_grid::rf_22PT()
@@ -273,13 +273,13 @@ void t_grid::penning_trap_simple(double trap_voltage)
     square_electrode(inner_radius, outer_radius, 0, 1e-2, 0);
 
     // first closing electrode
-    square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, -5);
+    square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, 0);
 
     // trap tube
     square_electrode(inner_radius, outer_radius, 2.1e-2, 6e-2, trap_voltage);
 
     // second closing electrode
-    square_electrode(inner_radius, outer_radius, 6.1e-2, 7e-2, -10);
+    square_electrode(inner_radius, outer_radius, 6.1e-2, 7.5e-2, -10);
 
 
     for(i=2;i<M-2;i++)
