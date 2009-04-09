@@ -85,6 +85,8 @@ class Species
 	Species(int n1, int n2, Param &param, t_random &_rnd, Fields *_field,
 	       double mass, Species * _species_list[], species_type _type = NONE );
 
+        void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
+
 	// generate randomly new particle velocity according to species' velocity
 	// distribution
 	void rndv(double & vr, double & vz, double & vt)
@@ -100,6 +102,7 @@ class Species
 	    vz = source2_particles[i].vz;
 	    */
 	}
+
 
 	//void save(const char *filename)
 	void save(const string filename)
@@ -389,6 +392,28 @@ void Species::probe_collect(t_particle *I)
     //cerr << (SQR(I->vr)+SQR(I->vz)+SQR(I->vz))*mass*0.5/p_param->q_e << " ";;
     //cerr << (I->vr)<<" "<<(I->vz)<<" "<<(I->vz) << endl;;
 }
+
+void Species::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
+{
+    double sqrradius = SQR(radius);
+    double x, y;
+    for(int i=0; i<nparticles; i++)
+    {
+        do{
+            x = (rnd->uni() - 0.5);
+            y = (rnd->uni() - 0.5);
+        }while(SQR(x) + SQR(y) > 0.25 );
+        x = x*2*radius + centerx;
+        y = y*2*radius + centery;
+        if(x < 0 || x > p_param->r_max || y < 0 || y > p_param->z_max) continue;
+
+        int ii = insert();
+        t_particle * pp = &(particles[ii]);
+        pp->r = x;
+        pp->z = y;
+        rndv(pp->vr, pp->vz, pp->vt);
+    }
+};
 void Species::advance()
 {
     double fr, fz;	//force vector
