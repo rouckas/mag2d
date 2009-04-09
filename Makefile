@@ -29,10 +29,12 @@ OPTIM=-march=nocona	-mfpmath=sse -O3 -ffast-math -msse
 
 SOURCES = particles.cpp gnuplot_i.c argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp fields.cpp argonO2.cpp histogram.cpp matrix.cpp speclist.hpp hydrogen.cpp
 
-plasma2d: test.cpp $(SOURCES)
-	$(CC) $(CFLAGS) $(DEFINES) -o $@ test.cpp gnuplot_i.c histogram.cpp $(OPTIM) $(INC) $(LIB) 
-penning: penning.cpp $(SOURCES)
-	$(CC) $(CFLAGS) $(DEFINES) -o $@ penning.cpp gnuplot_i.c histogram.cpp $(OPTIM) $(INC) $(LIB) 
+OBJ = gnuplot_i.o histogram.o
+
+plasma2d: test.cpp $(SOURCES) $(OBJ)
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ test.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
+penning: penning.cpp $(SOURCES) $(OBJ)
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ penning.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
 test_scatter_speed: test_scatter_speed.cpp particles.cpp gnuplot_i.c argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp
 	$(CC) $(CFLAGS) -o $@ test_scatter_speed.cpp gnuplot_i.c histogram.cpp $(OPTIM) $(INC) $(LIB) 
 test_flux: test_flux.cpp random.c random.h
@@ -41,3 +43,5 @@ rot_test: rot_test.cpp random.c random.h
 	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ rot_test.cpp random.c
 maxwell_test: maxwell_test.cpp random.c random.h
 	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ maxwell_test.cpp random.c gnuplot_i.c histogram.cpp
+gnuplot_i.o: gnuplot_i.h
+histogram.o: histogram.hpp
