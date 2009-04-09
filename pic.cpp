@@ -122,18 +122,6 @@ class Pic
 		}
 	    }
 
-
-            double t0 = 30000;
-            double t1 = 430000;
-            double Ut = 5.0;
-            //double dU = Ut/(t1-t0);
-            double dU = 3e-5;
-            // check the voltage in trap center
-            double U_center = field.u[0][(int)(param.z_sampl*4.0/7.5)];
-
-	    if(iter<t1) emit();
-            //decrease trap potential
-            if(iter>t0 && iter<t1 && U_center<0.1) field.grid.penning_trap_simple(field.grid.U_trap+dU);
 	    for(int i=0; i<NTYPES; i++) if(species_list[i] != 0)
 	    {
 		species_list[i]->advance();

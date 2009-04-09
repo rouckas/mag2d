@@ -80,6 +80,20 @@ int main(int argc, char *argv[])
     {
 
 	pic.advance();
+
+        double t0 = 30000;
+        double t1 = 430000;
+        double Ut = 5.0;
+        //double dU = Ut/(t1-t0);
+        double dU = 3e-5;
+        // check the voltage in trap center
+        double U_center = pic.field.u[0][(int)(param.z_sampl*4.0/7.5)];
+
+        if(pic.iter<t1) pic.emit();
+        //decrease trap potential
+        if(pic.iter>t0 && pic.iter<t1 && U_center<0.1) pic.field.grid.penning_trap_simple(pic.field.grid.U_trap+dU);
+
+
 	fwt1 << p_p->r <<' '<< setprecision(10) << p_p->z <<endl;
 	fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
 	fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
