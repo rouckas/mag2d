@@ -41,6 +41,7 @@ class t_grid
 	Param *p_param;
         void penning_trap();
         void penning_trap_simple(double trap_voltage = -1.0);
+        double U_trap;
         void rf_trap();
         void rf_22PT();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
@@ -252,6 +253,7 @@ void t_grid::penning_trap()
 }
 void t_grid::penning_trap_simple(double trap_voltage)
 {
+    U_trap = trap_voltage;
     int i, j;
     for(i=0; i<M; i++)
 	for(j=0; j<N; j++)
@@ -270,7 +272,7 @@ void t_grid::penning_trap_simple(double trap_voltage)
     double inner_radius = 1e-2;
     double outer_radius = 1.1e-2;
     // "injection chamber" at zero potential
-    square_electrode(inner_radius, outer_radius, 0, 1e-2, 0);
+    square_electrode(inner_radius, outer_radius, 0, 1e-2, -0.5);
 
     // first closing electrode
     square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, 0);
