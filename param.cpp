@@ -44,6 +44,8 @@ class Param
     Coord coord;
     int src_fact;
     bool selfconsistent;
+    bool rf;
+    double rf_omega;
     bool particle_reload;
     int t_print;
     int t_equilib;
@@ -92,6 +94,13 @@ class Param
 	dt_elon = config("dt_elon",1e-11);
 
 	selfconsistent = config("selfconsistent",1);
+        rf = config("rf", 1);
+        rf_omega = config("rf_omega", 1e8);
+        if(selfconsistent && rf)
+        {
+            printf("error: selfconsistent rf trap not implemented\n");
+            exit(1);
+        }
 	t_print = config("t_print",0);
 	t_equilib = config("t_equilib",niter+1);
 	particle_reload = config("particle_reload",0);
