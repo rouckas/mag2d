@@ -85,6 +85,7 @@ class Fields
 	void boundary_solve();
 	void reset();
 	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) ;
+	void B(double x, double y, double &Br, double &Bz, double &Bt);
 	inline void accumulate(double charge, double x, double y);
 	~Fields();
     private:
@@ -687,6 +688,33 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
         grad_x *= phase;
         grad_y *= phase;
     }
+
+}
+void Fields::B(double x, double y, double &Br, double &Bz, double &Bt)
+{
+    if(p_param->coord == CYLINDRICAL)
+    {
+        /*
+           double K = (0.03-0.003)/(4.1-3.0)*1e2;
+           double a = 0.03-K*4.1*1e-2;
+           Bz = K*I->z + a;
+           Br = -K*0.5*I->r;
+           if(I->z<3e-2)
+           {
+           Bz = 0.003;
+           Br = 0;
+           }
+           */
+        Bz = 0.03;
+        Br = 0;
+        Bt = 0;
+    }
+    else
+    {
+        Bt = 0.00;
+        Bz = Br = 0;
+    }
+
 
 }
 
