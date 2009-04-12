@@ -155,8 +155,8 @@ void t_grid::rf_22PT()
     int npoles = 22;
     for(int i=0; i<npoles; i++)
     {
-        double x = xcenter + sin(2*M_PI*i/npoles)*r_22pt;
-        double y = ycenter + cos(2*M_PI*i/npoles)*r_22pt;
+        double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
+        double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
         int sign = i%2==0 ? -1 : 1;
         circle_electrode(x, y, r_rod, 10.0*sign);
     }
