@@ -124,7 +124,8 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 {
     p_param = &param;
 			
-    penning_trap_simple(0);
+    //penning_trap_simple(0);
+    rf_22PT();
 
 }
 void t_grid::rf_22PT()
