@@ -446,7 +446,7 @@ void Species::advance()
             Bz = 0.03;
             Br = 0;
 	    //compute field at (I->r, I->z)
-	    field->grad(I->r, I->z, fr, fz);
+	    field->E(I->r, I->z, fr, fz);
 	    //XXX osetrit castice mimo prac oblast !!!
 	    //fr=fz=0;
 
@@ -548,7 +548,7 @@ void Species::advance()
 	    Bt = 0.00;
 	    Bz = Br = 0;
 	    //compute field at (I->r, I->z)
-	    field->grad(I->r, I->z, fr, fz, niter*dt);
+	    field->E(I->r, I->z, fr, fz, niter*dt);
 	    //XXX osetrit castice mimo prac oblast !!!
 	    //fr=fz=0;
 

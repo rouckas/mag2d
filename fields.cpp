@@ -84,7 +84,7 @@ class Fields
 	void solve();
 	void boundary_solve();
 	void reset();
-	void grad(double x, double y, double &grad_x, double &grad_y, double time = 0) ;
+	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) ;
 	inline void accumulate(double charge, double x, double y);
 	~Fields();
     private:
@@ -588,7 +588,7 @@ Fields::~Fields()
 /*
  * vypocte gradient 2d potencialu bilinearni interpolaci
  */
-void Fields::grad(double x, double y, double &grad_x, double &grad_y, double time)
+void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
 {
     int i,j;
     double g1,g2,g3,g4;
