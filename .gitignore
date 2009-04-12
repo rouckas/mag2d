@@ -4,3 +4,4 @@ output/*
 grafy.gnuplot
 plot.dat
 gmon.out
+*.o
