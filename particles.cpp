@@ -395,7 +395,6 @@ void Species::probe_collect(t_particle *I)
 
 void Species::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
 {
-    double sqrradius = SQR(radius);
     double x, y;
     for(int i=0; i<nparticles; i++)
     {
@@ -528,8 +527,6 @@ void Species::advance()
 	}
     else
     {
-	double omega = 1.0/(5*dt);
-	double phase = sin(omega*niter*dt);
 	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
 	{
 	    // (r, t, z) ~ (x, y, z)
