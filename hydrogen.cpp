@@ -50,6 +50,8 @@ class t_hydrogen_neg : public Species
     vector<vec_interpolate*> HHCS;
     vector<double> HHLoss;
     vector<coll_type> HHType;
+    vector<vec_interpolate*> HHeCS;
+    vector<coll_type> HHeType;
 
     public:
     t_hydrogen_neg(int _n, int n2, double temperature, double vsigma_max, Param &param, t_random &random, 
@@ -57,33 +59,42 @@ class t_hydrogen_neg : public Species
 	: Species(_n, n2, param, random, _field, 1.67262158e-27, _species_list, H_NEG)
     {
 	HHsvmax = 1.22e-15;
-	HHesvmax = 2e-15;	//XXX just a random no-nonsense number
+	HHesvmax = 1.22e-15;	//XXX just a random no-nonsense number
 
 	charge = -1.602189e-19;
 
-	HHCS.push_back(new vec_interpolate(sigma2_in_el,argon::E_MIN,argon::E_MAX,200) );
+	HHCS.push_back(new vec_interpolate(sigma2_in_el,hydrogen::E_MIN,hydrogen::E_MAX,200) );
 	HHType.push_back(ELASTIC);
 
-	HHCS.push_back(new vec_interpolate(sigma2_in_ct,argon::E_MIN,argon::E_MAX,200) );
+	HHCS.push_back(new vec_interpolate(sigma2_in_ct,hydrogen::E_MIN,hydrogen::E_MAX,200) );
 	HHType.push_back(CX);
 
-	cout << "t_hydrogen_neg: veV(E_MAX) = "<<veV(hydrogen::E_MAX) <<' '<< hydrogen::E_MAX<<endl;
-	HHsvmax = svmax_find(HHCS,veV(hydrogen::E_MAX));
+        //initialize the helium collisions same as hydrogen, we don't know it exactly anyway
+	HHeCS.push_back(new vec_interpolate(sigma2_in_el,hydrogen::E_MIN,hydrogen::E_MAX,200) );
+	HHeType.push_back(ELASTIC);
 
-	cout << "ArArsvmax = "<< HHsvmax <<endl;
+	HHeCS.push_back(new vec_interpolate(sigma2_in_ct,hydrogen::E_MIN,hydrogen::E_MAX,200) );
+	HHeType.push_back(CX);
+
+
+	HHsvmax = svmax_find(HHCS,veV(hydrogen::E_MAX));
+	HHesvmax = svmax_find(HHeCS,veV(hydrogen::E_MAX));
+
 
 	if(dt==0)
 	    dt = min(lifetime/10.0,1e-8);
     };
     void lifetime_init()
     {
-	HHeFreq = 0;
+	HHeFreq = HHesvmax * species_list[HELIUM]->density;
 	HHFreq = HHsvmax * species_list[HYDROGEN]->density;
 	cout << species_list[HYDROGEN]->name << ' '<< density<<endl;
 	lifetime = 1.0/(HHeFreq + HHFreq);
 	cout << "hydrogen lifetime " << lifetime/dt <<endl;
 	Species::lifetime_init();
     }
+
+    void scatter(t_particle &particle, int species, double svmax, vector<vec_interpolate*> & CCS, vector<coll_type> & CType);
 };
 
 
@@ -91,63 +102,68 @@ class t_hydrogen_neg : public Species
 
 void t_hydrogen_neg::scatter(t_particle &particle)
 {
+    double freq = HHFreq + HHeFreq;
+    if(rnd->uni() < HHFreq/freq)
+    {
+        scatter(particle, HYDROGEN, HHsvmax, HHCS, HHType);
+    }
+    else
+    {
+        scatter(particle, HELIUM, HHesvmax, HHeCS, HHeType);
+    }
 
-    double const_E = 0.5*mass/charge;
+};
 
-    //druha interagujici castice
-    double vr2, vz2, vt2;
-    species_list[HYDROGEN]->rndv(vr2, vz2, vt2);
-    cout << vr2 <<" "<< vz2 <<" "<< vt2 <<endl;
+void t_hydrogen_neg::scatter(t_particle &particle, int species, double svmax, vector<vec_interpolate*> & CCS, vector<coll_type> & CType)
+{
+    double vr2,vz2,vt2;
+    species_list[species]->rndv(vr2,vz2,vt2);
 
-    double sq_v_rel = SQR(vr2-particle.vr) + SQR(vz2-particle.vz) + SQR(vt2-particle.vt);
-    double v = sqrt(sq_v_rel);
-    double E = const_E * sq_v_rel; //[eV]
+    double v = norm(particle.vr-vr2, particle.vz-vz2, particle.vt-vt2);
+    double const_E = -0.5*mass/charge;
+    double E = const_E*v*v;
 
-
-    double gamma = rnd->uni() * HHsvmax * 1e20;
-    double tmp = 0;
+    // choose the collisional process randomly
+    double gamma = rnd->uni() * svmax*1e20;
+    double tmp=0;
     unsigned int i;
-    for(i=0; i<HHCS.size(); i++)
+    for(i=0; i<CCS.size(); i++)
     {
-	tmp += (*HHCS[i])(E)*v;
-	if(tmp > gamma)
-	    break;
+        tmp += (*CCS[i])(E)*v;
+        if(tmp > gamma)
+            break;
     }
 
-
-    if(i==HHCS.size()) return; // NULL collision
-    switch(HHType[i])
+    // select apropriate collision type
+    switch(CType[i])
     {
-	//charge transfer
-	case CX:
-	    particle.vr = vr2;
-	    particle.vz = vz2;
-	    particle.vt = vt2;
-	    break;
 
-	case ELASTIC:
-	    {
-		//prepocet v_1 do tezistove soustavy
-		double v1_cm_x = (particle.vr - vr2)*0.5;
-		double v1_cm_y = (particle.vz - vz2)*0.5;
-		double v1_cm_z = (particle.vt - vt2)*0.5;
-		double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
+        case ELASTIC:
+            {
+                double m2 = species_list[species]->mass;
+                double tmp = 1.0/(mass+m2);
+                //prepocet v_1 do tezistove soustavy
+                double v1_cm_x = (particle.vr - vr2)*m2*tmp;
+                double v1_cm_y = (particle.vz - vz2)*m2*tmp;
+                double v1_cm_z = (particle.vt - vt2)*m2*tmp;
+                //double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
-		//provedeni nahodne rotace
-		rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
+                //provedeni nahodne rotace
+                rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
 
-		//zpetna transformace
-		//particle.vr = v1_cm_x + v_cm_x;
-		particle.vr = v1_cm_x + (particle.vr + vr2)*0.5;
-		particle.vz = v1_cm_y + (particle.vz + vz2)*0.5;
-		particle.vt = v1_cm_z + (particle.vt + vt2)*0.5;
-	    }
-	    break;
-
-	default:
-	    break;
+                //zpetna transformace
+                //particle.vr = v1_cm_x + v_cm_x;
+                particle.vr = v1_cm_x + (particle.vr*mass + vr2*m2)*tmp;
+                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
+                particle.vt = v1_cm_z + (particle.vt*mass + vt2*m2)*tmp;
+            }
+            break;
+        case CX :
+            particle.vr = vr2;
+            particle.vz = vz2;
+            particle.vt = vt2;
+            break;
     }
-}
-
+};
 
 #endif
