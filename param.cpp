@@ -161,4 +161,7 @@ class Param
 	dth = 2*M_PI/macroparticle_factor;
     }
 };
+const double Param::eps_0;
+const double Param::k_B;
+const double Param::q_e;
 #endif
