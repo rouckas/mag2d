@@ -78,6 +78,7 @@ class Pic
 		    total_density += param.density[i];
 
 	    species_list[ARGON] = make_species(ARGON,0 ,0 , param, rnd, field, species_list);
+	    species_list[HYDROGEN] = make_species(HYDROGEN,0 ,0 , param, rnd, field, species_list);
 	    //total_density = param.density[ARGON_POS] + param.density[ELECTRON] + param.density[O2_POS];
 
 	    //nparticles_spec = int((param.density[ELECTRON]/total_density)*param.n_particles_total);

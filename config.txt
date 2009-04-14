@@ -7,6 +7,9 @@ coord = CARTESIAN
 # probe voltage
 u_probe =  -10.0		#[V]
 
+#RF trap frequency
+rf_omega = 5e7
+
 # probe dimensions
 probe_radius = 1e-4		#[m]
 probe_length = 1e-2		#[m]
@@ -27,7 +30,7 @@ r_max = 2e-2	#[m]
 z_max = 2e-2	#[m]
 
 # number of timesteps
-niter = 100000
+niter = 200000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -38,13 +41,13 @@ src_fact = 4
 selfconsistent = 0
 
 # simulation state is printed each t_print timesteps
-t_print = 5000
+t_print = 10000
 
 # after t_equilib timesteps the results are averaged
 t_equilib = 1000
 
 # obvious
-do_plot = 1
+do_plot = 0
 
 # if particle_reload==1 simulation state is reloaded
 # from directory particle reload_dir
@@ -64,7 +67,12 @@ advancer = ADVANCE2_EULER
 # same but with different units
 # similarly pressure or density specifies the same
 [ARGON]
-pressure = ${* 133.0 1e-4}		#[Pa]
+pressure = ${* 133.0 0.0}		#[Pa]
+temperature = 300.0		#[K]
+dt = 0				#[s]
+
+[HELIUM]
+pressure = ${* 133.0 1e-3}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
@@ -72,6 +80,11 @@ dt = 0				#[s]
 density = 1e15			#[m^-3]
 temperature = 300.0		#[K]
 dt = 2e-9			#[s]
+
+[HYDROGEN]
+pressure = ${* 133.0 1e-4}		#[Pa]
+temperature = 300.0		#[K]
+dt = 0				#[s]
 
 [ARGON_POS]
 density = 1e15			#[m^-3]
