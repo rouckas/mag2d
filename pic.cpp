@@ -130,7 +130,7 @@ class Pic
 	    }
 
 	    for(int i=0; i<NTYPES; i++)
-		if( is_particle[i] && species_list[i] != NULL )
+		if( is_particle[i] && species_list[i] != NULL && param.selfconsistent)
 		{
 		    field.rho.add(species_list[i]->rho);
 		}
