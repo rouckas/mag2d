@@ -7,6 +7,7 @@
 #endif
 #include "argonO2.cpp"
 #include "hydrogen.cpp"
+#include "helium.cpp"
 //#include "oxygen.cpp"
 #include "elon.cpp"
 //#include "elon.cpp"
@@ -37,6 +38,8 @@ Species * make_species(species_type type, int n1, int n2, Param &param, t_random
 	    return new t_hydrogen_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case H_NEG:
 	    return new t_hydrogen_neg(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	case HELIUM:
+	    return new t_helium_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	    /*
 	case O2:
 	    return new t_O2_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
