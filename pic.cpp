@@ -121,7 +121,7 @@ class Pic
 	    {
 		field.boundary_solve();
 		field.reset();
-		for(int i=0; i<NTYPES; i++) if(is_particle[i] && species_list[i] != NULL)
+		for(int i=0; i<NTYPES; i++) if(is_particle[i] && species_list[i] != NULL && species_list[i]->n_particles() > 0)
 		{
 		    species_list[i]->rho.reset();
 		}
