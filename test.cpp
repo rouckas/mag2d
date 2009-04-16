@@ -80,10 +80,13 @@ int main(int argc, char *argv[])
     {
 
 	pic.advance();
-	fwt1 << p_p->r <<' '<< setprecision(10) << p_p->z <<endl;
-	fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
-	fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
-	fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
+        if(i%10==0)
+        {
+            fwt1 << p_p->r <<' '<< setprecision(10) << p_p->z <<endl;
+            fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
+            fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
+            fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
+        }
 	if(i%20==0) pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)
