@@ -52,21 +52,22 @@ int main(int argc, char *argv[])
     // initialize the PIC model !
     Pic pic(param);
 
+    pic.species_list[H_NEG]->add_particles_on_disk(1000, 1e-2, 1e-2, 3e-3);
+
     ofstream fw((param.output_dir+"/out.dat").c_str());
     ofstream fwt1((param.output_dir+"/traj1.dat").c_str());
     ofstream fwt2((param.output_dir+"/traj2.dat").c_str());
     ofstream fwv1((param.output_dir+"/vel1.dat").c_str());
     ofstream fwv2((param.output_dir+"/vel2.dat").c_str());
 
-    t_particle *p_p = &(pic.species_list[ELECTRON]->particles[0]);
+    t_particle *p_p;
     p_p = &(pic.species_list[H_NEG]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
-    p_p->r = 1e-4;
-    p_p->z = 4.1e-2;
-    p_p->vr = 1e5;
+    p_p->r = 1e-2;
+    p_p->z = 1.1e-2;
     p_p->vz = 1e4;
-    p_p->vr = -pic.species_list[ELECTRON]->veV(1);
-    cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
+    p_p->vr = -pic.species_list[H_NEG]->veV(0.01);
+    cout <<"veV "<< -pic.species_list[H_NEG]->veV(1) <<endl;
     p_p->vt = 0;
 
     p_p[1].z = 1e-2;
