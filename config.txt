@@ -17,6 +17,11 @@ probe_length = 1e-2		#[m]
 # x component of external field
 extern_field = 500.0		#[V/m]
 
+#magnetic field
+#magnetic_field_file = MagPole.txt
+magnetic_field_const = 1
+Bt = 0.03
+
 # total number of particles in simulation
 n_particles_total = 40000
 macroparticle_factor = 1

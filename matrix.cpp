@@ -9,6 +9,7 @@ class Matrix
     public:
 	int jmax,lmax;
 	T **data;
+        Matrix() : jmax(0), lmax(0), data(NULL) {}
 	Matrix(int _jmax, int _lmax) : jmax(_jmax), lmax(_lmax)
 	{
 
@@ -19,6 +20,18 @@ class Matrix
 	    for(int j=1; j<jmax; j++) 
 		data[j] = data[j-1] + lmax;
 	}
+        void resize(int _jmax, int _lmax)
+        {
+            if(data != NULL)
+                this->~Matrix();
+
+            jmax = _jmax;
+            lmax = _lmax;
+	    data = new T* [jmax];
+	    data[0] = new T [jmax*lmax];
+	    for(int j=1; j<jmax; j++) 
+		data[j] = data[j-1] + lmax;
+        }
 	~Matrix()
 	{
 	    delete [] data[0];

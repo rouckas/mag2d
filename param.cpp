@@ -20,6 +20,9 @@ class Param
     double r_max, z_max;
     int r_sampl, z_sampl;
     double extern_field;
+    std::string magnetic_field_file;
+    bool magnetic_field_const;
+    double Br, Bz, Bt;
     double probe_radius;
     double probe_length;
     double u_probe;
@@ -89,6 +92,12 @@ class Param
 	probe_length = config("probe_length",1e-2);
 	u_probe = config("u_probe",-10.0);
 	extern_field = config("extern_field",100.0);
+
+        magnetic_field_file = config("magnetic_field_file", "");
+        magnetic_field_const = config("magnetic_field_const", 1);
+        Br = config("Br", 0.0);
+        Bz = config("Bz", 0.0);
+        Bt = config("Bt", 0.0);
 
 	niter = config("niter",100000);
 	dt_elon = config("dt_elon",1e-11);

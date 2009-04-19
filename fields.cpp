@@ -10,6 +10,10 @@
 #include "matrix.cpp"
 #include <cmath>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <limits>
 using namespace std;
 
 //#define SQR(x) ((x)*(x))
@@ -51,8 +55,17 @@ class t_grid
 class Field : public Matrix<double>
 {
     public:
-	Field(Param &param) : Matrix<double>(param.r_sampl, param.z_sampl), idr(param.idr), idz(param.idz) {};
+	Field(Param &param) : Matrix<double>(param.r_sampl, param.z_sampl),
+            idr(param.idr), idz(param.idz), rmin(0), zmin(0) {};
+        Field() : Matrix<double>(), idr(0), idz(0), rmin(0), zmin(0) {};
+        void resize(double r_sampl, double z_sampl, double dr, double dz, double _rmin=0, double _zmin=0)
+        {
+            idr = 1.0/dr, idz = 1.0/dz;
+            rmin = _rmin, zmin = _zmin;
+            Matrix<double>::resize(r_sampl, z_sampl);
+        }
 	inline void accumulate(double charge, double x, double y);
+        inline double interpolate(double r, double z);
 	void print( ostream & out = cout , double factor = 1.0)
 	{
 	    double dr=1.0/idr, dz=1.0/idz;
@@ -70,6 +83,7 @@ class Field : public Matrix<double>
 	}
     private:
 	double idr, idz;
+        double rmin, zmin;
 };
 
 class Fields
@@ -86,9 +100,11 @@ class Fields
 	void reset();
 	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) ;
 	void B(double x, double y, double &Br, double &Bz, double &Bt);
+        void load_magnetic_field(const char * fname);
 	inline void accumulate(double charge, double x, double y);
 	~Fields();
     private:
+        Field Br, Bz;
 	double idr, idz;
 	Param *p_param;
 	int *Ap;
@@ -354,6 +370,19 @@ inline void Field::accumulate(double charge, double r, double z)
     data[i][j+1] += (1-u)*v*charge;
     data[i+1][j+1] += u*v*charge;
 
+}
+inline double Field::interpolate(double r, double z)
+{
+    int i = (int)(r * idr);
+    int j = (int)(z * idz);
+
+    double u = r*idr - i;
+    double v = z*idz - j;
+
+    if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
+	throw std::runtime_error("Field::interpolate() outside of range\n");
+
+    return (1-u)*(1-v)*data[i][j] + u*(1-v)*data[i+1][j] + (1-u)*v*data[i][j+1] + u*v*data[i+1][j+1];
 }
 inline void Fields::accumulate(double charge, double r, double z)
 {
@@ -690,9 +719,9 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
     }
 
 }
-void Fields::B(double x, double y, double &Br, double &Bz, double &Bt)
+void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt)
 {
-    if(p_param->coord == CYLINDRICAL)
+    if(p_param->magnetic_field_const)
     {
         /*
            double K = (0.03-0.003)/(4.1-3.0)*1e2;
@@ -705,17 +734,103 @@ void Fields::B(double x, double y, double &Br, double &Bz, double &Bt)
            Br = 0;
            }
            */
-        Bz = 0.03;
-        Br = 0;
-        Bt = 0;
+        _Br = p_param->Br;
+        _Bz = p_param->Bz;
+        _Bt = p_param->Bt;
     }
     else
     {
-        Bt = 0.00;
-        Bz = Br = 0;
+        _Br = Br.interpolate(x, y);
+        _Bz = Bz.interpolate(x, y);
+        _Bt = 0.00;
     }
-
-
 }
 
+int double2int(double x, double eps=1e-4)
+{
+    int res = (int)(x+0.5);
+    if(fabs(res-x) > eps)
+	throw std::runtime_error("double2int() x is not integer\n");
+    return res;
+}
+void Fields::load_magnetic_field(const char * fname)
+{
+    vector<double> rvec, zvec, Brvec, Bzvec;
+    double tmp1, tmp2, tmp3, tmp4;
+
+    std::ifstream fr(fname);
+    string line;
+    istringstream s_line;
+
+    //load the numbers from file
+    while(fr.good())
+    {
+        getline(fr, line);
+        s_line.clear();
+        s_line.str(line);
+
+        if( s_line >> tmp1 >> tmp2 >> tmp3 >> tmp4 )
+        {
+            rvec.push_back(tmp1);
+            zvec.push_back(tmp2);
+            Brvec.push_back(tmp3);
+            Bzvec.push_back(tmp4);
+        }
+    }
+
+    //find dr, rmin, rmax
+    double dr=0, rmin=rvec[0], rmax=rvec[rvec.size()-1];
+    unsigned int i=1;
+    while(i<rvec.size() && rvec[i]-rvec[i-1] == 0.0)
+        i++;
+    dr = rvec[i]-rvec[i-1];
+    if(dr<0)
+    {
+        dr = -dr;
+        rmin = rvec[rvec.size()-1];
+        rmax = rvec[0];
+    }
+    double rsampl_d = (rmax-rmin)/dr+1;
+    unsigned int rsampl = double2int(rsampl_d);
+
+    //find dz, zmin, zmax
+    double dz=0, zmin=zvec[0], zmax=zvec[rvec.size()-1];
+    while(i<zvec.size() && zvec[i]-zvec[i-1] == 0.0)
+        i++;
+    dz = zvec[i]-zvec[i-1];
+    if(dz<0)
+    {
+        dz = -dz;
+        zmin = zvec[zvec.size()-1];
+        zmax = zvec[0];
+    }
+    double zsampl_d = (zmax-zmin)/dz+1;
+    unsigned int zsampl = double2int(zsampl_d);
+    if(rsampl*zsampl != rvec.size())
+        throw std::runtime_error("Fields::load_magnetic_field() wrong size of input vector");
+
+    Br.resize(rsampl, zsampl, dr, dz, zmin, zmax);
+    Bz.resize(rsampl, zsampl, dr, dz, zmin, zmax);
+
+    for(i=0; i<rsampl; i++)
+        for(unsigned int j=0; j<zsampl; j++)
+        {
+            Br[i][j] = numeric_limits<double>::quiet_NaN();
+            Bz[i][j] = numeric_limits<double>::quiet_NaN();
+        }
+
+    int ri, zi;
+    for(i=0; i<rvec.size(); i++)
+    {
+        ri = double2int(rvec[i]/dr);
+        zi = double2int(zvec[i]/dz);
+        Br[ri][zi] = Brvec[i];
+        Bz[ri][zi] = Bzvec[i];
+    }
+
+    for(i=0; i<rsampl; i++)
+        for(unsigned int j=0; j<zsampl; j++)
+            if(isnan(Br[i][j]) || isnan(Bz[i][j]))
+                throw std::runtime_error("Fields::load_magnetic_field() garbage loaded");
+}
 #endif

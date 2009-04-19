@@ -100,6 +100,9 @@ class Pic
 			species_list[ii]->source5_load(param.particle_reload_dir + "/particles_source_" + species_list[ii]->name + ".dat");
 		    }
 
+            if(!param.magnetic_field_const)
+                field.load_magnetic_field(param.magnetic_field_file.c_str());
+
 	    dist_reset();
 	    if(param.do_plot) plot_init();
 	    if(!param.selfconsistent)
