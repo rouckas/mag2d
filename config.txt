@@ -5,7 +5,8 @@
 coord = CARTESIAN
 
 # probe voltage
-u_probe =  -10.0		#[V]
+# or rf trap amplitude
+u_probe =  10.0		#[V]
 
 #RF trap frequency
 rf_omega = 5e7
