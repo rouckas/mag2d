@@ -52,6 +52,7 @@ class t_hydrogen_neg : public Species
     vector<coll_type> HHType;
     vector<vec_interpolate*> HHeCS;
     vector<coll_type> HHeType;
+    vector<double> HHk, HHek;
 
     public:
     t_hydrogen_neg(int _n, int n2, double temperature, double vsigma_max, Param &param, t_random &random, 
@@ -64,21 +65,29 @@ class t_hydrogen_neg : public Species
 	charge = -1.602189e-19;
 
 	HHCS.push_back(new vec_interpolate(sigma2_in_el,hydrogen::E_MIN,hydrogen::E_MAX,200) );
+        HHk.push_back(1.18e-15);
 	HHType.push_back(ELASTIC);
 
 	HHCS.push_back(new vec_interpolate(sigma2_in_ct,hydrogen::E_MIN,hydrogen::E_MAX,200) );
+        HHk.push_back(0.0);
 	HHType.push_back(CX);
 
         //initialize the helium collisions same as hydrogen, we don't know it exactly anyway
 	HHeCS.push_back(new vec_interpolate(sigma2_in_el,hydrogen::E_MIN,hydrogen::E_MAX,200) );
+        HHek.push_back(1.18e-15);
 	HHeType.push_back(ELASTIC);
 
 	HHeCS.push_back(new vec_interpolate(sigma2_in_ct,hydrogen::E_MIN,hydrogen::E_MAX,200) );
+        HHek.push_back(0.0);
 	HHeType.push_back(CX);
 
 
-	HHsvmax = svmax_find(HHCS,veV(hydrogen::E_MAX));
-	HHesvmax = svmax_find(HHeCS,veV(hydrogen::E_MAX));
+        HHsvmax = 0;
+        for(unsigned int i=0; i<HHk.size(); i++) HHsvmax += HHk[i];
+        HHesvmax = 0;
+        for(unsigned int i=0; i<HHek.size(); i++) HHesvmax += HHek[i];
+	//HHsvmax = svmax_find(HHCS,veV(hydrogen::E_MAX));
+	//HHesvmax = svmax_find(HHeCS,veV(hydrogen::E_MAX));
 
 
 	if(dt==0)
@@ -86,7 +95,7 @@ class t_hydrogen_neg : public Species
     };
     void lifetime_init()
     {
-	HHeFreq = HHesvmax * species_list[HELIUM]->density;
+        HHeFreq = HHesvmax * species_list[HELIUM]->density;
 	HHFreq = HHsvmax * species_list[HYDROGEN]->density;
 	cout << species_list[HYDROGEN]->name << ' '<< density<<endl;
 	lifetime = 1.0/(HHeFreq + HHFreq);
@@ -95,6 +104,7 @@ class t_hydrogen_neg : public Species
     }
 
     void scatter(t_particle &particle, int species, double svmax, vector<vec_interpolate*> & CCS, vector<coll_type> & CType);
+    void scatter_k(t_particle &particle, int species, double svmax, vector<double> & Ck, vector<coll_type> & CType);
 };
 
 
@@ -105,13 +115,63 @@ void t_hydrogen_neg::scatter(t_particle &particle)
     double freq = HHFreq + HHeFreq;
     if(rnd->uni() < HHFreq/freq)
     {
-        scatter(particle, HYDROGEN, HHsvmax, HHCS, HHType);
+        //scatter(particle, HYDROGEN, HHsvmax, HHCS, HHType);
+        scatter_k(particle, HYDROGEN, HHsvmax, HHk, HHType);
     }
     else
     {
-        scatter(particle, HELIUM, HHesvmax, HHeCS, HHeType);
+        scatter_k(particle, HELIUM, HHesvmax, HHk, HHeType);
     }
 
+};
+
+void t_hydrogen_neg::scatter_k(t_particle &particle, int species, double svmax, vector<double> & Ck, vector<coll_type> & CType)
+{
+    double vr2,vz2,vt2;
+    species_list[species]->rndv(vr2,vz2,vt2);
+
+
+    // choose the collisional process randomly
+    double gamma = rnd->uni() * svmax;
+    double tmp=0;
+    unsigned int i;
+    for(i=0; i<Ck.size(); i++)
+    {
+        tmp += Ck[i];
+        if(tmp > gamma)
+            break;
+    }
+
+    // select apropriate collision type
+    switch(CType[i])
+    {
+
+        case ELASTIC:
+            {
+                double m2 = species_list[species]->mass;
+                double tmp = 1.0/(mass+m2);
+                //prepocet v_1 do tezistove soustavy
+                double v1_cm_x = (particle.vr - vr2)*m2*tmp;
+                double v1_cm_y = (particle.vz - vz2)*m2*tmp;
+                double v1_cm_z = (particle.vt - vt2)*m2*tmp;
+                //double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
+
+                //provedeni nahodne rotace
+                rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
+
+                //zpetna transformace
+                //particle.vr = v1_cm_x + v_cm_x;
+                particle.vr = v1_cm_x + (particle.vr*mass + vr2*m2)*tmp;
+                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
+                particle.vt = v1_cm_z + (particle.vt*mass + vt2*m2)*tmp;
+            }
+            break;
+        case CX :
+            particle.vr = vr2;
+            particle.vz = vz2;
+            particle.vt = vt2;
+            break;
+    }
 };
 
 void t_hydrogen_neg::scatter(t_particle &particle, int species, double svmax, vector<vec_interpolate*> & CCS, vector<coll_type> & CType)
