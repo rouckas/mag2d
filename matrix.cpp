@@ -22,8 +22,7 @@ class Matrix
 	}
         void resize(int _jmax, int _lmax)
         {
-            if(data != NULL)
-                this->~Matrix();
+            this->~Matrix();
 
             jmax = _jmax;
             lmax = _lmax;
@@ -34,8 +33,11 @@ class Matrix
         }
 	~Matrix()
 	{
-	    delete [] data[0];
-	    delete [] data;
+            if(data != NULL)
+            {
+                delete [] data[0];
+                delete [] data;
+            }
 	}
 	T * & operator [] (int i) const
 	{
