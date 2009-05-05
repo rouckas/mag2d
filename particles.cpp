@@ -86,6 +86,7 @@ class Species
 	       double mass, Species * _species_list[], species_type _type = NONE );
 
         void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
+        void add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius);
 
 	// generate randomly new particle velocity according to species' velocity
 	// distribution
@@ -101,6 +102,11 @@ class Species
 	    vz = source2_particles[i].vz;
 	    vz = source2_particles[i].vz;
 	    */
+	}
+
+	void rndv(double & vr)
+	{
+	    vr = rnd->maxwell1(v_max);
 	}
 
 
@@ -411,6 +417,28 @@ void Species::add_particles_on_disk(int nparticles, double centerx, double cente
         pp->r = x;
         pp->z = y;
         rndv(pp->vr, pp->vz, pp->vt);
+    }
+};
+
+void Species::add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius)
+{
+    double x, y;
+    for(int i=0; i<nparticles; i++)
+    {
+        do{
+            x = (rnd->uni() - 0.5);
+            y = (rnd->uni() - 0.5);
+        }while(SQR(x) + SQR(y) > 0.25 );
+        x = x*2*radius + centerx;
+        y = y*2*radius + centery;
+        if(x < 0 || x > p_param->r_max || y < 0 || y > p_param->z_max) continue;
+
+        int ii = insert();
+        t_particle * pp = &(particles[ii]);
+        pp->r = x;
+        pp->z = y;
+        pp->vr = pp->vz = 0.0;
+        rndv(pp->vt);
     }
 };
 void Species::advance()
