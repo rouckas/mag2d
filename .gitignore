@@ -1,5 +1,5 @@
 plasma2d
-output/*
+output*/*
 *.swp
 grafy.gnuplot
 plot.dat
