@@ -617,8 +617,19 @@ void Species::advance()
 	    if(I->r > p_param->r_max || I->r < 0 
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
-		remove(I);
-		continue;
+                if(p_param->boundary == Param::FREE)
+                {
+                    remove(I);
+                    continue;
+                }
+                else if(p_param->boundary == Param::PERIODIC)
+                {
+                    I->r = fmod(I->r, p_param->r_max);
+                    if(I->r < 0) I->r += p_param->r_max;
+                    I->z = fmod(I->z, p_param->z_max);
+                    if(I->z < 0) I->z += p_param->z_max;
+                }
+
 	    }
 	    if(!field->grid.is_free(I->r, I->z))
 	    {

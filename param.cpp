@@ -17,6 +17,7 @@ class t_spec_param
 class Param
 {
     public:
+    enum Boundary { FREE, PERIODIC, MIRROR };
     double r_max, z_max;
     int r_sampl, z_sampl;
     double extern_field;
@@ -45,6 +46,7 @@ class Param
     int niter;
     t_advancer advancer;
     Coord coord;
+    Boundary boundary;
     int src_fact;
     bool selfconsistent;
     bool rf;
@@ -123,6 +125,16 @@ class Param
         string coord_str = config("coord","CYLINDRICAL");
         if(coord_str == "CYLINDRICAL") { coord = CYLINDRICAL; }
         else { coord = CARTESIAN; }
+
+        string boundary_str = config("boundary","FREE");
+        if(boundary_str == "FREE") { boundary = FREE; }
+        else if(boundary_str == "MIRROR") { boundary = MIRROR; }
+        else if(boundary_str == "PERIODIC") { boundary = PERIODIC; }
+        else { throw std::runtime_error("Param: unrecognized boundary value " + boundary_str + "\n"); }
+        if(coord == CYLINDRICAL && boundary != FREE)
+            throw std::runtime_error("Param: only FREE boundary condition in cylindrical coords is implemented\n");
+        if(boundary == MIRROR)
+            throw std::runtime_error("Param: MIRROR boundary condition not implemented\n");
 
 	//parse plasma parameters
 	double particle_density_total = 0.0;
