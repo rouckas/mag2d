@@ -45,6 +45,7 @@ class t_grid
         double U_trap;
         void rf_trap();
         void rf_22PT();
+        void empty();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
 	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
 	bool is_free(double r, double z);
@@ -141,6 +142,25 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
     //penning_trap_simple(0);
     rf_22PT();
 
+}
+void t_grid::empty()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
 }
 void t_grid::rf_22PT()
 {
