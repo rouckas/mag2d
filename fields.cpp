@@ -19,10 +19,7 @@ using namespace std;
 //#define SQR(x) ((x)*(x))
 inline double SQR(double x){return x*x;};
 
-#define FIXED 0
-#define FREE 1
-#define BOUNDARY 3
-
+enum {FIXED, FREE, BOUNDARY};
 
 
 typedef struct{
