@@ -45,6 +45,7 @@ class t_grid
         double U_trap;
         void rf_trap();
         void rf_22PT();
+        void MAC_filter();
         void empty();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
 	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
@@ -140,7 +141,8 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
     p_param = &param;
 			
     //penning_trap_simple(0);
-    rf_22PT();
+    //rf_22PT();
+    MAC_filter();
 
 }
 void t_grid::empty()
@@ -242,6 +244,45 @@ void t_grid::rf_trap()
             {
 		mask[i][j] = BOUNDARY;
             }
+	}
+}
+void t_grid::MAC_filter()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+    square_electrode(5e-3, 4.5e-2, 2.5e-2, 3e-2, -.05);
+
+    square_electrode(3e-2, 3.3e-2, 11e-2, 14e-2, -.4);
+    square_electrode(4.5e-2, 4.8e-2, 15e-2, 25e-2, -.5);
+    square_electrode(3e-2, 3.3e-2, 26e-2, 29e-2, -.4);
+
+    square_electrode(5e-3, 4.5e-2, 35e-2, 35.3e-2, .0);
+    square_electrode(0.0, 4.5e-2, 39.5e-2, 40e-2, 3e3);
+
+    // collector
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+		mask[i][j] = BOUNDARY;
 	}
 }
 void t_grid::penning_trap()
