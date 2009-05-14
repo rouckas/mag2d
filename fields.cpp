@@ -415,6 +415,8 @@ bool t_grid::is_free(double r, double z)
 
 inline void Field::accumulate(double charge, double r, double z)
 {
+    r -= rmin;
+    z -= zmin;
     int i = (int)(r * idr);
     int j = (int)(z * idz);
 
@@ -431,6 +433,8 @@ inline void Field::accumulate(double charge, double r, double z)
 }
 inline double Field::interpolate(double r, double z)
 {
+    r -= rmin;
+    z -= zmin;
     int i = (int)(r * idr);
     int j = (int)(z * idz);
 
@@ -822,6 +826,10 @@ void Fields::load_magnetic_field(const char * fname)
     double tmp1, tmp2, tmp3, tmp4;
 
     std::ifstream fr(fname);
+    if(fr.fail())
+    {
+        throw runtime_error("Fields::load_magnetic_field(): failed opening file\n");
+    }
     string line;
     istringstream s_line;
 
@@ -869,11 +877,16 @@ void Fields::load_magnetic_field(const char * fname)
     }
     double zsampl_d = (zmax-zmin)/dz+1;
     unsigned int zsampl = double2int(zsampl_d);
+#ifdef DEBUG
+    cout << "rvec.size " << rvec.size() <<endl;
+    cout << "rmin = " << rmin <<"  rmax = "<< rmax <<"  dr = "<<dr <<"  rsampl = "<<rsampl<<endl;
+    cout << "zmin = " << zmin <<"  zmax = "<< zmax <<"  dz = "<<dz <<"  zsampl = "<<zsampl <<endl;
+#endif
     if(rsampl*zsampl != rvec.size())
         throw std::runtime_error("Fields::load_magnetic_field() wrong size of input vector");
 
-    Br.resize(rsampl, zsampl, dr, dz, zmin, zmax);
-    Bz.resize(rsampl, zsampl, dr, dz, zmin, zmax);
+    Br.resize(rsampl, zsampl, dr, dz, rmin, zmin);
+    Bz.resize(rsampl, zsampl, dr, dz, rmin, zmin);
 
     for(i=0; i<rsampl; i++)
         for(unsigned int j=0; j<zsampl; j++)
@@ -885,8 +898,8 @@ void Fields::load_magnetic_field(const char * fname)
     int ri, zi;
     for(i=0; i<rvec.size(); i++)
     {
-        ri = double2int(rvec[i]/dr);
-        zi = double2int(zvec[i]/dz);
+        ri = double2int((rvec[i]-rmin)/dr);
+        zi = double2int((zvec[i]-zmin)/dz);
         Br[ri][zi] = Brvec[i];
         Bz[ri][zi] = Bzvec[i];
     }
