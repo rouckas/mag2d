@@ -762,12 +762,17 @@ void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt)
         _Bt = 0.00;
     }
 }
-
-int double2int(double x, double eps=1e-4)
+string double2string(double x)
+{
+    ostringstream o;
+    o << x;
+    return o.str();
+}
+int double2int(double x, double eps=1e-2)
 {
     int res = (int)(x+0.5);
     if(fabs(res-x) > eps)
-	throw std::runtime_error("double2int() x is not integer\n");
+	throw std::runtime_error("double2int() " + double2string(x) + " is not integer\n");
     return res;
 }
 void Fields::load_magnetic_field(const char * fname)
