@@ -74,6 +74,7 @@ class Species
 	Histogram probe_angular_dist;
 	Histogram probe_angular_normalized_dist;
 	double probe_current;
+        double probe_charge;
 	double probe_current_avg;
 	Field rhoAverage;
 	int nsampl;
@@ -294,7 +295,8 @@ class Species
 	    output << niter << " " 
 		<< n_particles() << " "
 		<< energy_dist.mean_tot() << " "
-		<< probe_current_sum/nsampl*p_param->probe_length/p_param->dz << " "
+		//<< probe_current_sum/nsampl*p_param->probe_length/p_param->dz << " "
+		<< probe_charge << " "
 		<< probe_energy_dist.mean_tot() << " " << endl;
 	    //energy_dist.reset();
 	    //energy_dist_compute();
@@ -345,6 +347,7 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
     probe_angular_dist(30,0.0,M_PI*0.5),
     probe_angular_normalized_dist(30,0.0,M_PI*0.5),
     probe_current(0),
+    probe_charge(0),
     rhoAverage(param),
     nsampl(0)
 {
@@ -377,27 +380,31 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
 };
 void Species::probe_collect(t_particle *I)
 {
-    double center_r = p_param->r_max/2.0;
-    double center_z = p_param->z_max/2.0;
+    if(!(I->z > 395e-3 && I->r < 45e-3)) return;
+    //double center_r = p_param->r_max/2.0;
+    //double center_z = p_param->z_max/2.0;
     probe_energy_dist.add((SQR(I->vr)+SQR(I->vz)+SQR(I->vt))*mass*0.5/p_param->q_e);
     //compute incidence angle
     //normal vector: n = (r-x0, z-y0)
     // n.v = |n|*|v|*cos(alpha)
     // (alpha) =-acos(n.v/(|n|*|v|))
-    double nx = center_r-I->r;
-    double ny = center_z-I->z;
-    double absV, alpha;
-    double absN = norm(nx,ny);
+    //double nx = center_r-I->r;
+    //double ny = center_z-I->z;
+    //double absV, alpha;
+    //double absN = norm(nx,ny);
     //absV = norm(I->vr, I->vz);
     //alpha = acos( ( nx*I->vr + ny*I->vz )/(absN*absV) );
     //probe_angular_dist.add(abs(alpha));
 
-    absV = norm(I->vr,I->vz,I->vt);
-    alpha = acos( ( nx*I->vr + ny*I->vz )/(absN*absV) );
-    probe_angular_dist.add(abs(alpha));
-    probe_angular_normalized_dist.add(abs(alpha),1.0/sin(alpha));
+    //absV = norm(I->vr,I->vz,I->vt);
+    //alpha = acos( ( nx*I->vr + ny*I->vz )/(absN*absV) );
+    //probe_angular_dist.add(abs(alpha));
+    //probe_angular_normalized_dist.add(abs(alpha),1.0/sin(alpha));
     //cerr << (SQR(I->vr)+SQR(I->vz)+SQR(I->vz))*mass*0.5/p_param->q_e << " ";;
     //cerr << (I->vr)<<" "<<(I->vz)<<" "<<(I->vz) << endl;;
+
+    //probe_current += charge;
+    probe_charge += charge;
 }
 
 void Species::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
@@ -549,9 +556,6 @@ void Species::advance()
 	    }
 
 	    // OKRAJOVE PODMINKY
-
-	    //if(p_param->selfconsistent)
-	    //{
 	    if(I->r > p_param->r_max || I->r < 0 
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
@@ -560,23 +564,15 @@ void Species::advance()
 	    }
 	    if(!field->grid.is_free(I->r, I->z))
 	    {
-		remove(I);
+                if(p_param->has_probe)
+                    probe_collect(&*I);
+
+                remove(I);
 		continue;
 	    }
 
-	    /**
-	      if(SQR(I->r-center_r)+SQR(I->z-center_z) < sqpp)
-	      {
-	      probe_collect(&*I);
-	      remove(I);
-	      probe_current += charge;
-	      continue;
-	      }
-	      */
-
 	    // SUMACE NABOJE
 	    rho.accumulate(charge, I->r, I->z);
-	    //}
 	}
     else
     {
