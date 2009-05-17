@@ -70,17 +70,11 @@ int main(int argc, char *argv[])
     p_p[1].vz = -pic.species_list[H_NEG]->veV(.001);
     p_p[1].vr = 0.3*p_p[1].vz;
     */
-    double d1, d2, d3, d4, d5;
-    for(d2=0; d2<4e-1; d2+=1e-2)
-    {
-        pic.field.B(1e-3, d2, d3, d4, d5);
-        cout << "z= " << d2 << "  Br= " << d3 << "  Bz= " << d4 <<endl;
-    }
     for(int i=1; i<param.niter+1; ++i)
     {
 
 	pic.advance();
-        if(i%10==0)
+        if(i%10==11)
         {
             int p1 = 3;
             int p2 = 5;
