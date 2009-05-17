@@ -89,6 +89,7 @@ class Species
         void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
         void add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius);
         void add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius);
+        void add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height = 0.0);
 
 	// generate randomly new particle velocity according to species' velocity
 	// distribution
@@ -471,6 +472,31 @@ void Species::add_particle_beam_on_disk_cylindrical(int nparticles, double cente
         pp->z = centerz;
         pp->vr = pp->vt = 0.0;
         rndv(pp->vz);
+    }
+};
+void Species::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height)
+{
+    double x, y, r;
+    if(centerz < 0 || centerz > p_param->z_max) return;
+
+    for(int i=0; i<nparticles; i++)
+    {
+        //silly implementation coming from variant of this method in cartesian coords
+        do{
+            x = (rnd->uni() - 0.5);
+            y = (rnd->uni() - 0.5);
+            r = SQR(x) + SQR(y);
+        }while(r > 0.25 );
+        r = sqrt(r)*radius*2;
+        if(r > p_param->r_max) continue;
+
+        int ii = insert();
+        t_particle * pp = &(particles[ii]);
+        pp->r = r;
+        pp->z = centerz + height*(rnd->uni()-0.5);
+
+        double v = veV(energy);
+        rnd->rot(v, pp->vr, pp->vz, pp->vt);
     }
 };
 void Species::advance()
