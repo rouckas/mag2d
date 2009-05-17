@@ -94,7 +94,7 @@ dt = 0				#[s]
 
 [HELIUM]
 """
-        string += "pressure = ${* 133.0" +  str(self.He_pressure) + """}		#[Pa]
+        string += "pressure = ${* 133.0 " +  str(self.He_pressure) + """}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
