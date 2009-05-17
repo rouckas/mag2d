@@ -1,0 +1,24 @@
+Install getpot
+
+wget http://dfn.dl.sourceforge.net/sourceforge/getpot/getpot-c++-1.1.18.tar.gz
+tar zxvf getpot-c++-1.1.18.tar.gz
+mkdir ~/include
+cp getpot-c++/GetPot ~/include/
+
+install umfpack and libboost-filesystem:
+
+sudo aptitude install libsuitesparse-dev
+sudo aptitude install libboost-filesystem-dev
+
+make :-)
+
+optionaly install jobqueue
+
+#!/bin/bash
+wget http://zakalwe.fi/~shd/foss/jobqueue/jobqueue-0.04.tar.bz2
+tar jxvf jobqueue-0.04.tar.bz2
+cd jobqueue-0.04/
+sed -i -e 's/#!\/bin\/sh/#!\/bin\/bash/' configure
+./configure
+make
+
