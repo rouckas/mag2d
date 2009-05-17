@@ -6,14 +6,20 @@ coord = CARTESIAN
 
 # probe voltage
 # or rf trap amplitude
-u_probe =  10.0		#[V]
+u_probe =  20.0		#[V]
+
+#RF trap ?
+rf = 1
 
 #RF trap frequency
-rf_omega = 5e7
+rf_omega = 11.3e7
 
 # probe dimensions
 probe_radius = 1e-4		#[m]
 probe_length = 1e-2		#[m]
+
+# detect particles?
+has_probe = 1
 
 # x component of external field
 extern_field = 500.0		#[V/m]
@@ -50,7 +56,7 @@ selfconsistent = 0
 t_print = 10000
 
 # after t_equilib timesteps the results are averaged
-t_equilib = 1000
+t_equilib = 100000
 
 # obvious
 do_plot = 0
@@ -88,7 +94,7 @@ temperature = 300.0		#[K]
 dt = 2e-9			#[s]
 
 [HYDROGEN]
-pressure = ${* 133.0 1e-4}		#[Pa]
+pressure = ${* 133.0 0.0}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
