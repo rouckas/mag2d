@@ -45,7 +45,8 @@ int main(int argc, char *argv[])
     // initialize the PIC model !
     Pic pic(param);
 
-    pic.species_list[ELECTRON]->add_particle_beam_on_disk_cylindrical(1000, 1e-2, 5e-3);
+    //pic.species_list[ELECTRON]->add_particle_beam_on_disk_cylindrical(1000, 1e-2, 5e-3);
+    pic.species_list[ELECTRON]->add_monoenergetic_particles_on_cylinder_cylindrical(10000, 1.0, 2e-2, 5e-3, 4e-2);
 
     ofstream fw((param.output_dir+"/out.dat").c_str());
     ofstream fwt1((param.output_dir+"/traj1.dat").c_str());

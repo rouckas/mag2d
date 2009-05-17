@@ -84,10 +84,10 @@ class Pic
 
 	    //nparticles_spec = int((param.density[ELECTRON]/total_density)*param.n_particles_total);
 	    //species_list[ELECTRON] = make_species(ELECTRON, nparticles_spec*(1+NPARTICL_SAFE),nparticles_spec, param, rnd, field, species_list);
-	    species_list[ELECTRON] = make_species(ELECTRON,100000,2, param, rnd, field, species_list);
+	    species_list[ELECTRON] = make_species(ELECTRON,10000,0, param, rnd, field, species_list);
 	    //species_list[ELECTRON]->source5_refresh(param.src_fact);
 
-	    species_list[H_NEG] = make_species(H_NEG,2000,2, param, rnd, field, species_list);
+	    species_list[H_NEG] = make_species(H_NEG,0,0, param, rnd, field, species_list);
 
 	    species_list[ELECTRON]->lifetime_init();
 	    species_list[H_NEG]->lifetime_init();
