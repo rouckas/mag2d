@@ -298,7 +298,7 @@ class Species
 		<< energy_dist.mean_tot() << " "
 		//<< probe_current_sum/nsampl*p_param->probe_length/p_param->dz << " "
 		<< probe_charge << " "
-		<< probe_energy_dist.mean_tot() << " " << endl;
+		<< probe_energy_dist.mean_tot() << " " << probe_current/(nsampl*dt)<< endl;
 	    //energy_dist.reset();
 	    //energy_dist_compute();
 	    energy_dist.print( (p_param->output_dir + "/" + name + "_energy_dist.dat").c_str() );
@@ -330,6 +330,7 @@ class Species
 	    rhoAverage.reset();
 	    nsampl = 0;
 	    probe_current_sum = 0;
+            probe_current = 0;
 	}
  
 
@@ -404,7 +405,7 @@ void Species::probe_collect(t_particle *I)
     //cerr << (SQR(I->vr)+SQR(I->vz)+SQR(I->vz))*mass*0.5/p_param->q_e << " ";;
     //cerr << (I->vr)<<" "<<(I->vz)<<" "<<(I->vz) << endl;;
 
-    //probe_current += charge;
+    probe_current += charge;
     probe_charge += charge;
 }
 
