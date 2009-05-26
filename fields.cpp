@@ -140,9 +140,28 @@ t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl),
 {
     p_param = &param;
 			
-    //penning_trap_simple(0);
-    //rf_22PT();
-    MAC_filter();
+    switch(param.geometry)
+    {
+        case Param::PENNING_SIMPLE:
+            penning_trap_simple();
+            break;
+        case Param::PENNING:
+            penning_trap();
+            break;
+        case Param::MAC:
+            MAC_filter();
+            break;
+        case Param::RF_QUAD:
+            rf_trap();
+            break;
+        case Param::RF_22PT:
+            rf_22PT();
+            break;
+        case Param::EMPTY:
+        default:
+            empty();
+            break;
+    }
 
 }
 void t_grid::empty()

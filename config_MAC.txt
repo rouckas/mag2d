@@ -2,47 +2,44 @@
 # comments start with #
 
 # coordinate system
-coord = CARTESIAN
+coord = CYLINDRICAL
 
 # experiment geometry
-geometry = RF_22PT
+geometry = MAC
 
 # probe voltage
 # or rf trap amplitude
-u_probe =  20.0		#[V]
+u_probe =  -0.5		#[V]
 
 #RF trap ?
-rf = 1
-
-#RF trap frequency
-rf_omega = 11.3e7
+rf = 0
 
 # probe dimensions
 probe_radius = 1e-4		#[m]
 probe_length = 1e-2		#[m]
 
-# detect particles?
-has_probe = 1
-
 # x component of external field
 extern_field = 500.0		#[V/m]
 
+# detect particles?
+has_probe = 1
+
 #magnetic field
-#magnetic_field_file = MagPole.txt
-magnetic_field_const = 1
-Bt = 0.03
+magnetic_field_file = magfield2.dat
+magnetic_field_const = 0
+Bz = 0.03
 
 # total number of particles in simulation
-n_particles_total = 40000
-macroparticle_factor = 1
+n_particles_total = 400000
+macroparticle_factor = 2000
 
 # mesh dimension
-r_sampl = 100
-z_sampl = 100
+r_sampl = 400
+z_sampl = 200
 
 # working area dimension
-r_max = 2e-2	#[m]
-z_max = 2e-2	#[m]
+r_max = 0.05	#[m]
+z_max = 0.4	#[m]
 
 # number of timesteps
 niter = 200000
@@ -56,13 +53,13 @@ src_fact = 4
 selfconsistent = 0
 
 # simulation state is printed each t_print timesteps
-t_print = 10000
+t_print = 200
 
 # after t_equilib timesteps the results are averaged
-t_equilib = 100000
+t_equilib = 1000000
 
 # obvious
-do_plot = 0
+do_plot = 1
 
 # if particle_reload==1 simulation state is reloaded
 # from directory particle reload_dir
@@ -82,22 +79,7 @@ advancer = ADVANCE2_EULER
 # same but with different units
 # similarly pressure or density specifies the same
 [ARGON]
-pressure = ${* 133.0 0.0}		#[Pa]
-temperature = 300.0		#[K]
-dt = 0				#[s]
-
-[HELIUM]
 pressure = ${* 133.0 1e-3}		#[Pa]
-temperature = 300.0		#[K]
-dt = 0				#[s]
-
-[H_NEG]
-density = 1e15			#[m^-3]
-temperature = 300.0		#[K]
-dt = 2e-9			#[s]
-
-[HYDROGEN]
-pressure = ${* 133.0 0.0}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
@@ -118,7 +100,7 @@ dt = 1e-8			#[s]
 
 [ELECTRON]
 density = 1e15			#[m^-3]
-energy = 3.0			#[eV]
+energy = 1.5			#[eV]
 dt = 5e-11			#[s]
 
 [O2]

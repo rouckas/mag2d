@@ -2,6 +2,7 @@
 #define PARAM_H
 #include <GetPot>
 #include <string>
+#include <map>
 #include <stdexcept>
 #include "speclist.hpp"
 using namespace std;
@@ -18,6 +19,7 @@ class Param
 {
     public:
     enum Boundary { FREE, PERIODIC, MIRROR };
+    enum Geometry { EMPTY, RF_22PT, RF_QUAD, MAC, PENNING, PENNING_SIMPLE };
     double r_max, z_max;
     int r_sampl, z_sampl;
     double extern_field;
@@ -48,6 +50,7 @@ class Param
     t_advancer advancer;
     Coord coord;
     Boundary boundary;
+    Geometry geometry;
     int src_fact;
     bool selfconsistent;
     bool rf;
@@ -138,6 +141,19 @@ class Param
             throw std::runtime_error("Param: only FREE boundary condition in cylindrical coords is implemented\n");
         if(boundary == MIRROR)
             throw std::runtime_error("Param: MIRROR boundary condition not implemented\n");
+
+        string geometry_str = config("geometry","EMPTY");
+        map<string, Geometry> string2geo;
+        string2geo["EMPTY"] = EMPTY;
+        string2geo["RF_22PT"] = RF_22PT;
+        string2geo["RF_QUAD"] = RF_QUAD;
+        string2geo["MAC"] = MAC;
+        string2geo["PENNING"] = PENNING;
+        string2geo["PENNING_SIMPLE"] = PENNING_SIMPLE;
+        if(string2geo.find(geometry_str) == string2geo.end())
+            throw std::runtime_error("Param: unrecognized geometry value " + geometry_str + "\n");
+        else
+            geometry = string2geo[geometry_str];
 
 	//parse plasma parameters
 	double particle_density_total = 0.0;
