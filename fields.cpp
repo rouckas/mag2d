@@ -887,6 +887,7 @@ void Fields::load_magnetic_field(const char * fname)
 
     //find dz, zmin, zmax
     double dz=0, zmin=zvec[0], zmax=zvec[rvec.size()-1];
+    i = 1;
     while(i<zvec.size() && zvec[i]-zvec[i-1] == 0.0)
         i++;
     dz = zvec[i]-zvec[i-1];
