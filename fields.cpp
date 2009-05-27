@@ -283,14 +283,18 @@ void t_grid::MAC_filter()
 		mask[i][j] = FREE;
 	    }
 	}
-    square_electrode(5e-3, 4.5e-2, 2.5e-2, 3e-2, -.05);
+    square_electrode(5e-3, 4.5e-2, 1e-2, 1.5e-2, -.00);
+    square_electrode(5e-3, 7e-3, 2e-2, 8e-2, 0.0);
+    square_electrode(5e-3, 4.5e-2, 8.5e-2, 9e-2, -.00);
 
     double threshold = p_param->u_probe;
-    square_electrode(3e-2, 3.3e-2, 11e-2, 14e-2, 0.8*threshold);
-    square_electrode(4.5e-2, 4.8e-2, 15e-2, 25e-2, threshold);
-    square_electrode(3e-2, 3.3e-2, 26e-2, 29e-2, 0.8*threshold);
+    double ofs = 3e-2;
+    square_electrode(3e-2, 3.3e-2, 11e-2+ofs, 14e-2+ofs, 0.8*threshold);
+    square_electrode(4.5e-2, 4.8e-2, 15e-2+ofs, 25e-2+ofs, threshold);
+    square_electrode(3e-2, 3.3e-2, 26e-2+ofs, 29e-2+ofs, 1.0*threshold);
+    square_electrode(2.5e-2, 2.8e-2, 29e-2+ofs, 30.5e-2+ofs, 1.0*threshold);
 
-    square_electrode(5e-3, 4.5e-2, 35e-2, 35.3e-2, .0);
+    square_electrode(15e-3, 4.5e-2, 35e-2, 35.3e-2, .0);
     //probe
     square_electrode(0.0, 4.5e-2, 39.5e-2, 40e-2, 3e3);
 

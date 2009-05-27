@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     Pic pic(param);
 
     pic.species_list[ELECTRON]->resize(10000);
-    pic.species_list[ELECTRON]->add_monoenergetic_particles_on_cylinder_cylindrical(10000, 1.0, 2e-2, 5e-3, 4e-2);
+    pic.species_list[ELECTRON]->add_monoenergetic_particles_on_cylinder_cylindrical(10000, 1.0, 5e-2, 4e-3, 6e-2);
 
     ofstream fw((param.output_dir+"/out.dat").c_str());
     ofstream fwt1((param.output_dir+"/traj1.dat").c_str());
