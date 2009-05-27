@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     // initialize the PIC model !
     Pic pic(param);
 
+    pic.species_list[H_NEG]->resize(1000);
     pic.species_list[H_NEG]->add_particles_on_disk(1000, 1e-2, 1e-2, 3e-3);
 
     ofstream fw((param.output_dir+"/out.dat").c_str());

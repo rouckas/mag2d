@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
     // initialize the PIC model !
     Pic pic(param);
 
+    pic.species_list[ELECTRON]->resize(2);
+
     ofstream fw((param.output_dir+"/out.dat").c_str());
     ofstream fwt1((param.output_dir+"/traj1.dat").c_str());
     ofstream fwt2((param.output_dir+"/traj2.dat").c_str());

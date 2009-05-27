@@ -201,6 +201,19 @@ class Species
 	    return tmp;
 	}
 	int n_particles(){ return particles.size() - empty.size();}
+        void resize(unsigned int newsize)
+        {
+            unsigned int oldsize = particles.size();
+            if(newsize > oldsize)
+            {
+                particles.resize(newsize);
+                for(unsigned int i = oldsize; i < newsize; i++)
+                {
+                    particles[i].empty = true;
+                    empty.push_back(i);
+                }
+            }
+        }
 
 	virtual void scatter(t_particle &particle) = 0;
 	void advance();
