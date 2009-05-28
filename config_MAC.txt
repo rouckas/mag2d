@@ -9,7 +9,7 @@ geometry = MAC
 
 # probe voltage
 # or rf trap amplitude
-u_probe =  -0.5		#[V]
+u_probe =  -0.9		#[V]
 
 #RF trap ?
 rf = 0
@@ -25,7 +25,8 @@ extern_field = 500.0		#[V/m]
 has_probe = 1
 
 #magnetic field
-magnetic_field_file = magfield2.dat
+#magnetic_field_file = magfield2.dat
+magnetic_field_file = zeleza-civkyvenku.dat
 magnetic_field_const = 0
 Bz = 0.03
 
@@ -34,8 +35,8 @@ n_particles_total = 400000
 macroparticle_factor = 2000
 
 # mesh dimension
-r_sampl = 400
-z_sampl = 200
+r_sampl = 200
+z_sampl = 400
 
 # working area dimension
 r_max = 0.05	#[m]
@@ -53,10 +54,10 @@ src_fact = 4
 selfconsistent = 0
 
 # simulation state is printed each t_print timesteps
-t_print = 200
+t_print = 1000
 
 # after t_equilib timesteps the results are averaged
-t_equilib = 1000000
+t_equilib = 10000
 
 # obvious
 do_plot = 1
@@ -79,7 +80,12 @@ advancer = ADVANCE2_EULER
 # same but with different units
 # similarly pressure or density specifies the same
 [ARGON]
-pressure = ${* 133.0 1e-3}		#[Pa]
+pressure = ${* 133.0 0.0}		#[Pa]
+temperature = 300.0		#[K]
+dt = 0				#[s]
+
+[HELIUM]
+pressure = ${* 133.0 1e-6}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
