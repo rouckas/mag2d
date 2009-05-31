@@ -280,13 +280,5 @@ class Pic
 	    species_list[ELECTRON]->rho.reset();
 	    species_list[ELECTRON]->accumulate();
 	    gnuplot_splot_grid(h1, species_list[ELECTRON]->rho[0], param.r_sampl, param.z_sampl, "rho");
-
-	    ofstream fw("plot.dat");
-	    for(int ii=0; ii<param.z_sampl; ii++)
-	    {
-		for(int jj=0; jj<param.r_sampl; jj++)
-		    fw << jj*param.dr <<" "<< ii*param.dz <<" "<< field.u[ii][jj] <<endl;
-		fw << endl;
-	    }
 	}
 };
