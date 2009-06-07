@@ -65,6 +65,14 @@ class Field : public Matrix<double>
         }
 	inline void accumulate(double charge, double x, double y);
         inline double interpolate(double r, double z);
+        bool hasnan()
+        {
+	    for(int j=0; j<jmax; j++)
+		for(int l=0; l<lmax; l++)
+                    if(isnan(data[j][l]))
+                        return true;
+            return false;
+        }
 	void print( ostream & out = cout , double factor = 1.0)
 	{
 	    double dr=1.0/idr, dz=1.0/idz;
