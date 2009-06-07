@@ -25,6 +25,7 @@ CFLAGS = -g -pg -Wall
 MODUL=poisson.c random.c
 OBJ=gnuplot_i.o
 OPTIM=-march=nocona	-mfpmath=sse -O3 -ffast-math -msse
+OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
 #OPTIM=-march=athlon-xp -mfpmath=sse -O3 -ffast-math -msse
 
 .c.o:
@@ -33,7 +34,7 @@ OPTIM=-march=nocona	-mfpmath=sse -O3 -ffast-math -msse
 	$(CC) $(CFLAGS) -c $<
 
 
-SOURCES = particles.cpp argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp fields.cpp argonO2.cpp histogram.cpp matrix.cpp speclist.hpp hydrogen.cpp
+SOURCES = particles.cpp argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp fields.cpp argonO2.cpp histogram.cpp matrix.cpp speclist.hpp hydrogen.cpp timer.hpp
 
 OBJ = gnuplot_i.o histogram.o
 
