@@ -392,6 +392,7 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
 
     // prepare output file
     output.open( (param.output_dir + "/" + name + ".dat").c_str() );
+    rho.reset();
 };
 void Species::probe_collect(t_particle *I)
 {
