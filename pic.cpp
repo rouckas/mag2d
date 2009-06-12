@@ -157,14 +157,14 @@ class Pic
             {
                 int ind = species_list[ELECTRON]->insert();
                 t_particle * p_p = &(species_list[ELECTRON]->particles[ind]);
-                p_p->r = 2e-3*sqrt(rnd.uni());
+                p_p->x = 2e-3*sqrt(rnd.uni());
                 p_p->z = 0.5e-2;
-                p_p->vr = species_list[ELECTRON]->veV(1);
+                p_p->vx = species_list[ELECTRON]->veV(1);
                 p_p->vz = species_list[ELECTRON]->veV(1);
-                species_list[ELECTRON]->rndv(p_p->vr, p_p->vz, p_p->vt);
-                //p_p->vr = 0;
+                species_list[ELECTRON]->rndv(p_p->vx, p_p->vz, p_p->vy);
+                //p_p->vx = 0;
                 //p_p->vz = -500000;
-                //p_p->vt = 0;
+                //p_p->vy = 0;
                 p_p->time_to_death = species_list[ELECTRON]->lifetime * rnd.rexp();
             }
         }

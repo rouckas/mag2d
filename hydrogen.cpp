@@ -151,25 +151,25 @@ void t_hydrogen_neg::scatter_k(t_particle &particle, int species, double svmax, 
                 double m2 = species_list[species]->mass;
                 double tmp = 1.0/(mass+m2);
                 //prepocet v_1 do tezistove soustavy
-                double v1_cm_x = (particle.vr - vr2)*m2*tmp;
+                double v1_cm_x = (particle.vx - vr2)*m2*tmp;
                 double v1_cm_y = (particle.vz - vz2)*m2*tmp;
-                double v1_cm_z = (particle.vt - vt2)*m2*tmp;
+                double v1_cm_z = (particle.vy - vt2)*m2*tmp;
                 //double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
                 //provedeni nahodne rotace
                 rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
 
                 //zpetna transformace
-                //particle.vr = v1_cm_x + v_cm_x;
-                particle.vr = v1_cm_x + (particle.vr*mass + vr2*m2)*tmp;
+                //particle.vx = v1_cm_x + v_cm_x;
+                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
                 particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
-                particle.vt = v1_cm_z + (particle.vt*mass + vt2*m2)*tmp;
+                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
             }
             break;
         case CX :
-            particle.vr = vr2;
+            particle.vx = vr2;
             particle.vz = vz2;
-            particle.vt = vt2;
+            particle.vy = vt2;
             break;
     }
 };
@@ -179,7 +179,7 @@ void t_hydrogen_neg::scatter(t_particle &particle, int species, double svmax, ve
     double vr2,vz2,vt2;
     species_list[species]->rndv(vr2,vz2,vt2);
 
-    double v = norm(particle.vr-vr2, particle.vz-vz2, particle.vt-vt2);
+    double v = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
     double const_E = -0.5*mass/charge;
     double E = const_E*v*v;
 
@@ -203,25 +203,25 @@ void t_hydrogen_neg::scatter(t_particle &particle, int species, double svmax, ve
                 double m2 = species_list[species]->mass;
                 double tmp = 1.0/(mass+m2);
                 //prepocet v_1 do tezistove soustavy
-                double v1_cm_x = (particle.vr - vr2)*m2*tmp;
+                double v1_cm_x = (particle.vx - vr2)*m2*tmp;
                 double v1_cm_y = (particle.vz - vz2)*m2*tmp;
-                double v1_cm_z = (particle.vt - vt2)*m2*tmp;
+                double v1_cm_z = (particle.vy - vt2)*m2*tmp;
                 //double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
                 //provedeni nahodne rotace
                 rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
 
                 //zpetna transformace
-                //particle.vr = v1_cm_x + v_cm_x;
-                particle.vr = v1_cm_x + (particle.vr*mass + vr2*m2)*tmp;
+                //particle.vx = v1_cm_x + v_cm_x;
+                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
                 particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
-                particle.vt = v1_cm_z + (particle.vt*mass + vt2*m2)*tmp;
+                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
             }
             break;
         case CX :
-            particle.vr = vr2;
+            particle.vx = vr2;
             particle.vz = vz2;
-            particle.vt = vt2;
+            particle.vy = vt2;
             break;
     }
 };

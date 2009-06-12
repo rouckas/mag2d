@@ -94,7 +94,7 @@ void t_elon::scatter(t_particle &particle)
     //rozhodneme, jestli dochazi k e-e nebo e-i
     if(  true || rnd->uni() > 0.058 )
     {
-	double sq_v = SQR(particle.vr) + SQR(particle.vz) + SQR(particle.vt);
+	double sq_v = SQR(particle.vx) + SQR(particle.vz) + SQR(particle.vy);
 	double const_E = -0.5*mass/charge;
 	double E = const_E*sq_v;
 	double v = sqrt(sq_v);
@@ -130,7 +130,7 @@ void t_elon::scatter(t_particle &particle)
 	    //pruzny rozptyl
 	    case 0:
 		sq_v *= 1-rnd->uni()*2*mass/M_ARP;
-	//	cerr << (SQR(particle.vr)+SQR(particle.vz)+SQR(particle.vt)) / sq_v << endl;
+	//	cerr << (SQR(particle.vx)+SQR(particle.vz)+SQR(particle.vy)) / sq_v << endl;
 		break;
 
 		//excitace Ar
@@ -168,7 +168,7 @@ void t_elon::scatter(t_particle &particle)
 	{
 	    v = sqrt(sq_v);
 	    //nahodna zmena smeru
-	    rnd->rot(v,particle.vr,particle.vz,particle.vt);
+	    rnd->rot(v,particle.vx,particle.vz,particle.vy);
 	}
     }// konec e-i interakce
     else
@@ -185,7 +185,7 @@ void t_elon::scatter(t_particle &particle)
 	t_particle *p_c2 = &(particles[i]);
 
 	//vypoceteme relativni rychlost elektronu
-	double v_rel = (SQR(p_c2->vr-particle.vr) + SQR(p_c2->vz-particle.vz) + SQR(p_c2->vt-particle.vt));
+	double v_rel = (SQR(p_c2->vx-particle.vx) + SQR(p_c2->vz-particle.vz) + SQR(p_c2->vy-particle.vy));
 	double E = 0.5*mass*v_rel;
 	v_rel = sqrt(v_rel);
 
@@ -203,24 +203,24 @@ void t_elon::scatter(t_particle &particle)
 	if(vsigma > rnd->uni())
 	{
 	    //prepocet v_1 do tezistove soustavy
-	    double v1_cm_x = (particle.vr - p_c2->vr)*0.5;
+	    double v1_cm_x = (particle.vx - p_c2->vx)*0.5;
 	    double v1_cm_y = (particle.vz - p_c2->vz)*0.5;
-	    double v1_cm_z = (particle.vt - p_c2->vt)*0.5;
+	    double v1_cm_z = (particle.vy - p_c2->vy)*0.5;
 	    double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
 	    //provedeni nahodne rotace
 	    rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
 
 	    //zpetna transformace
-	    //p_c->vr = v1_cm_x + v_cm_x;
-	    particle.vr = v1_cm_x + (particle.vr + p_c2->vr)*0.5;
+	    //p_c->vx = v1_cm_x + v_cm_x;
+	    particle.vx = v1_cm_x + (particle.vx + p_c2->vx)*0.5;
 	    particle.vz = v1_cm_y + (particle.vz + p_c2->vz)*0.5;
-	    particle.vt = v1_cm_z + (particle.vt + p_c2->vt)*0.5;
+	    particle.vy = v1_cm_z + (particle.vy + p_c2->vy)*0.5;
 
 	    //rychlost druhe castice je v tezistove soust. opacna:
-	    p_c2->vr = -2*v1_cm_x + particle.vr;
+	    p_c2->vx = -2*v1_cm_x + particle.vx;
 	    p_c2->vz = -2*v1_cm_y + particle.vz;
-	    p_c2->vt = -2*v1_cm_z + particle.vt;
+	    p_c2->vy = -2*v1_cm_z + particle.vy;
 
 	}
     }

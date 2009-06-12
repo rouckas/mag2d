@@ -25,8 +25,8 @@ using namespace std;
 class t_particle
 {
     public:
-    double r,z;
-    double vr,vz,vt;
+    double x, y, z;
+    double vx,vy,vz;
     double time_to_death;
     bool empty;
 };
@@ -101,7 +101,7 @@ class Species
 	    //alternatively we can take random sample from source particles
 	    /*
 	    int i = rnd->inuni() % source2_particles.size();
-	    vr = source2_particles[i].vr;
+	    vr = source2_particles[i].vx;
 	    vz = source2_particles[i].vz;
 	    vz = source2_particles[i].vz;
 	    */
@@ -160,8 +160,8 @@ class Species
 		if(!fr.good()) cerr << "Species::load(): read error\n";
 		// map particles back to working area if they left it during previous
 		// nonselfconsistent simulation
-		if(particles[i].r < 0 || particles[i].r > p_param->r_max)
-		    particles[i].r = p_param->r_max * rnd->uni();
+		if(particles[i].x < 0 || particles[i].x > p_param->r_max)
+		    particles[i].x = p_param->r_max * rnd->uni();
 		if(particles[i].z < 0 || particles[i].z > p_param->z_max)
 		    particles[i].z = p_param->z_max * rnd->uni();
 	    }
@@ -381,12 +381,12 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
     for(int i=0; i<n2; i++)
     {
 	particles[i].empty = false;
-	particles[i].r = param.r_max*(rnd->uni());
+	particles[i].x = param.r_max*(rnd->uni());
 	particles[i].z = param.z_max*(rnd->uni());
 	//XXX BAD in cylindrical coords (maybe not if vt = d(theta)/dt*r):
-	particles[i].vr = rnd->rnor()*v_max/(M_SQRT2);
+	particles[i].vx = rnd->rnor()*v_max/(M_SQRT2);
 	particles[i].vz = rnd->rnor()*v_max/(M_SQRT2);
-	particles[i].vt = rnd->rnor()*v_max/(M_SQRT2);
+	particles[i].vy = rnd->rnor()*v_max/(M_SQRT2);
 	particles[i].time_to_death = rnd->rexp()*lifetime;
     }
 
@@ -396,28 +396,28 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
 };
 void Species::probe_collect(t_particle *I)
 {
-    if(!(I->z > 395e-3 && I->r < 45e-3)) return;
+    if(!(I->z > 395e-3 && I->x < 45e-3)) return;
     //double center_r = p_param->r_max/2.0;
     //double center_z = p_param->z_max/2.0;
-    probe_energy_dist.add((SQR(I->vr)+SQR(I->vz)+SQR(I->vt))*mass*0.5/p_param->q_e);
+    probe_energy_dist.add((SQR(I->vx)+SQR(I->vz)+SQR(I->vy))*mass*0.5/p_param->q_e);
     //compute incidence angle
     //normal vector: n = (r-x0, z-y0)
     // n.v = |n|*|v|*cos(alpha)
     // (alpha) =-acos(n.v/(|n|*|v|))
-    //double nx = center_r-I->r;
+    //double nx = center_r-I->x;
     //double ny = center_z-I->z;
     //double absV, alpha;
     //double absN = norm(nx,ny);
-    //absV = norm(I->vr, I->vz);
-    //alpha = acos( ( nx*I->vr + ny*I->vz )/(absN*absV) );
+    //absV = norm(I->vx, I->vz);
+    //alpha = acos( ( nx*I->vx + ny*I->vz )/(absN*absV) );
     //probe_angular_dist.add(abs(alpha));
 
-    //absV = norm(I->vr,I->vz,I->vt);
-    //alpha = acos( ( nx*I->vr + ny*I->vz )/(absN*absV) );
+    //absV = norm(I->vx,I->vz,I->vy);
+    //alpha = acos( ( nx*I->vx + ny*I->vz )/(absN*absV) );
     //probe_angular_dist.add(abs(alpha));
     //probe_angular_normalized_dist.add(abs(alpha),1.0/sin(alpha));
-    //cerr << (SQR(I->vr)+SQR(I->vz)+SQR(I->vz))*mass*0.5/p_param->q_e << " ";;
-    //cerr << (I->vr)<<" "<<(I->vz)<<" "<<(I->vz) << endl;;
+    //cerr << (SQR(I->vx)+SQR(I->vz)+SQR(I->vz))*mass*0.5/p_param->q_e << " ";;
+    //cerr << (I->vx)<<" "<<(I->vz)<<" "<<(I->vz) << endl;;
 
     probe_current += charge;
     probe_charge += charge;
@@ -438,9 +438,9 @@ void Species::add_particles_on_disk(int nparticles, double centerx, double cente
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
-        pp->r = x;
+        pp->x = x;
         pp->z = y;
-        rndv(pp->vr, pp->vz, pp->vt);
+        rndv(pp->vx, pp->vz, pp->vy);
     }
 };
 
@@ -459,10 +459,10 @@ void Species::add_particle_beam_on_disk(int nparticles, double centerx, double c
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
-        pp->r = x;
+        pp->x = x;
         pp->z = y;
-        pp->vr = pp->vz = 0.0;
-        rndv(pp->vt);
+        pp->vx = pp->vz = 0.0;
+        rndv(pp->vy);
     }
 };
 void Species::add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius)
@@ -483,9 +483,9 @@ void Species::add_particle_beam_on_disk_cylindrical(int nparticles, double cente
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
-        pp->r = r;
+        pp->x = r;
         pp->z = centerz;
-        pp->vr = pp->vt = 0.0;
+        pp->vx = pp->vy = 0.0;
         rndv(pp->vz);
     }
 };
@@ -507,11 +507,11 @@ void Species::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
-        pp->r = r;
+        pp->x = r;
         pp->z = centerz + height*(rnd->uni()-0.5);
 
         double v = veV(energy);
-        rnd->rot(v, pp->vr, pp->vz, pp->vt);
+        rnd->rot(v, pp->vx, pp->vz, pp->vy);
     }
 };
 void Species::advance()
@@ -525,7 +525,7 @@ void Species::advance()
     //double prob = dt/lifetime;
     //probe_current = 0;
 
-    double Bz = 0.03, Br = 0, Bt = 0.0;
+    double Bz = 0.03, Bx = 0, By = 0.0;
     //double tan_theta = charge*B*dt/(2.0*mass);
 
 
@@ -534,9 +534,9 @@ void Species::advance()
 	{
 	    if(I->empty==true) continue;
 
-	    //compute field at (I->r, I->z)
-	    field->E(I->r, I->z, fr, fz);
-            field->B(I->r, I->z, Br, Bz, Bt);
+	    //compute field at (I->x, I->z)
+	    field->E(I->x, I->z, fr, fz);
+            field->B(I->x, I->z, Bx, Bz, By);
 	    //XXX osetrit castice mimo prac oblast !!!
 	    //fr=fz=0;
 
@@ -544,52 +544,52 @@ void Species::advance()
 	    // advance velocities as in cartesian coords
 	    // use HARHA in magnetic field
 	    // half acceleration:
-	    I->vr -= fr*qmdt/2.0;
+	    I->vx -= fr*qmdt/2.0;
 	    I->vz -= fz*qmdt/2.0;
 
 	    // rotation
 	    //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
 	    double tmp = charge*dt/(2.0*mass);
-	    double tr = Br*tmp;
-	    double tt = Bt*tmp;
+	    double tx = Bx*tmp;
+	    double ty = By*tmp;
 	    double tz = Bz*tmp;
 
 	    //XXX check orientation
 	    // use (r, theta, z)
-	    double vprime_r = I->vr + I->vt*tz - I->vz*tt;
-	    double vprime_t = I->vt + I->vz*tr - I->vr*tz;
-	    double vprime_z = I->vz + I->vr*tt - I->vt*tr;
+	    double vprime_r = I->vx + I->vy*tz - I->vz*ty;
+	    double vprime_t = I->vy + I->vz*tx - I->vx*tz;
+	    double vprime_z = I->vz + I->vx*ty - I->vy*tx;
 
-	    tmp = 2.0/(1+SQR(tr)+SQR(tt)+SQR(tz));
-	    double sr = tr*tmp;
-	    double st = tt*tmp;
+	    tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
+	    double sx = tx*tmp;
+	    double sy = ty*tmp;
 	    double sz = tz*tmp;
 
-	    I->vr = I->vr + vprime_t*sz - vprime_z*st;
-	    I->vt = I->vt + vprime_z*sr - vprime_r*sz;
-	    I->vz = I->vz + vprime_r*st - vprime_t*sr;
+	    I->vx = I->vx + vprime_t*sz - vprime_z*sy;
+	    I->vy = I->vy + vprime_z*sx - vprime_r*sz;
+	    I->vz = I->vz + vprime_r*sy - vprime_t*sx;
 
 	    // half acceleration:
-	    I->vr -= fr*qmdt/2.0;
+	    I->vx -= fr*qmdt/2.0;
 	    I->vz -= fz*qmdt/2.0;
 
 	    //advance position (Birdsall pp. 338):
-	    double x2 = I->r + I->vr*dt;
-	    double y2 = I->vt*dt;
-	    I->r = sqrt(SQR(x2)+SQR(y2));
+	    double x2 = I->x + I->vx*dt;
+	    double y2 = I->vy*dt;
+	    I->x = sqrt(SQR(x2)+SQR(y2));
 	    I->z += I->vz * dt;
 
 	    //rotate the speed vector
-	    double sa = y2/I->r;
-	    double ca = x2/I->r;
-	    if(I->r==0)
+	    double sa = y2/I->x;
+	    double ca = x2/I->x;
+	    if(I->x==0)
 	    {
 		sa = 0;
 		ca = 1;
 	    }
-	    tmp = I->vr;
-	    I->vr = ca*I->vr + sa*I->vt;
-	    I->vt = -sa*tmp + ca*I->vt;
+	    tmp = I->vx;
+	    I->vx = ca*I->vx + sa*I->vy;
+	    I->vy = -sa*tmp + ca*I->vy;
 
 	    if( rnd->uni() < prob)
 	    {
@@ -597,13 +597,13 @@ void Species::advance()
 	    }
 
 	    // OKRAJOVE PODMINKY
-	    if(I->r > p_param->r_max || I->r < 0 
+	    if(I->x > p_param->r_max || I->x < 0
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
 		remove(I);
 		continue;
 	    }
-	    if(!field->grid.is_free(I->r, I->z))
+	    if(!field->grid.is_free(I->x, I->z))
 	    {
                 if(p_param->has_probe)
                     probe_collect(&*I);
@@ -613,7 +613,7 @@ void Species::advance()
 	    }
 
 	    // SUMACE NABOJE
-	    rho.accumulate(charge, I->r, I->z);
+	    rho.accumulate(charge, I->x, I->z);
 	}
     else
     {
@@ -622,9 +622,9 @@ void Species::advance()
 	    // (r, t, z) ~ (x, y, z)
 	    if(I->empty==true) continue;
 
-	    //compute field at (I->r, I->z)
-	    field->E(I->r, I->z, fr, fz, niter*dt);
-            field->B(I->r, I->z, Br, Bz, Bt);
+	    //compute field at (I->x, I->z)
+	    field->E(I->x, I->z, fr, fz, niter*dt);
+            field->B(I->x, I->z, Bx, Bz, By);
 	    //XXX osetrit castice mimo prac oblast !!!
 	    //fr=fz=0;
 
@@ -632,39 +632,39 @@ void Species::advance()
 	    // advance velocities as in cartesian coords
 	    // use HARHA in magnetic field
 	    // half acceleration:
-	    I->vr -= fr*qmdt/2.0;
+	    I->vx -= fr*qmdt/2.0;
 	    I->vz -= fz*qmdt/2.0;
 
 	    // rotation
 	    //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
 	    double tmp = charge*dt/(2.0*mass);
-	    double tr = Br*tmp;
-	    double tt = Bt*tmp;
+	    double tx = Bx*tmp;
+	    double ty = By*tmp;
 	    double tz = Bz*tmp;
 
 	    //XXX check orientation
 	    // use (r, theta, z)
 	    // use (x, y, z) ~ (r, z, theta) !!!
 	    // sign change
-	    double vprime_r = I->vr - I->vt*tz + I->vz*tt;
-	    double vprime_z = I->vz - I->vr*tt + I->vt*tr;
-	    double vprime_t = I->vt - I->vz*tr + I->vr*tz;
+	    double vprime_r = I->vx - I->vy*tz + I->vz*ty;
+	    double vprime_z = I->vz - I->vx*ty + I->vy*tx;
+	    double vprime_t = I->vy - I->vz*tx + I->vx*tz;
 
-	    tmp = 2.0/(1+SQR(tr)+SQR(tt)+SQR(tz));
-	    double sr = tr*tmp;
-	    double st = tt*tmp;
+	    tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
+	    double sx = tx*tmp;
+	    double sy = ty*tmp;
 	    double sz = tz*tmp;
 
-	    I->vr = I->vr - vprime_t*sz + vprime_z*st;
-	    I->vt = I->vt - vprime_z*sr + vprime_r*sz;
-	    I->vz = I->vz - vprime_r*st + vprime_t*sr;
+	    I->vx = I->vx - vprime_t*sz + vprime_z*sy;
+	    I->vy = I->vy - vprime_z*sx + vprime_r*sz;
+	    I->vz = I->vz - vprime_r*sy + vprime_t*sx;
 
 	    // half acceleration:
-	    I->vr -= fr*qmdt/2.0;
+	    I->vx -= fr*qmdt/2.0;
 	    I->vz -= fz*qmdt/2.0;
 
 	    //advance position (Birdsall pp. 338):
-	    I->r += I->vr*dt;
+	    I->x += I->vx*dt;
 	    I->z += I->vz*dt;
 
 
@@ -676,7 +676,7 @@ void Species::advance()
 
 	    //if(p_param->selfconsistent)
 	    //{
-	    if(I->r > p_param->r_max || I->r < 0 
+	    if(I->x > p_param->r_max || I->x < 0
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
                 if(p_param->boundary == Param::FREE)
@@ -686,21 +686,21 @@ void Species::advance()
                 }
                 else if(p_param->boundary == Param::PERIODIC)
                 {
-                    I->r = fmod(I->r, p_param->r_max);
-                    if(I->r < 0) I->r += p_param->r_max;
+                    I->x = fmod(I->x, p_param->r_max);
+                    if(I->x < 0) I->x += p_param->r_max;
                     I->z = fmod(I->z, p_param->z_max);
                     if(I->z < 0) I->z += p_param->z_max;
                 }
 
 	    }
-	    if(!field->grid.is_free(I->r, I->z))
+	    if(!field->grid.is_free(I->x, I->z))
 	    {
 		remove(I);
 		continue;
 	    }
 
 	    /**
-	      if(SQR(I->r-center_r)+SQR(I->z-center_z) < sqpp)
+	      if(SQR(I->x-center_r)+SQR(I->z-center_z) < sqpp)
 	      {
 	      probe_collect(&*I);
 	      remove(I);
@@ -710,7 +710,7 @@ void Species::advance()
 	      */
 
 	    // SUMACE NABOJE
-	    rho.accumulate(charge, I->r, I->z);
+	    rho.accumulate(charge, I->x, I->z);
 	    //}
 	}
     }
@@ -722,7 +722,7 @@ void Species::accumulate()
     {
 	if(I->empty==true) continue;
 	    // SUMACE NABOJE
-	    rho.accumulate(charge, I->r, I->z);
+	    rho.accumulate(charge, I->x, I->z);
     }
 }
 void Species::source5_refresh(unsigned int factor)
@@ -741,11 +741,11 @@ void Species::source5_refresh(unsigned int factor)
     for(unsigned int i=0; i<source2_particles.size(); i++)
     {
 	source2_particles[i].empty = false;
-	source2_particles[i].r = K*p_param->r_max*rnd->uni();
+	source2_particles[i].x = K*p_param->r_max*rnd->uni();
 	source2_particles[i].z = K*p_param->z_max*rnd->uni();
-	source2_particles[i].vr = rnd->rnor()*v_max/(M_SQRT2);
+	source2_particles[i].vx = rnd->rnor()*v_max/(M_SQRT2);
 	source2_particles[i].vz = rnd->rnor()*v_max/(M_SQRT2);
-	source2_particles[i].vt = rnd->rnor()*v_max/(M_SQRT2);
+	source2_particles[i].vy = rnd->rnor()*v_max/(M_SQRT2);
 	source2_particles[i].time_to_death = rnd->rexp()*lifetime;
     }
 }
@@ -755,15 +755,15 @@ void Species::energy_dist_compute()
 {
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); I++)
 	if(I->empty==false)
-	    if( energy_dist.add((SQR(I->vr)+SQR(I->vz)+SQR(I->vt))*mass*0.5/p_param->q_e) == -1 )
-		;//cout << I-particles.begin() << " " << I->vr << " " << I->vz << " " << I->vz << endl;
+	    if( energy_dist.add((SQR(I->vx)+SQR(I->vz)+SQR(I->vy))*mass*0.5/p_param->q_e) == -1 )
+		;//cout << I-particles.begin() << " " << I->vx << " " << I->vz << " " << I->vz << endl;
 }
 void Species::source_energy_dist_compute()
 {
     for(vector<t_particle>::iterator I = source2_particles.begin(); I != source2_particles.end(); I++)
 	if(I->empty==false)
-	    source_energy_dist.add((SQR(I->vr)+SQR(I->vz)+SQR(I->vt))*mass*0.5/p_param->q_e);
-		;//cout << I-source2_particles.begin() << " " << I->vr << " " << I->vz << " " << I->vz << endl;
+	    source_energy_dist.add((SQR(I->vx)+SQR(I->vz)+SQR(I->vy))*mass*0.5/p_param->q_e);
+		;//cout << I-source2_particles.begin() << " " << I->vx << " " << I->vz << " " << I->vz << endl;
 }
 
 
@@ -815,31 +815,31 @@ void Species::source_old()
 
 	    if(k<2)
 	    {
-		I->vr = rnd->rnor()*v_max/(M_SQRT2);
+		I->vx = rnd->rnor()*v_max/(M_SQRT2);
 		I->vz = rnd->maxwell_flux(v_max*5.0) * (k==0 ? 1 : -1);
-		//I->r = I->vr*dt*uniform() + p_param->r_max * (k==0 ? 0 : 1);
+		//I->x = I->vx*dt*uniform() + p_param->r_max * (k==0 ? 0 : 1);
 		//I->z = p_param->z_max*uniform();
 		u = rnd->uni();
-		I->r = -I->vr*dt*u + p_param->r_max * (k==0 ? 0 : 1);
+		I->x = -I->vx*dt*u + p_param->r_max * (k==0 ? 0 : 1);
 		I->z = p_param->z_max*rnd->uni() - I->vz*dt*u;
 	    }else
 	    {
-		I->vr = rnd->rnor()*v_max/(M_SQRT2);
+		I->vx = rnd->rnor()*v_max/(M_SQRT2);
 		I->vz = rnd->maxwell_flux(v_max*5.0) * (k==2 ? 1 : -1);
 		//I->z = I->vz*dt*uniform() + p_param->z_max * (k==2 ? 0 : 1);
-		//I->r = p_param->r_max*uniform();
+		//I->x = p_param->r_max*uniform();
 		u = rnd->uni();
-		I->r = -I->vz*dt*u + p_param->z_max * (k==2 ? 0 : 1);
-		I->z = p_param->r_max*rnd->uni() - I->vr*dt*u;
+		I->x = -I->vz*dt*u + p_param->z_max * (k==2 ? 0 : 1);
+		I->z = p_param->r_max*rnd->uni() - I->vx*dt*u;
 	    }
 	    I->vz = rnd->rnor()*v_max/M_SQRT2;
 	    I->time_to_death = rnd->rexp()*lifetime;
 
-	    I->r += I->vr * dt;
+	    I->x += I->vx * dt;
 	    I->z += I->vz * dt;
-	    if(I->r < p_param->r_max && I->r > 0 
+	    if(I->x < p_param->r_max && I->x > 0
 		    && I->z < p_param->z_max && I->z > 0 )
-		rho.accumulate(charge, I->r, I->z);
+		rho.accumulate(charge, I->x, I->z);
 	    /*
 	    for(int jj=0; jj<2; jj++)
 	    {	
@@ -871,9 +871,9 @@ void Species::source()
     for(vector<t_particle>::iterator I=source2_particles.begin(); I != source2_particles.end(); I++)
     {
 
-	I->vr -= fx*qmdt;
+	I->vx -= fx*qmdt;
 	I->vz -= fy*qmdt;
-	I->r += I->vr * dt;
+	I->x += I->vx * dt;
 	I->z += I->vz * dt;
 
 	if( I->time_to_death < dt)
@@ -883,30 +883,30 @@ void Species::source()
 	}
 	I->time_to_death -= dt;
 
-	if(I->r > src_r_max)
-	    while(I->r > src_r_max)
+	if(I->x > src_r_max)
+	    while(I->x > src_r_max)
 	    {
-		I->r -= src_r_max;
+		I->x -= src_r_max;
 		j = insert();
 		particles[j] = *I;
 		particles[j].z += rand()%source5_factor*src_z_max;
-		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-		       	particles[j].r<p_param->r_max && particles[j].r>0)
-		    rho.accumulate(charge, particles[j].r, particles[j].z);
+                if(particles[j].z<p_param->z_max && particles[j].z>0 &&
+                        particles[j].x<p_param->r_max && particles[j].x>0)
+		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
 	    }
-	else if(I->r < 0)
-	    while(I->r < 0)
+	else if(I->x < 0)
+	    while(I->x < 0)
 	    {
 		j = insert();
 		particles[j] = *I;
 		particles[j].z += rand()%source5_factor*src_z_max;
-		particles[j].r += p_param->r_max;
-		I->r += src_r_max;
+		particles[j].x += p_param->r_max;
+		I->x += src_r_max;
 		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-		       	particles[j].r<p_param->r_max && particles[j].r>0)
-		    rho.accumulate(charge, particles[j].r, particles[j].z);
+                        particles[j].x<p_param->r_max && particles[j].x>0)
+		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
 	    }
@@ -916,10 +916,10 @@ void Species::source()
 		I->z -= src_z_max;
 		j = insert();
 		particles[j] = *I;
-		particles[j].r += rand()%source5_factor*src_r_max;
+		particles[j].x += rand()%source5_factor*src_r_max;
 		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-		       	particles[j].r<p_param->r_max && particles[j].r>0)
-		    rho.accumulate(charge, particles[j].r, particles[j].z);
+                        particles[j].x<p_param->r_max && particles[j].x>0)
+		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
 	    }
@@ -928,12 +928,12 @@ void Species::source()
 	    {
 		j = insert();
 		particles[j] = *I;
-		particles[j].r += rand()%source5_factor*src_r_max;
+		particles[j].x += rand()%source5_factor*src_r_max;
 		particles[j].z += p_param->z_max;
 		I->z += src_z_max;
 		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-		       	particles[j].r<p_param->r_max && particles[j].r>0)
-		    rho.accumulate(charge, particles[j].r, particles[j].z);
+                        particles[j].x<p_param->r_max && particles[j].x>0)
+		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
 	    }

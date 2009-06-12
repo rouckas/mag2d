@@ -133,7 +133,7 @@ void t_argon::scatter(t_particle &particle)
     double vr2, vz2, vt2;
     species_list[ARGON]->rndv(vr2, vz2, vt2);
 
-    double sq_v_rel = SQR(vr2-particle.vr) + SQR(vz2-particle.vz) + SQR(vt2-particle.vt);
+    double sq_v_rel = SQR(vr2-particle.vx) + SQR(vz2-particle.vz) + SQR(vt2-particle.vy);
     double v = sqrt(sq_v_rel);
     double E = const_E * sq_v_rel; //[eV]
 
@@ -154,27 +154,27 @@ void t_argon::scatter(t_particle &particle)
     {
 	//charge transfer
 	case CX:
-	    particle.vr = vr2;
+	    particle.vx = vr2;
 	    particle.vz = vz2;
-	    particle.vt = vt2;
+	    particle.vy = vt2;
 	    break;
 
 	case ELASTIC:
 	    {
 		//prepocet v_1 do tezistove soustavy
-		double v1_cm_x = (particle.vr - vr2)*0.5;
+		double v1_cm_x = (particle.vx - vr2)*0.5;
 		double v1_cm_y = (particle.vz - vz2)*0.5;
-		double v1_cm_z = (particle.vt - vt2)*0.5;
+		double v1_cm_z = (particle.vy - vt2)*0.5;
 		double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
 		//provedeni nahodne rotace
 		rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
 
 		//zpetna transformace
-		//particle.vr = v1_cm_x + v_cm_x;
-		particle.vr = v1_cm_x + (particle.vr + vr2)*0.5;
+		//particle.vx = v1_cm_x + v_cm_x;
+		particle.vx = v1_cm_x + (particle.vx + vr2)*0.5;
 		particle.vz = v1_cm_y + (particle.vz + vz2)*0.5;
-		particle.vt = v1_cm_z + (particle.vt + vt2)*0.5;
+		particle.vy = v1_cm_z + (particle.vy + vt2)*0.5;
 	    }
 	    break;
 

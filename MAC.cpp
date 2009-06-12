@@ -60,16 +60,16 @@ int main(int argc, char *argv[])
     //p_p->r = 1e-2;
     //p_p->z = 1.1e-2;
     //p_p->vz = 1e4;
-    //p_p->vr = -pic.species_list[H_NEG]->veV(0.01);
+    //p_p->vx = -pic.species_list[H_NEG]->veV(0.01);
     //cout <<"veV "<< -pic.species_list[H_NEG]->veV(1) <<endl;
-    //p_p->vt = 0;
+    //p_p->vy = 0;
 /*
     p_p[1].z = 1e-2;
-    p_p[1].r = 1.1e-2;
-    p_p[1].vr = 0;
-    p_p[1].vt = 0;
+    p_p[1].x = 1.1e-2;
+    p_p[1].vx = 0;
+    p_p[1].vy = 0;
     p_p[1].vz = -pic.species_list[H_NEG]->veV(.001);
-    p_p[1].vr = 0.3*p_p[1].vz;
+    p_p[1].vx = 0.3*p_p[1].vz;
     */
     for(int i=1; i<param.niter+1; ++i)
     {
@@ -79,10 +79,10 @@ int main(int argc, char *argv[])
         {
             int p1 = 3;
             int p2 = 5;
-            fwt1 << p_p[p1].r <<' '<< setprecision(10) << p_p[p1].z <<endl;
-            fwt2 << p_p[p2].r <<' '<< setprecision(10) << p_p[p2].z <<endl;
-            fwv1 << p_p[p1].vr <<' '<< p_p[p1].vz <<' '<< p_p[p1].vt <<endl;
-            fwv2 << setprecision(10) << p_p[p2].vr <<' '<< p_p[p2].vz <<' '<< p_p[p2].vt <<endl;
+            fwt1 << p_p[p1].x <<' '<< setprecision(10) << p_p[p1].z <<endl;
+            fwt2 << p_p[p2].x <<' '<< setprecision(10) << p_p[p2].z <<endl;
+            fwv1 << p_p[p1].vx <<' '<< p_p[p1].vz <<' '<< p_p[p1].vy <<endl;
+            fwv2 << setprecision(10) << p_p[p2].vx <<' '<< p_p[p2].vz <<' '<< p_p[p2].vy <<endl;
         }
 	if(i%20==0) pic.dist_sample();
 
