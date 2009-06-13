@@ -34,7 +34,7 @@ class t_grid
     public:
 	int M;
 	int N;
-	double dr,dz;
+	double dx,dz;
 	Matrix<char> mask;
 	Matrix<t_umf_metrika> metrika;
 	Matrix<double> voltage;
@@ -54,14 +54,14 @@ class t_grid
 class Field : public Matrix<double>
 {
     public:
-	Field(Param &param) : Matrix<double>(param.r_sampl, param.z_sampl),
-            idr(param.idr), idz(param.idz), rmin(0), zmin(0) {};
-        Field() : Matrix<double>(), idr(0), idz(0), rmin(0), zmin(0) {};
-        void resize(double r_sampl, double z_sampl, double dr, double dz, double _rmin=0, double _zmin=0)
+	Field(Param &param) : Matrix<double>(param.x_sampl, param.z_sampl),
+            idx(param.idx), idz(param.idz), rmin(0), zmin(0) {};
+        Field() : Matrix<double>(), idx(0), idz(0), rmin(0), zmin(0) {};
+        void resize(double x_sampl, double z_sampl, double dx, double dz, double _rmin=0, double _zmin=0)
         {
-            idr = 1.0/dr, idz = 1.0/dz;
+            idx = 1.0/dx, idz = 1.0/dz;
             rmin = _rmin, zmin = _zmin;
-            Matrix<double>::resize(r_sampl, z_sampl);
+            Matrix<double>::resize(x_sampl, z_sampl);
         }
 	inline void accumulate(double charge, double x, double y);
         inline double interpolate(double r, double z);
@@ -75,11 +75,11 @@ class Field : public Matrix<double>
         }
 	void print( ostream & out = cout , double factor = 1.0)
 	{
-	    double dr=1.0/idr, dz=1.0/idz;
+	    double dx=1.0/idx, dz=1.0/idz;
 	    for(int j=0; j<jmax; j++)
 	    {
 		for(int l=0; l<lmax; l++)
-		    out << j*dr <<"\t"<< l*dz <<"\t"<< data[j][l]*factor <<endl;
+		    out << j*dx <<"\t"<< l*dz <<"\t"<< data[j][l]*factor <<endl;
 		out << endl;
 	    }
 	}
@@ -89,7 +89,7 @@ class Field : public Matrix<double>
 	    print(out, factor);
 	}
     private:
-	double idr, idz;
+	double idx, idz;
         double rmin, zmin;
 };
 
@@ -112,7 +112,7 @@ class Fields
 	~Fields();
     private:
         Field Br, Bz;
-	double idr, idz;
+	double idx, idz;
 	Param *p_param;
 	int *Ap;
 	int *Ai;
@@ -142,9 +142,9 @@ void Fields::u_print(const char * fname)
 
 
 
-t_grid::t_grid(Param &param) :  M(param.r_sampl), N(param.z_sampl), 
-    dr(param.dr), dz(param.dz),
-    mask(param.r_sampl,param.z_sampl), metrika(param.r_sampl,param.z_sampl), voltage(param.r_sampl,param.z_sampl)
+t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl), 
+    dx(param.dx), dz(param.dz),
+    mask(param.x_sampl,param.z_sampl), metrika(param.x_sampl,param.z_sampl), voltage(param.x_sampl,param.z_sampl)
 {
     p_param = &param;
 			
@@ -330,7 +330,7 @@ void t_grid::penning_trap()
 	    if(i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
-		voltage[i][j] = -i*p_param->dr*p_param->extern_field + p_param->r_max*p_param->extern_field*0.5;
+		voltage[i][j] = -i*p_param->dx*p_param->extern_field + p_param->x_max*p_param->extern_field*0.5;
 		voltage[i][j] = 0.0;
 	    }else
 	    {
@@ -410,7 +410,7 @@ void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax
 	for(int j=0; j<N; j++)
 	{
 	    double r, z;
-	    r = i*dr;
+	    r = i*dx;
 	    z = j*dz;
 	    // suboptimal, but simple
 	    if(r>rmin && r<rmax && z>zmin && z<zmax) 
@@ -427,7 +427,7 @@ void t_grid::circle_electrode(double rcenter, double zcenter, double radius, dou
 	for(int j=0; j<N; j++)
 	{
 	    double r, z;
-	    r = i*dr - rcenter;
+	    r = i*dx - rcenter;
 	    z = j*dz - zcenter;
 	    // suboptimal, but simple
 	    if(SQR(r) + SQR(z) <= sqradius) 
@@ -439,7 +439,7 @@ void t_grid::circle_electrode(double rcenter, double zcenter, double radius, dou
 }
 bool t_grid::is_free(double r, double z)
 {
-    int i = (int)(r*p_param->idr);
+    int i = (int)(r*p_param->idx);
     int j = (int)(z*p_param->idz);
     if(mask[i][j]==FREE || mask[i+1][j]==FREE || mask[i][j+1]==FREE || mask[i+1][j+1]==FREE)
 	return true;
@@ -450,10 +450,10 @@ inline void Field::accumulate(double charge, double r, double z)
 {
     r -= rmin;
     z -= zmin;
-    int i = (int)(r * idr);
+    int i = (int)(r * idx);
     int j = (int)(z * idz);
 
-    double u = r*idr - i;
+    double u = r*idx - i;
     double v = z*idz - j;
 
     if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
@@ -468,10 +468,10 @@ inline double Field::interpolate(double r, double z)
 {
     r -= rmin;
     z -= zmin;
-    int i = (int)(r * idr);
+    int i = (int)(r * idx);
     int j = (int)(z * idz);
 
-    double u = r*idr - i;
+    double u = r*idx - i;
     double v = z*idz - j;
 
     if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
@@ -481,13 +481,13 @@ inline double Field::interpolate(double r, double z)
 }
 inline void Fields::accumulate(double charge, double r, double z)
 {
-    int i = (int)(r * idr);
+    int i = (int)(r * idx);
     int j = (int)(z * idz);
 
-    double u = r*idr - i;
+    double u = r*idx - i;
     double v = z*idz - j;
 
-    //if(i<0 || i>p_param->r_sampl-1 || j<0 || j>p_param->z_sampl-1)
+    //if(i<0 || i>p_param->x_sampl-1 || j<0 || j>p_param->z_sampl-1)
 //	throw std::runtime_error("Field::accumulate() outside of range\n");
     rho[i][j] += (1-u)*(1-v)*charge;
     rho[i+1][j] += u*(1-v)*charge;
@@ -502,14 +502,14 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
     p_param = &param;
     int i, j, k, l;
     int n;
-    idr=p_param->idr;
+    idx=p_param->idx;
     idz=p_param->idz;
-    double dr = p_param->dr;
+    double dx = p_param->dx;
     double dz = p_param->dz;
 
-    n = param.r_sampl * param.z_sampl;
+    n = param.x_sampl * param.z_sampl;
 
-    // r_i = i*dr
+    // r_i = i*dx
     Ap = new int [n+1];
     Ai = new int [n*5]; //horni odhad pro petibodove diff schema
     Ax = new double [n*5];
@@ -519,7 +519,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
 
         l = 0;
         Ap[0] = 0;
-        for(i=0; i<param.r_sampl; i++)	//cislo radku - radialni souradnice
+        for(i=0; i<param.x_sampl; i++)	//cislo radku - radialni souradnice
             for(j=0; j<param.z_sampl; j++)	//cislo sloupce
             {
                 k = j + param.z_sampl*i;
@@ -539,7 +539,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
                     Ai[l] = k-1;
 
                     // psi[j,k]
-                    k3 = 1.0/(dr*dr*0.25);
+                    k3 = 1.0/(dx*dx*0.25);
                     Ax[l+1] = -2.0*k2 - k3;
                     Ai[l+1] = k;
 
@@ -558,7 +558,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
                 {
                     double k1, k2, k3;
                     // psi[j-1,k]
-                    k1 = (i-0.5)/(dr*dr*i);
+                    k1 = (i-0.5)/(dx*dx*i);
                     Ax[l] = k1;
                     Ai[l] = k-param.z_sampl;
 
@@ -568,7 +568,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
                     Ai[l+1] = k-1;
 
                     // psi[j,k]
-                    k3 = (i+0.5)/(dr*dr*i);
+                    k3 = (i+0.5)/(dx*dx*i);
                     Ax[l+2] = -2.0*k2 - k1 - k3;
                     Ai[l+2] = k;
 
@@ -589,7 +589,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
     {
         l = 0;
         Ap[0] = 0;
-        for(i=0; i<param.r_sampl; i++)		//cislo radku
+        for(i=0; i<param.x_sampl; i++)		//cislo radku
             for(j=0; j<param.z_sampl; j++)	//cislo sloupce
             {
                 k = j + param.z_sampl*i;
@@ -635,10 +635,10 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
             }
     }
     /*
-    for(i=0;i<param.r_sampl;i++)
+    for(i=0;i<param.x_sampl;i++)
 	for(j=0;j<param.z_sampl;j++)
 	{
-	    if( SQR(i*p_param->dr-p_param->r_max/2) + SQR(j*p_param->dz-p_param->z_max/2) <= SQR(p_param->probe_radius))
+	    if( SQR(i*p_param->dx-p_param->r_max/2) + SQR(j*p_param->dz-p_param->z_max/2) <= SQR(p_param->probe_radius))
 	    {
 		u[i][j] = p_param->u_probe;
 	    }else
@@ -662,14 +662,14 @@ void Fields::boundary_solve()
             for(int j=0; j<grid.N; j++)	//cislo sloupce
             {
                 k = j + grid.N*i;
-                double dr = p_param->dr;
+                double dx = p_param->dx;
                 double dz = p_param->dz;
                 if(grid.mask[i][j] == FIXED)
                     rho[i][j] = grid.voltage[i][j];
                 else if(i>0)
-                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dr*dr*2.0*i*dz)*p_param->macroparticle_factor;
+                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dx*dx*2.0*i*dz)*p_param->macroparticle_factor;
                 else
-                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dr*dr*0.25*dz)*p_param->macroparticle_factor;
+                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dx*dx*0.25*dz)*p_param->macroparticle_factor;
             }
     }
     else
@@ -682,7 +682,7 @@ void Fields::boundary_solve()
                 if(grid.mask[i][j] == FIXED)
                     rho[i][j] = grid.voltage[i][j];
                 else
-                    rho[i][j] *= -SQR(p_param->dr)/p_param->eps_0/p_param->dV;
+                    rho[i][j] *= -SQR(p_param->dx)/p_param->eps_0/p_param->dV;
             }
     }
     (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, u[0], rho[0], Numeric, NULL, NULL) ;
@@ -718,32 +718,32 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
     int i,j;
     double g1,g2,g3,g4;
     double fx,fy;
-    double idr = p_param->idr;
+    double idx = p_param->idx;
     double idz = p_param->idz;
 
     /*
      * nejprve x-ova slozka
      */
-    i = (int)(x*idr+0.5);
+    i = (int)(x*idx+0.5);
     j = (int)(y*idz);
     j = MIN(j,p_param->z_sampl-2);
-    if(i>0 && i<p_param->r_sampl-1)
+    if(i>0 && i<p_param->x_sampl-1)
     {
 	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i-1][j])*idr;
-	g2 = (u[i][j+1]-u[i-1][j+1])*idr;
-	g3 = (u[i+1][j+1]-u[i][j+1])*idr;
-	g4 = (u[i+1][j]-u[i][j])*idr;
+	g1 = (u[i][j]-u[i-1][j])*idx;
+	g2 = (u[i][j+1]-u[i-1][j+1])*idx;
+	g3 = (u[i+1][j+1]-u[i][j+1])*idx;
+	g4 = (u[i+1][j]-u[i][j])*idx;
 
 	//interpolace
-	fx = x*idr-i+.5;
+	fx = x*idx-i+.5;
 	fy = y*idz-j;
 	grad_x = g1*(1-fx)*(1-fy) + g2*(1-fx)*fy + g3*fx*fy + g4*fx*(1-fy);
-    }else if(i==p_param->r_sampl-1)
+    }else if(i==p_param->x_sampl-1)
     {
 	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i-1][j])*idr;
-	g2 = (u[i][j+1]-u[i-1][j+1])*idr;
+	g1 = (u[i][j]-u[i-1][j])*idx;
+	g2 = (u[i][j+1]-u[i-1][j+1])*idx;
 
 	//interpolace
 	fy = y*idz-j;
@@ -751,8 +751,8 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
     }else if(i==0)
     {
 	//vypocet gradientu v mrizovych bodech
-	g3 = (u[i+1][j+1]-u[i][j+1])*idr;
-	g4 = (u[i+1][j]-u[i][j])*idr;
+	g3 = (u[i+1][j+1]-u[i][j+1])*idx;
+	g4 = (u[i+1][j]-u[i][j])*idx;
 
 	//interpolace
 	fy = y*idz-j;
@@ -764,9 +764,9 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
     /*
      * ted y-ova slozka
      */
-    i = (int)(x*idr);
+    i = (int)(x*idx);
     j = (int)(y*idz+0.5);
-    i = MIN(i,p_param->r_sampl-2);
+    i = MIN(i,p_param->x_sampl-2);
 
 
     /*
@@ -783,7 +783,7 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
 	g4 = (u[i][j+1]-u[i][j])*idz;
 
 	//interpolace
-	fx = x*idr-i;
+	fx = x*idx-i;
 	fy = y*idz-j+0.5;
 	grad_y = g1*(1-fx)*(1-fy) + g2*(1-fy)*fx + g3*fx*fy + g4*fy*(1-fx);
     }else if(j==p_param->z_sampl-1)
@@ -793,7 +793,7 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
 	g2 = (u[i+1][j]-u[i+1][j-1])*idz;
 
 	//interpolace
-	fx = x*idr-i;
+	fx = x*idx-i;
 	grad_y = g1*(1-fx) + g2*fx;
     }else if(j==0)
     {
@@ -802,7 +802,7 @@ void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
 	g4 = (u[i][j+1]-u[i][j])*idz;
 
 	//interpolace
-	fx = x*idr-i;
+	fx = x*idx-i;
 	grad_y = g3*fx + g4*(1-fx);
     }
 
@@ -882,19 +882,19 @@ void Fields::load_magnetic_field(const char * fname)
         }
     }
 
-    //find dr, rmin, rmax
-    double dr=0, rmin=rvec[0], rmax=rvec[rvec.size()-1];
+    //find dx, rmin, rmax
+    double dx=0, rmin=rvec[0], rmax=rvec[rvec.size()-1];
     unsigned int i=1;
     while(i<rvec.size() && rvec[i]-rvec[i-1] == 0.0)
         i++;
-    dr = rvec[i]-rvec[i-1];
-    if(dr<0)
+    dx = rvec[i]-rvec[i-1];
+    if(dx<0)
     {
-        dr = -dr;
+        dx = -dx;
         rmin = rvec[rvec.size()-1];
         rmax = rvec[0];
     }
-    double rsampl_d = (rmax-rmin)/dr+1;
+    double rsampl_d = (rmax-rmin)/dx+1;
     unsigned int rsampl = double2int(rsampl_d);
 
     //find dz, zmin, zmax
@@ -913,14 +913,14 @@ void Fields::load_magnetic_field(const char * fname)
     unsigned int zsampl = double2int(zsampl_d);
 #ifdef DEBUG
     cout << "rvec.size " << rvec.size() <<endl;
-    cout << "rmin = " << rmin <<"  rmax = "<< rmax <<"  dr = "<<dr <<"  rsampl = "<<rsampl<<endl;
+    cout << "rmin = " << rmin <<"  rmax = "<< rmax <<"  dx = "<<dx <<"  rsampl = "<<rsampl<<endl;
     cout << "zmin = " << zmin <<"  zmax = "<< zmax <<"  dz = "<<dz <<"  zsampl = "<<zsampl <<endl;
 #endif
     if(rsampl*zsampl != rvec.size())
         throw std::runtime_error("Fields::load_magnetic_field() wrong size of input vector");
 
-    Br.resize(rsampl, zsampl, dr, dz, rmin, zmin);
-    Bz.resize(rsampl, zsampl, dr, dz, rmin, zmin);
+    Br.resize(rsampl, zsampl, dx, dz, rmin, zmin);
+    Bz.resize(rsampl, zsampl, dx, dz, rmin, zmin);
 
     for(i=0; i<rsampl; i++)
         for(unsigned int j=0; j<zsampl; j++)
@@ -932,7 +932,7 @@ void Fields::load_magnetic_field(const char * fname)
     int ri, zi;
     for(i=0; i<rvec.size(); i++)
     {
-        ri = double2int((rvec[i]-rmin)/dr);
+        ri = double2int((rvec[i]-rmin)/dx);
         zi = double2int((zvec[i]-zmin)/dz);
         Br[ri][zi] = Brvec[i];
         Bz[ri][zi] = Bzvec[i];

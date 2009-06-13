@@ -265,8 +265,8 @@ class Pic
 
 	    //gnuplot_cmd(h1, "set cbrange [10:-5]");
 	    ostringstream cmd_str;
-	    cmd_str << "set zrange [" <<param.extern_field*param.r_max*0.5 << ":" 
-		<< min(-param.extern_field*param.r_max*0.5, param.u_probe) << "]";
+	    cmd_str << "set zrange [" <<param.extern_field*param.x_max*0.5 << ":" 
+		<< min(-param.extern_field*param.x_max*0.5, param.u_probe) << "]";
 	    string cmd(cmd_str.str());
 	    //gnuplot_cmd(h1, "set zrange [10:-5]");
 	    
@@ -275,6 +275,6 @@ class Pic
 	    //gnuplot_splot_grid(h1, field.u[0], param.r_sampl, param.z_sampl, "potencial");
 	    species_list[ELECTRON]->rho.reset();
 	    species_list[ELECTRON]->accumulate();
-	    gnuplot_splot_grid(h1, species_list[ELECTRON]->rho[0], param.r_sampl, param.z_sampl, "rho");
+	    gnuplot_splot_grid(h1, species_list[ELECTRON]->rho[0], param.x_sampl, param.z_sampl, "rho");
 	}
 };

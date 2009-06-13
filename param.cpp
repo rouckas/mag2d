@@ -20,8 +20,8 @@ class Param
     public:
     enum Boundary { FREE, PERIODIC, MIRROR };
     enum Geometry { EMPTY, RF_22PT, RF_QUAD, MAC, PENNING, PENNING_SIMPLE };
-    double r_max, z_max;
-    int r_sampl, z_sampl;
+    double x_max, y_max, z_max;
+    int x_sampl, y_sampl, z_sampl;
     double extern_field;
     bool has_probe;
     std::string magnetic_field_file;
@@ -32,9 +32,9 @@ class Param
     double u_probe;
 //    int n_particles;
     double n_particles_total;
-    double dr, dz, dth;
+    double dx, dy, dz;
     double V, dV;
-    double idr, idz;
+    double idx, idy, idz;
     const static double eps_0 = 8.854187817e-12;
     const static double k_B = 1.380662e-23;
     const static double q_e = 1.602189e-19;
@@ -83,9 +83,13 @@ class Param
     */
     Param(GetPot & config)
     {
-	r_max = config("r_max",1e-2);
+	x_max = config("r_max",1e-2);   //backward compatibility
+	x_max = config("x_max",x_max);
+	y_max = config("y_max",1e-2);
 	z_max = config("z_max",1e-2);
-	r_sampl = config("r_sampl",100);
+	x_sampl = config("r_sampl",100);
+	x_sampl = config("r_sampl",x_sampl);
+	y_sampl = config("y_sampl",100);
 	z_sampl = config("z_sampl",100);
 
 //	n_particles = config("n_particles",100000);
@@ -183,9 +187,11 @@ class Param
 	    cout << spec_name << ' ' << density[i] << ' ' << temperature[i] <<endl;
 	}
 
-	dr = r_max/(r_sampl-1);
+	dx = x_max/(x_sampl-1);
+	dy = y_max/(y_sampl-1);
 	dz = z_max/(z_sampl-1);
-	idr = 1.0/dr;
+	idx = 1.0/dx;
+	idy = 1.0/dy;
 	idz = 1.0/dz;
 	//V = n_particles/(rho);
         config.set_prefix("");
@@ -196,9 +202,15 @@ class Param
         if(selfconsistent)
             dV = 1;
         else
-            dV = V/((r_sampl-1)*(z_sampl-1));
+        {
+            if(coord == CYLINDRICAL)
+                dV = V/((x_sampl-1)*(z_sampl-1));
+            else
+                dV = V/((x_sampl-1)*(y_sampl-1));
+        }
 	cout << "param: V = "<<V<<endl;
-	dth = 2*M_PI/macroparticle_factor;
+	if(coord == CYLINDRICAL)
+            dy = 2*M_PI/macroparticle_factor;
     }
 };
 const double Param::eps_0;

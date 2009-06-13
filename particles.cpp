@@ -160,8 +160,8 @@ class Species
 		if(!fr.good()) cerr << "Species::load(): read error\n";
 		// map particles back to working area if they left it during previous
 		// nonselfconsistent simulation
-		if(particles[i].x < 0 || particles[i].x > p_param->r_max)
-		    particles[i].x = p_param->r_max * rnd->uni();
+		if(particles[i].x < 0 || particles[i].x > p_param->x_max)
+		    particles[i].x = p_param->x_max * rnd->uni();
 		if(particles[i].z < 0 || particles[i].z > p_param->z_max)
 		    particles[i].z = p_param->z_max * rnd->uni();
 	    }
@@ -381,7 +381,7 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
     for(int i=0; i<n2; i++)
     {
 	particles[i].empty = false;
-	particles[i].x = param.r_max*(rnd->uni());
+	particles[i].x = param.x_max*(rnd->uni());
 	particles[i].z = param.z_max*(rnd->uni());
 	//XXX BAD in cylindrical coords (maybe not if vt = d(theta)/dt*r):
 	particles[i].vx = rnd->rnor()*v_max/(M_SQRT2);
@@ -397,7 +397,7 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
 void Species::probe_collect(t_particle *I)
 {
     if(!(I->z > 395e-3 && I->x < 45e-3)) return;
-    //double center_r = p_param->r_max/2.0;
+    //double center_r = p_param->x_max/2.0;
     //double center_z = p_param->z_max/2.0;
     probe_energy_dist.add((SQR(I->vx)+SQR(I->vz)+SQR(I->vy))*mass*0.5/p_param->q_e);
     //compute incidence angle
@@ -434,7 +434,7 @@ void Species::add_particles_on_disk(int nparticles, double centerx, double cente
         }while(SQR(x) + SQR(y) > 0.25 );
         x = x*2*radius + centerx;
         y = y*2*radius + centery;
-        if(x < 0 || x > p_param->r_max || y < 0 || y > p_param->z_max) continue;
+        if(x < 0 || x > p_param->x_max || y < 0 || y > p_param->z_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -455,7 +455,7 @@ void Species::add_particle_beam_on_disk(int nparticles, double centerx, double c
         }while(SQR(x) + SQR(y) > 0.25 );
         x = x*2*radius + centerx;
         y = y*2*radius + centery;
-        if(x < 0 || x > p_param->r_max || y < 0 || y > p_param->z_max) continue;
+        if(x < 0 || x > p_param->x_max || y < 0 || y > p_param->z_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -479,7 +479,7 @@ void Species::add_particle_beam_on_disk_cylindrical(int nparticles, double cente
             r = SQR(x) + SQR(y);
         }while(r > 0.25 );
         r = sqrt(r)*radius*2;
-        if(r > p_param->r_max) continue;
+        if(r > p_param->x_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -503,7 +503,7 @@ void Species::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles
             r = SQR(x) + SQR(y);
         }while(r > 0.25 );
         r = sqrt(r)*radius*2;
-        if(r > p_param->r_max) continue;
+        if(r > p_param->x_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -518,7 +518,7 @@ void Species::advance()
 {
     double fr, fz;	//force vector
     double qmdt = charge/mass*dt;	//auxilliary constant
-    //double center_r = p_param->r_max/2.0;
+    //double center_r = p_param->x_max/2.0;
     //double center_z = p_param->z_max/2.0;
     //double sqpp = SQR(p_param->probe_radius);
     double prob = 1.0-exp(-dt/lifetime);
@@ -597,7 +597,7 @@ void Species::advance()
 	    }
 
 	    // OKRAJOVE PODMINKY
-	    if(I->x > p_param->r_max || I->x < 0
+	    if(I->x > p_param->x_max || I->x < 0
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
 		remove(I);
@@ -676,7 +676,7 @@ void Species::advance()
 
 	    //if(p_param->selfconsistent)
 	    //{
-	    if(I->x > p_param->r_max || I->x < 0
+	    if(I->x > p_param->x_max || I->x < 0
 		    || I->z > p_param->z_max || I->z < 0 )
 	    {
                 if(p_param->boundary == Param::FREE)
@@ -686,8 +686,8 @@ void Species::advance()
                 }
                 else if(p_param->boundary == Param::PERIODIC)
                 {
-                    I->x = fmod(I->x, p_param->r_max);
-                    if(I->x < 0) I->x += p_param->r_max;
+                    I->x = fmod(I->x, p_param->x_max);
+                    if(I->x < 0) I->x += p_param->x_max;
                     I->z = fmod(I->z, p_param->z_max);
                     if(I->z < 0) I->z += p_param->z_max;
                 }
@@ -741,7 +741,7 @@ void Species::source5_refresh(unsigned int factor)
     for(unsigned int i=0; i<source2_particles.size(); i++)
     {
 	source2_particles[i].empty = false;
-	source2_particles[i].x = K*p_param->r_max*rnd->uni();
+	source2_particles[i].x = K*p_param->x_max*rnd->uni();
 	source2_particles[i].z = K*p_param->z_max*rnd->uni();
 	source2_particles[i].vx = rnd->rnor()*v_max/(M_SQRT2);
 	source2_particles[i].vz = rnd->rnor()*v_max/(M_SQRT2);
@@ -798,7 +798,7 @@ void Species::source_old()
 	if(k<2) //r==konst
 	    f1 = f2*p_param->z_max;
 	else
-	    f1 = f2*p_param->r_max;
+	    f1 = f2*p_param->x_max;
 	//cerr << f1*4 << endl;
 
 	//if(f1 > 10 )
@@ -817,27 +817,27 @@ void Species::source_old()
 	    {
 		I->vx = rnd->rnor()*v_max/(M_SQRT2);
 		I->vz = rnd->maxwell_flux(v_max*5.0) * (k==0 ? 1 : -1);
-		//I->x = I->vx*dt*uniform() + p_param->r_max * (k==0 ? 0 : 1);
+		//I->x = I->vx*dt*uniform() + p_param->x_max * (k==0 ? 0 : 1);
 		//I->z = p_param->z_max*uniform();
 		u = rnd->uni();
-		I->x = -I->vx*dt*u + p_param->r_max * (k==0 ? 0 : 1);
+		I->x = -I->vx*dt*u + p_param->x_max * (k==0 ? 0 : 1);
 		I->z = p_param->z_max*rnd->uni() - I->vz*dt*u;
 	    }else
 	    {
 		I->vx = rnd->rnor()*v_max/(M_SQRT2);
 		I->vz = rnd->maxwell_flux(v_max*5.0) * (k==2 ? 1 : -1);
 		//I->z = I->vz*dt*uniform() + p_param->z_max * (k==2 ? 0 : 1);
-		//I->x = p_param->r_max*uniform();
+		//I->x = p_param->x_max*uniform();
 		u = rnd->uni();
 		I->x = -I->vz*dt*u + p_param->z_max * (k==2 ? 0 : 1);
-		I->z = p_param->r_max*rnd->uni() - I->vx*dt*u;
+		I->z = p_param->x_max*rnd->uni() - I->vx*dt*u;
 	    }
 	    I->vz = rnd->rnor()*v_max/M_SQRT2;
 	    I->time_to_death = rnd->rexp()*lifetime;
 
 	    I->x += I->vx * dt;
 	    I->z += I->vz * dt;
-	    if(I->x < p_param->r_max && I->x > 0
+	    if(I->x < p_param->x_max && I->x > 0
 		    && I->z < p_param->z_max && I->z > 0 )
 		rho.accumulate(charge, I->x, I->z);
 	    /*
@@ -861,7 +861,7 @@ void Species::source()
     //double qm2 = charge/mass*0.5;
     double qm = charge/mass;
     double src_z_max = K*p_param->z_max;
-    double src_r_max = K*p_param->r_max;
+    double src_x_max = K*p_param->x_max;
     double fx=-p_param->extern_field;
     double fy=0;
     double qmdt = qm*dt;
@@ -883,15 +883,15 @@ void Species::source()
 	}
 	I->time_to_death -= dt;
 
-	if(I->x > src_r_max)
-	    while(I->x > src_r_max)
+	if(I->x > src_x_max)
+	    while(I->x > src_x_max)
 	    {
-		I->x -= src_r_max;
+		I->x -= src_x_max;
 		j = insert();
 		particles[j] = *I;
 		particles[j].z += rand()%source5_factor*src_z_max;
                 if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-                        particles[j].x<p_param->r_max && particles[j].x>0)
+                        particles[j].x<p_param->x_max && particles[j].x>0)
 		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
@@ -902,10 +902,10 @@ void Species::source()
 		j = insert();
 		particles[j] = *I;
 		particles[j].z += rand()%source5_factor*src_z_max;
-		particles[j].x += p_param->r_max;
-		I->x += src_r_max;
+		particles[j].x += p_param->x_max;
+		I->x += src_x_max;
 		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-                        particles[j].x<p_param->r_max && particles[j].x>0)
+                        particles[j].x<p_param->x_max && particles[j].x>0)
 		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
@@ -916,9 +916,9 @@ void Species::source()
 		I->z -= src_z_max;
 		j = insert();
 		particles[j] = *I;
-		particles[j].x += rand()%source5_factor*src_r_max;
+		particles[j].x += rand()%source5_factor*src_x_max;
 		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-                        particles[j].x<p_param->r_max && particles[j].x>0)
+                        particles[j].x<p_param->x_max && particles[j].x>0)
 		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
@@ -928,11 +928,11 @@ void Species::source()
 	    {
 		j = insert();
 		particles[j] = *I;
-		particles[j].x += rand()%source5_factor*src_r_max;
+		particles[j].x += rand()%source5_factor*src_x_max;
 		particles[j].z += p_param->z_max;
 		I->z += src_z_max;
 		if(particles[j].z<p_param->z_max && particles[j].z>0 &&
-                        particles[j].x<p_param->r_max && particles[j].x>0)
+                        particles[j].x<p_param->x_max && particles[j].x>0)
 		    rho.accumulate(charge, particles[j].x, particles[j].z);
 		else
 		    remove(j);
