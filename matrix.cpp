@@ -73,6 +73,7 @@ class Array3D
     public:
         int imax, jmax,kmax;
         T ***data;
+        T *base;
         Array3D() : imax(0), jmax(0), kmax(0), data(NULL) {}
         Array3D(int _imax, int _jmax, int _kmax) : imax(_imax), jmax(_jmax), kmax(_kmax)
         {
@@ -92,6 +93,7 @@ class Array3D
                     data[i][j] = data[i][j-1] + kmax;
                 }
             }
+            base = data[0][0];
         }
         void resize(int _imax, int _jmax, int _kmax)
         {
@@ -115,6 +117,7 @@ class Array3D
                     data[i][j] = data[i][j-1] + kmax;
                 }
             }
+            base = data[0][0];
         }
         ~Array3D()
         {
@@ -128,6 +131,10 @@ class Array3D
         T ** & operator [] (int i) const
         {
             return data[i];
+        }
+        T & operator () (int i, int j, int k)
+        {
+            return base[(i*jmax + j)*kmax + k];
         }
         void add(Array3D const &array)
         {
