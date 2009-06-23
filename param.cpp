@@ -7,7 +7,8 @@
 #include "speclist.hpp"
 using namespace std;
 enum t_advancer { ADVANCE2, ADVANCE_OLD, ADVANCE_PROB, ADVANCE2_EULER };
-enum Coord { CARTESIAN, CYLINDRICAL };
+enum Coord { CARTESIAN, CYLINDRICAL, CARTESIAN3D };
+
 class t_spec_param
 {
     public:
@@ -88,7 +89,7 @@ class Param
 	y_max = config("y_max",1e-2);
 	z_max = config("z_max",1e-2);
 	x_sampl = config("r_sampl",100);
-	x_sampl = config("r_sampl",x_sampl);
+	x_sampl = config("x_sampl",x_sampl);
 	y_sampl = config("y_sampl",100);
 	z_sampl = config("z_sampl",100);
 
@@ -134,7 +135,9 @@ class Param
 
         string coord_str = config("coord","CYLINDRICAL");
         if(coord_str == "CYLINDRICAL") { coord = CYLINDRICAL; }
-        else { coord = CARTESIAN; }
+        else if(coord_str == "CARTESIAN") { coord = CARTESIAN; }
+        else if(coord_str == "CARTESIAN3D") { coord = CARTESIAN3D; }
+        else { throw std::runtime_error("Param: unrecognized coord value " + coord_str + "\n"); }
 
         string boundary_str = config("boundary","FREE");
         if(boundary_str == "FREE") { boundary = FREE; }
