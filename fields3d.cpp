@@ -22,8 +22,9 @@ class Field3D : public Array3D<double>
 
         inline void accumulate(double charge, double x, double y, double z);
         inline double interpolate(double x, double y, double z);
-        void print( ostream & out = cout , double factor = 1.0);
-        void print( const char * filename , double factor = 1.0);
+        void print( ostream & out = cout, double factor = 1.0);
+        void print_vtk( ostream & out = cout);
+        void print( const char * filename, string format = "table", double factor = 1.0);
 
     private:
         double idx, idy, idz;
@@ -294,10 +295,43 @@ void Field3D::print( ostream & out, double factor)
     }
 }
 
-void Field3D::print( const char * filename , double factor)
+void Field3D::print_vtk( ostream & out)
+    //method to export the field in a legacy vtk format
+{
+    double dx=1.0/idx, dy=1.0/idy, dz=1.0/idz;
+
+    // maybe the version could be even lower, but this is
+    // based on http://www.vtk.org/VTK/img/file-formats.pdf
+    // for vtk version 4.2
+    out << "# vtk DataFile Version 2.0\n";
+    out << "3D scalar field saved by plasma2d\n";
+    out << "ASCII\n";
+
+    //Dataset format
+    out << "DATASET STRUCTURED_POINTS\n";
+    out << "DIMENSIONS " << imax <<" "<< jmax <<" "<< kmax <<endl;
+    out << "ORIGIN " << xmin <<" "<< ymin <<" "<< zmin <<endl;
+    out << "SPACING " << dx <<" "<< dy <<" "<< dz <<endl;
+
+    //Dataset attribute format
+    out << "POINT_DATA " << imax*jmax*kmax <<endl;
+    out << "SCALARS ScalarField double 1\n";
+    out << "LOOKUP_TABLE default\n";
+    for(int i=0; i<imax; i++)
+        for(int j=0; j<jmax; j++)
+            for(int k=0; k<kmax; k++)
+                out << data[i][j][k] << endl;
+}
+
+void Field3D::print( const char * filename, string format, double factor)
 {
     ofstream out(filename);
-    print(out, factor);
+    if(format=="table")
+        print(out, factor);
+    else if(format == "vtk")
+        print_vtk(out);
+    else
+	throw std::runtime_error("Field3D::print() unknown format " + format + "\n");
 }
 
 #endif
