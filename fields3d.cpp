@@ -101,8 +101,7 @@ class Solver
         double x_sampl, y_sampl, z_sampl;
 
     public:
-        Solver(Geometry & _geometry, Param & _param) : param(_param), geometry(_geometry),
-            x_sampl(geometry.x_sampl), y_sampl(geometry.y_sampl), z_sampl(geometry.z_sampl)
+        void matrix_init()
         {
             int n = x_sampl * y_sampl * z_sampl;
             Ap = new int [n+1];
@@ -141,6 +140,10 @@ class Solver
                             l += 7;
                         }
                     }
+        };
+        void umfpack_init()
+        {
+            int n = x_sampl * y_sampl * z_sampl;
             (void) umfpack_di_symbolic (n, n, Ap, Ai, Ax, &Symbolic, NULL, NULL) ;
             (void) umfpack_di_numeric (Ap, Ai, Ax, Symbolic, &Numeric, NULL, NULL) ;
             umfpack_di_free_symbolic (&Symbolic) ;
@@ -165,14 +168,57 @@ class Solver
         {
             (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, u[0][0], voltage[0][0], Numeric, NULL, NULL) ;
         }
+        void save(string filename)
+        {
+            //ugly trick to override constantness of c_str()
+            //when passing it as non-const param of save_numeric
+            char *fn = (char*)((void*)filename.c_str());
+
+            UF_long status;
+            status =  umfpack_di_save_numeric(Numeric, fn);
+            if(status == UMFPACK_ERROR_invalid_Numeric_object)
+                throw runtime_error("Solver::save: UMFPACK_ERROR_invalid_Numeric_object\n");
+            else if(status == UMFPACK_ERROR_file_IO)
+                throw runtime_error("Solver::save: UMFPACK_ERROR_file_IO\n");
+        }
+        void load(string filename)
+        {
+            char *fn = (char*)((void*)filename.c_str());
+            UF_long status;
+            status = umfpack_di_load_numeric(&Numeric, fn);
+            if(status == UMFPACK_ERROR_out_of_memory)
+                throw runtime_error("Solver::Solver: UMFPACK_ERROR_out_of_memory\n");
+            else if(status == UMFPACK_ERROR_file_IO)
+                throw runtime_error("Solver::Solver: UMFPACK_ERROR_file_IO\n");
+            else if(status != UMFPACK_OK)
+                throw runtime_error("Solver::load: Error loading Numeric object\n");
+        }
+        Solver(Geometry & _geometry, Param & _param, string filename = "") : param(_param), geometry(_geometry),
+            x_sampl(geometry.x_sampl), y_sampl(geometry.y_sampl), z_sampl(geometry.z_sampl)
+        {
+            matrix_init();
+
+            if(filename == "")
+            {
+                cout << "calling umfpack init\n";
+                umfpack_init();
+            }
+            else
+            {
+                cout << "calling load " + filename + "\n";
+                load(filename);
+            }
+        }
 };
 
 class ElMag3D
 {
     public:
         Field3D u, rho, voltage;
-        ElMag3D(Param &param) : potentials(0), geometry(param), solver(geometry, param),
-            u(param), rho(param), voltage(param), multielectrode(false)
+
+        ElMag3D(Param &param) : u(param), rho(param), voltage(param),
+            potentials(0), geometry(param), multielectrode(false),
+            solver(geometry, param, "solver_numeric.umf")
         {
             //do we have multiple independent sets of electrodes in
             //nonselfconsistent simulation
@@ -216,8 +262,10 @@ class ElMag3D
         vector<Field3D*> potentials;
 
         Geometry geometry;
-        Solver solver;
         bool multielectrode;
+    public:
+        // solver must be initialized after geometry
+        Solver solver;
 
 };
 
