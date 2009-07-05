@@ -200,12 +200,10 @@ class Solver
 
             if(filename == "")
             {
-                cout << "calling umfpack init\n";
                 umfpack_init();
             }
             else
             {
-                cout << "calling load " + filename + "\n";
                 load(filename);
             }
         }
