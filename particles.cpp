@@ -16,6 +16,7 @@
 #include "input.cpp"
 #include "tabulate.cpp"
 #include "speclist.hpp"
+#include "util.cpp"
 
 using namespace std;
 //#define NTYPES 8

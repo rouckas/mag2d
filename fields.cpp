@@ -8,6 +8,7 @@
 #include <suitesparse/umfpack.h>
 #include "param.cpp"
 #include "matrix.cpp"
+#include "util.cpp"
 #include <cmath>
 #include <iostream>
 #include <fstream>
@@ -839,12 +840,6 @@ void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt)
         _Bz = Bz.interpolate(x, y);
         _Bt = 0.00;
     }
-}
-string double2string(double x)
-{
-    ostringstream o;
-    o << x;
-    return o.str();
 }
 int double2int(double x, double eps=1e-2)
 {
