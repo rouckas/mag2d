@@ -1,5 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
+#include <sstream>
+using namespace std;
 string double2string(double x)
 {
     ostringstream o;
