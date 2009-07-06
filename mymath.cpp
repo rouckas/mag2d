@@ -10,7 +10,7 @@ typedef unsigned int uint32;
 typedef int int32;
 #else
 typedef unsigned long int uint32;
-typedef long int uint32;
+typedef long int int32;
 #endif
 
 
