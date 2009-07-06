@@ -34,17 +34,18 @@ class t_particle
 
 
 
-class Species
+class BaseSpecies
 //abstract class representing one species in the model
+//part of the class with dimension-independent code
 {
     private:
 	vector<int> empty;
-	Fields *field;
 	double source_len;
 	ofstream output;
-	int niter;
     protected:
-	Species ** species_list;
+	Fields *field;
+	int niter;
+	BaseSpecies ** species_list;
 	Param *p_param;
 	t_random * rnd;
     public:
@@ -82,15 +83,8 @@ class Species
 	double probe_current_sum;
 
 
-	Species(int n1, int n2, double temperature, Param &param, t_random &rnd, 
-		Fields *_field, double vsigma_max, double mass, double _dt, Species * _species_list[], species_type _type = NONE );
-	Species(int n1, int n2, Param &param, t_random &_rnd, Fields *_field,
-	       double mass, Species * _species_list[], species_type _type = NONE );
-
-        void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
-        void add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius);
-        void add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius);
-        void add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height = 0.0);
+	BaseSpecies(int n1, int n2, Param &param, t_random &_rnd, Fields *_field,
+	       double mass, BaseSpecies * _species_list[], species_type _type = NONE );
 
 	// generate randomly new particle velocity according to species' velocity
 	// distribution
@@ -193,7 +187,7 @@ class Species
 	int insert()
 	{
 	    if(empty.size()==0)
-		throw runtime_error("particle array full");
+		throw runtime_error(name + ": particle array full, size = " + int2string(particles.size()));
 	    int tmp = empty.back();
 	    if(particles[tmp].empty == false)
 		throw runtime_error("error inserting particle");
@@ -217,12 +211,7 @@ class Species
         }
 
 	virtual void scatter(t_particle &particle) = 0;
-	void advance();
-	void source();
-
 	vector<t_particle> source2_particles;
-	void source_old();
-	void source5_refresh(unsigned int factor);
 	void source5_save(const string filename)
 	{
 	    ofstream fw(filename.c_str(),ios::out | ios::binary);
@@ -303,7 +292,6 @@ class Species
 	    svmax *= 1e-20;
 	    return svmax;
 	}
-	void probe_collect(t_particle *I);
     public:
 	void print_status( ostream & out = cout)
 	{
@@ -350,8 +338,48 @@ class Species
 
 };
 
-Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
-	double _mass, Species * _species_list[], species_type _type)
+template <int D>
+class Species : public BaseSpecies {};
+
+template <>
+class Species<CARTESIAN> : public BaseSpecies
+{
+    public:
+        Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
+                double _mass, BaseSpecies * _species_list[], species_type _type) :
+            BaseSpecies(_n, n2, param, _rnd, _field, _mass, _species_list, _type) {};
+
+	void advance();
+        void accumulate();
+
+        void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
+        void add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius);
+
+	void source();
+	void source_old();
+	void source5_refresh(unsigned int factor);
+};
+
+template <>
+class Species<CYLINDRICAL> : public BaseSpecies
+{
+    public:
+        Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
+                double _mass, BaseSpecies * _species_list[], species_type _type) :
+            BaseSpecies(_n, n2, param, _rnd, _field, _mass, _species_list, _type) {};
+
+	void advance();
+        void accumulate();
+	void probe_collect(t_particle *I);
+
+        void add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius);
+        void add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height = 0.0);
+
+};
+
+
+BaseSpecies::BaseSpecies(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
+	double _mass, BaseSpecies * _species_list[], species_type _type)
     : empty(0),
     field(_field), niter(0), p_param(&param), rnd(&_rnd), 
     particles(_n), type(_type), name(species_names[_type]), mass(_mass),
@@ -395,7 +423,7 @@ Species::Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
     output.open( (param.output_dir + "/" + name + ".dat").c_str() );
     rho.reset();
 };
-void Species::probe_collect(t_particle *I)
+void Species<CYLINDRICAL>::probe_collect(t_particle *I)
 {
     if(!(I->z > 395e-3 && I->x < 45e-3)) return;
     //double center_r = p_param->x_max/2.0;
@@ -424,7 +452,7 @@ void Species::probe_collect(t_particle *I)
     probe_charge += charge;
 }
 
-void Species::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
+void Species<CARTESIAN>::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;
     for(int i=0; i<nparticles; i++)
@@ -445,7 +473,7 @@ void Species::add_particles_on_disk(int nparticles, double centerx, double cente
     }
 };
 
-void Species::add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius)
+void Species<CARTESIAN>::add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;
     for(int i=0; i<nparticles; i++)
@@ -466,7 +494,7 @@ void Species::add_particle_beam_on_disk(int nparticles, double centerx, double c
         rndv(pp->vy);
     }
 };
-void Species::add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius)
+void Species<CYLINDRICAL>::add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius)
 {
     double x, y, r;
     if(centerz < 0 || centerz > p_param->z_max) return;
@@ -490,7 +518,7 @@ void Species::add_particle_beam_on_disk_cylindrical(int nparticles, double cente
         rndv(pp->vz);
     }
 };
-void Species::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height)
+void Species<CYLINDRICAL>::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height)
 {
     double x, y, r;
     if(centerz < 0 || centerz > p_param->z_max) return;
@@ -515,7 +543,7 @@ void Species::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles
         rnd->rot(v, pp->vx, pp->vz, pp->vy);
     }
 };
-void Species::advance()
+void Species<CARTESIAN>::advance()
 {
     double fr, fz;	//force vector
     double qmdt = charge/mass*dt;	//auxilliary constant
@@ -527,197 +555,201 @@ void Species::advance()
     //probe_current = 0;
 
     double Bz = 0.03, Bx = 0, By = 0.0;
-    //double tan_theta = charge*B*dt/(2.0*mass);
 
-
-    if(p_param->coord == CYLINDRICAL) 
-	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-	{
-	    if(I->empty==true) continue;
-
-	    //compute field at (I->x, I->z)
-	    field->E(I->x, I->z, fr, fz);
-            field->B(I->x, I->z, Bx, Bz, By);
-	    //XXX osetrit castice mimo prac oblast !!!
-	    //fr=fz=0;
-
-
-	    // advance velocities as in cartesian coords
-	    // use HARHA in magnetic field
-	    // half acceleration:
-	    I->vx -= fr*qmdt/2.0;
-	    I->vz -= fz*qmdt/2.0;
-
-	    // rotation
-	    //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
-	    double tmp = charge*dt/(2.0*mass);
-	    double tx = Bx*tmp;
-	    double ty = By*tmp;
-	    double tz = Bz*tmp;
-
-	    //XXX check orientation
-	    // use (r, theta, z)
-	    double vprime_r = I->vx + I->vy*tz - I->vz*ty;
-	    double vprime_t = I->vy + I->vz*tx - I->vx*tz;
-	    double vprime_z = I->vz + I->vx*ty - I->vy*tx;
-
-	    tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
-	    double sx = tx*tmp;
-	    double sy = ty*tmp;
-	    double sz = tz*tmp;
-
-	    I->vx = I->vx + vprime_t*sz - vprime_z*sy;
-	    I->vy = I->vy + vprime_z*sx - vprime_r*sz;
-	    I->vz = I->vz + vprime_r*sy - vprime_t*sx;
-
-	    // half acceleration:
-	    I->vx -= fr*qmdt/2.0;
-	    I->vz -= fz*qmdt/2.0;
-
-	    //advance position (Birdsall pp. 338):
-	    double x2 = I->x + I->vx*dt;
-	    double y2 = I->vy*dt;
-	    I->x = sqrt(SQR(x2)+SQR(y2));
-	    I->z += I->vz * dt;
-
-	    //rotate the speed vector
-	    double sa = y2/I->x;
-	    double ca = x2/I->x;
-	    if(I->x==0)
-	    {
-		sa = 0;
-		ca = 1;
-	    }
-	    tmp = I->vx;
-	    I->vx = ca*I->vx + sa*I->vy;
-	    I->vy = -sa*tmp + ca*I->vy;
-
-	    if( rnd->uni() < prob)
-	    {
-		scatter(*I);
-	    }
-
-	    // OKRAJOVE PODMINKY
-	    if(I->x > p_param->x_max || I->x < 0
-		    || I->z > p_param->z_max || I->z < 0 )
-	    {
-		remove(I);
-		continue;
-	    }
-	    if(!field->grid.is_free(I->x, I->z))
-	    {
-                if(p_param->has_probe)
-                    probe_collect(&*I);
-
-                remove(I);
-		continue;
-	    }
-
-	    // SUMACE NABOJE
-	    rho.accumulate(charge, I->x, I->z);
-	}
-    else
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
     {
-	for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-	{
-	    // (r, t, z) ~ (x, y, z)
-	    if(I->empty==true) continue;
+        // (r, t, z) ~ (x, y, z)
+        if(I->empty==true) continue;
 
-	    //compute field at (I->x, I->z)
-	    field->E(I->x, I->z, fr, fz, niter*dt);
-            field->B(I->x, I->z, Bx, Bz, By);
-	    //XXX osetrit castice mimo prac oblast !!!
-	    //fr=fz=0;
+        //compute field at (I->x, I->z)
+        field->E(I->x, I->z, fr, fz, niter*dt);
+        field->B(I->x, I->z, Bx, Bz, By);
+        //XXX osetrit castice mimo prac oblast !!!
+        //fr=fz=0;
 
 
-	    // advance velocities as in cartesian coords
-	    // use HARHA in magnetic field
-	    // half acceleration:
-	    I->vx -= fr*qmdt/2.0;
-	    I->vz -= fz*qmdt/2.0;
+        // advance velocities as in cartesian coords
+        // use HARHA in magnetic field
+        // half acceleration:
+        I->vx -= fr*qmdt/2.0;
+        I->vz -= fz*qmdt/2.0;
 
-	    // rotation
-	    //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
-	    double tmp = charge*dt/(2.0*mass);
-	    double tx = Bx*tmp;
-	    double ty = By*tmp;
-	    double tz = Bz*tmp;
+        // rotation
+        //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+        double tmp = charge*dt/(2.0*mass);
+        double tx = Bx*tmp;
+        double ty = By*tmp;
+        double tz = Bz*tmp;
 
-	    //XXX check orientation
-	    // use (r, theta, z)
-	    // use (x, y, z) ~ (r, z, theta) !!!
-	    // sign change
-	    double vprime_r = I->vx - I->vy*tz + I->vz*ty;
-	    double vprime_z = I->vz - I->vx*ty + I->vy*tx;
-	    double vprime_t = I->vy - I->vz*tx + I->vx*tz;
+        //XXX check orientation
+        // use (r, theta, z)
+        // use (x, y, z) ~ (r, z, theta) !!!
+        // sign change
+        double vprime_r = I->vx - I->vy*tz + I->vz*ty;
+        double vprime_z = I->vz - I->vx*ty + I->vy*tx;
+        double vprime_t = I->vy - I->vz*tx + I->vx*tz;
 
-	    tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
-	    double sx = tx*tmp;
-	    double sy = ty*tmp;
-	    double sz = tz*tmp;
+        tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
+        double sx = tx*tmp;
+        double sy = ty*tmp;
+        double sz = tz*tmp;
 
-	    I->vx = I->vx - vprime_t*sz + vprime_z*sy;
-	    I->vy = I->vy - vprime_z*sx + vprime_r*sz;
-	    I->vz = I->vz - vprime_r*sy + vprime_t*sx;
+        I->vx = I->vx - vprime_t*sz + vprime_z*sy;
+        I->vy = I->vy - vprime_z*sx + vprime_r*sz;
+        I->vz = I->vz - vprime_r*sy + vprime_t*sx;
 
-	    // half acceleration:
-	    I->vx -= fr*qmdt/2.0;
-	    I->vz -= fz*qmdt/2.0;
+        // half acceleration:
+        I->vx -= fr*qmdt/2.0;
+        I->vz -= fz*qmdt/2.0;
 
-	    //advance position (Birdsall pp. 338):
-	    I->x += I->vx*dt;
-	    I->z += I->vz*dt;
+        //advance position (Birdsall pp. 338):
+        I->x += I->vx*dt;
+        I->z += I->vz*dt;
 
 
-	    if( rnd->uni() < prob)
-	    {
-		scatter(*I);
-	    }
-	    // OKRAJOVE PODMINKY
+        if( rnd->uni() < prob)
+        {
+            scatter(*I);
+        }
+        // OKRAJOVE PODMINKY
 
-	    //if(p_param->selfconsistent)
-	    //{
-	    if(I->x > p_param->x_max || I->x < 0
-		    || I->z > p_param->z_max || I->z < 0 )
-	    {
-                if(p_param->boundary == Param::FREE)
-                {
-                    remove(I);
-                    continue;
-                }
-                else if(p_param->boundary == Param::PERIODIC)
-                {
-                    I->x = fmod(I->x, p_param->x_max);
-                    if(I->x < 0) I->x += p_param->x_max;
-                    I->z = fmod(I->z, p_param->z_max);
-                    if(I->z < 0) I->z += p_param->z_max;
-                }
+        //if(p_param->selfconsistent)
+        //{
+        if(I->x > p_param->x_max || I->x < 0
+                || I->z > p_param->z_max || I->z < 0 )
+        {
+            if(p_param->boundary == Param::FREE)
+            {
+                remove(I);
+                continue;
+            }
+            else if(p_param->boundary == Param::PERIODIC)
+            {
+                I->x = fmod(I->x, p_param->x_max);
+                if(I->x < 0) I->x += p_param->x_max;
+                I->z = fmod(I->z, p_param->z_max);
+                if(I->z < 0) I->z += p_param->z_max;
+            }
 
-	    }
-	    if(!field->grid.is_free(I->x, I->z))
-	    {
-		remove(I);
-		continue;
-	    }
+        }
+        if(!field->grid.is_free(I->x, I->z))
+        {
+            remove(I);
+            continue;
+        }
 
-	    /**
-	      if(SQR(I->x-center_r)+SQR(I->z-center_z) < sqpp)
-	      {
-	      probe_collect(&*I);
-	      remove(I);
-	      probe_current += charge;
-	      continue;
-	      }
-	      */
+        /**
+          if(SQR(I->x-center_r)+SQR(I->z-center_z) < sqpp)
+          {
+          probe_collect(&*I);
+          remove(I);
+          probe_current += charge;
+          continue;
+          }
+          */
 
-	    // SUMACE NABOJE
-	    rho.accumulate(charge, I->x, I->z);
-	    //}
-	}
+        // SUMACE NABOJE
+        rho.accumulate(charge, I->x, I->z);
+        //}
     }
     niter++;
 }
-void Species::accumulate()
+void Species<CYLINDRICAL>::advance()
+{
+    double fr, fz;	//force vector
+    double qmdt = charge/mass*dt;	//auxilliary constant
+    double prob = 1.0-exp(-dt/lifetime);
+
+    double Bz = 0.03, Bx = 0, By = 0.0;
+
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+        if(I->empty==true) continue;
+
+        //compute field at (I->x, I->z)
+        field->E(I->x, I->z, fr, fz);
+        field->B(I->x, I->z, Bx, Bz, By);
+        //XXX osetrit castice mimo prac oblast !!!
+        //fr=fz=0;
+
+
+        // advance velocities as in cartesian coords
+        // use HARHA in magnetic field
+        // half acceleration:
+        I->vx -= fr*qmdt/2.0;
+        I->vz -= fz*qmdt/2.0;
+
+        // rotation
+        //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+        double tmp = charge*dt/(2.0*mass);
+        double tx = Bx*tmp;
+        double ty = By*tmp;
+        double tz = Bz*tmp;
+
+        //XXX check orientation
+        // use (r, theta, z)
+        double vprime_r = I->vx + I->vy*tz - I->vz*ty;
+        double vprime_t = I->vy + I->vz*tx - I->vx*tz;
+        double vprime_z = I->vz + I->vx*ty - I->vy*tx;
+
+        tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
+        double sx = tx*tmp;
+        double sy = ty*tmp;
+        double sz = tz*tmp;
+
+        I->vx = I->vx + vprime_t*sz - vprime_z*sy;
+        I->vy = I->vy + vprime_z*sx - vprime_r*sz;
+        I->vz = I->vz + vprime_r*sy - vprime_t*sx;
+
+        // half acceleration:
+        I->vx -= fr*qmdt/2.0;
+        I->vz -= fz*qmdt/2.0;
+
+        //advance position (Birdsall pp. 338):
+        double x2 = I->x + I->vx*dt;
+        double y2 = I->vy*dt;
+        I->x = sqrt(SQR(x2)+SQR(y2));
+        I->z += I->vz * dt;
+
+        //rotate the speed vector
+        double sa = y2/I->x;
+        double ca = x2/I->x;
+        if(I->x==0)
+        {
+            sa = 0;
+            ca = 1;
+        }
+        tmp = I->vx;
+        I->vx = ca*I->vx + sa*I->vy;
+        I->vy = -sa*tmp + ca*I->vy;
+
+        if( rnd->uni() < prob)
+        {
+            scatter(*I);
+        }
+
+        // OKRAJOVE PODMINKY
+        if(I->x > p_param->x_max || I->x < 0
+                || I->z > p_param->z_max || I->z < 0 )
+        {
+            remove(I);
+            continue;
+        }
+        if(!field->grid.is_free(I->x, I->z))
+        {
+            if(p_param->has_probe)
+                probe_collect(&*I);
+
+            remove(I);
+            continue;
+        }
+
+        // SUMACE NABOJE
+        rho.accumulate(charge, I->x, I->z);
+    }
+    niter++;
+}
+void Species<CYLINDRICAL>::accumulate()
 {
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
     {
@@ -726,7 +758,16 @@ void Species::accumulate()
 	    rho.accumulate(charge, I->x, I->z);
     }
 }
-void Species::source5_refresh(unsigned int factor)
+void Species<CARTESIAN>::accumulate()
+{
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+	if(I->empty==true) continue;
+	    // SUMACE NABOJE
+	    rho.accumulate(charge, I->x, I->z);
+    }
+}
+void Species<CARTESIAN>::source5_refresh(unsigned int factor)
 {
     source5_factor = factor;
     //double N = p_param->rho*p_param->V;		//XXX wrong for multicomponent plasma
@@ -752,14 +793,14 @@ void Species::source5_refresh(unsigned int factor)
 }
 
 
-void Species::energy_dist_compute()
+void BaseSpecies::energy_dist_compute()
 {
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); I++)
 	if(I->empty==false)
 	    if( energy_dist.add((SQR(I->vx)+SQR(I->vz)+SQR(I->vy))*mass*0.5/p_param->q_e) == -1 )
 		;//cout << I-particles.begin() << " " << I->vx << " " << I->vz << " " << I->vz << endl;
 }
-void Species::source_energy_dist_compute()
+void BaseSpecies::source_energy_dist_compute()
 {
     for(vector<t_particle>::iterator I = source2_particles.begin(); I != source2_particles.end(); I++)
 	if(I->empty==false)
@@ -782,7 +823,7 @@ void Species::source_energy_dist_compute()
 
 
 
-void Species::source_old()
+void Species<CARTESIAN>::source_old()
 {
 
     //double v_max = sqrt(2.0*t_param::k_B*temperature/mass);
@@ -854,7 +895,7 @@ void Species::source_old()
     }
 }
 
-void Species::source()
+void Species<CARTESIAN>::source()
 {
     double K = 1.0/source5_factor;
     vector<t_particle>::iterator J;

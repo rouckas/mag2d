@@ -6,6 +6,7 @@ coord = CYLINDRICAL
 
 # probe voltage
 u_probe =  -10.0		#[V]
+rf = 0
 
 # probe dimensions
 probe_radius = 1e-4		#[m]
@@ -13,6 +14,12 @@ probe_length = 1e-2		#[m]
 
 # x component of external field
 extern_field = 500.0		#[V/m]
+
+#magnetic field
+#magnetic_field_file = MagPole.txt
+magnetic_field_const = 1
+Bz = 0.03
+
 
 # total number of particles in simulation
 n_particles_total = 400000
@@ -27,7 +34,7 @@ r_max = 1.2e-2	#[m]
 z_max = 7.5e-2	#[m]
 
 # number of timesteps
-niter = 200000
+niter = 20000
 
 # the factor by which the source area is smaller
 # than working area, positive integer

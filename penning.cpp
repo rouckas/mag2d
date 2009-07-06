@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     //fields.u.print(fw1);
 
     // initialize the PIC model !
-    Pic pic(param);
+    Pic<CYLINDRICAL> pic(param);
 
     pic.species_list[ELECTRON]->resize(2);
 
@@ -63,21 +63,24 @@ int main(int argc, char *argv[])
     t_particle *p_p = &(pic.species_list[ELECTRON]->particles[0]);
     p_p = &(pic.species_list[ELECTRON]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
-    p_p->r = 1e-4;
+    p_p->x = 1e-4;
     p_p->z = 4.1e-2;
-    p_p->vr = 1e5;
+    p_p->vx = 1e5;
     p_p->vz = 1e4;
-    p_p->vr = -pic.species_list[ELECTRON]->veV(1);
+    p_p->vx = -pic.species_list[ELECTRON]->veV(1);
     p_p->vz = pic.species_list[ELECTRON]->veV(1);
     cout <<"veV "<< -pic.species_list[ELECTRON]->veV(1) <<endl;
-    p_p->vt = 0;
+    p_p->vy = 0;
+    p_p->empty  = false;
 
     p_p[1].z = 1e-2;
-    p_p[1].r = 1.1e-2;
-    p_p[1].vr = 0;
-    p_p[1].vt = 0;
+    p_p[1].x = 1.1e-2;
+    p_p[1].vx = 0;
+    p_p[1].vy = 0;
     p_p[1].vz = -pic.species_list[ELECTRON]->veV(.001);
-    p_p[1].vr = 0.3*p_p[1].vz;
+    p_p[1].vx = 0.3*p_p[1].vz;
+    p_p[1].empty  = false;
+
     for(int i=1; i<param.niter+1; ++i)
     {
 
@@ -85,6 +88,7 @@ int main(int argc, char *argv[])
 
         double t0 = 30000;
         double t1 = 430000;
+        t1 = 0;
         double Ut = 5.0;
         //double dU = Ut/(t1-t0);
         double dU = 3e-5;
@@ -96,10 +100,10 @@ int main(int argc, char *argv[])
         if(pic.iter>t0 && pic.iter<t1 && U_center<0.1) pic.field.grid.penning_trap_simple(pic.field.grid.U_trap+dU);
 
 
-	fwt1 << p_p->r <<' '<< setprecision(10) << p_p->z <<endl;
-	fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
-	fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
-	fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
+	fwt1 << p_p->x <<' '<< setprecision(10) << p_p->z <<endl;
+	fwt2 << p_p[1].x <<' '<< setprecision(10) << p_p[1].z <<endl;
+	fwv1 << p_p->vx <<' '<< p_p->vz <<' '<< p_p->vy <<endl;
+	fwv2 << setprecision(10) << p_p[1].vx <<' '<< p_p[1].vz <<' '<< p_p[1].vy <<endl;
 	if(i%20==0) pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)
@@ -123,14 +127,6 @@ int main(int argc, char *argv[])
 		}
 		*/
 	}
-
-	//XXX deprecated
-	if(t_source_refresh != 0 && i%t_source_refresh==0)
-	{
-	    pic.species_list[ARGON_POS]->source5_refresh(SRC_FACT);
-	    pic.species_list[ELECTRON]->source5_refresh(SRC_FACT);
-	}
-
     }
     //getchar();
 

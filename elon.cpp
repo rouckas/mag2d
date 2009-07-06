@@ -14,38 +14,39 @@ namespace elon{
 };
 
 
-class t_elon : public Species
+template <int D>
+class t_elon : public Species<D>
 {
     void scatter(t_particle &particle);
     public:
     double eArsvmax;
     t_elon(int _n, int n2, double temperature, double vsigma_max, Param &param, t_random &random,
-	   Fields *_field, Species * _species_list[], double _dt=1e-11)
-	: Species(_n, n2, param, random, _field, 9.109534e-31, _species_list, ELECTRON) 
+	   Fields *_field, BaseSpecies * _species_list[], double _dt=1e-11)
+	: Species<D>(_n, n2, param, random, _field, 9.109534e-31, _species_list, ELECTRON) 
     {
-	charge = -1.602189e-19;
+        Species<D>::charge = -1.602189e-19;
 	eArsvmax = 3.214e-13;
 	//double vsigma_coul_max = 6.371e-10;
 	double vsigma_coul_max = 0;
-	double N_coul = density*vsigma_coul_max;
-	lifetime = 1.0/(vsigma_max*param.neutral_density + N_coul);
+        double N_coul = Species<D>::density*vsigma_coul_max;
+	Species<D>::lifetime = 1.0/(vsigma_max*param.neutral_density + N_coul);
 	/*
 	if(dt==0)
 	    dt = lifetime/10.0;
 	    */
 
-	elon::Lamb = charge*charge/(4.0*M_PI*param.eps_0);
-	elon::l_debye = param.eps_0*param.k_B*temperature/(density*charge*charge);
-	elon::charge = charge;
-	cerr << "e-  "<< lifetime/dt << " timesteps per collision" << endl;
+	elon::Lamb = Species<D>::charge*Species<D>::charge/(4.0*M_PI*param.eps_0);
+	elon::l_debye = param.eps_0*param.k_B*temperature/(Species<D>::density*Species<D>::charge*Species<D>::charge);
+	elon::charge = Species<D>::charge;
+	cerr << "e-  "<< Species<D>::lifetime/Species<D>::dt << " timesteps per collision" << endl;
     };
     void lifetime_init()
     {
 	// finally obtain the frequency
-	double eArFreq = eArsvmax * species_list[ARGON]->density;
-	lifetime = 1.0/eArFreq;
-	cout << "electron lifetime " << lifetime/dt <<endl;
-	Species::lifetime_init();
+	double eArFreq = eArsvmax * Species<D>::species_list[ARGON]->density;
+	Species<D>::lifetime = 1.0/eArFreq;
+	cout << "electron lifetime " << Species<D>::lifetime/Species<D>::dt <<endl;
+	Species<D>::lifetime_init();
     }
 
 };
@@ -89,13 +90,14 @@ tabulate_periodic sin_tab(0,2*M_PI,1000,sin);
 tabulate_periodic cos_tab(0,2*M_PI,1000,cos);
 
 
-void t_elon::scatter(t_particle &particle)
+template <int D>
+void t_elon<D>::scatter(t_particle &particle)
 {
     //rozhodneme, jestli dochazi k e-e nebo e-i
-    if(  true || rnd->uni() > 0.058 )
+    if(  true || Species<D>::rnd->uni() > 0.058 )
     {
 	double sq_v = SQR(particle.vx) + SQR(particle.vz) + SQR(particle.vy);
-	double const_E = -0.5*mass/charge;
+	double const_E = -0.5*Species<D>::mass/Species<D>::charge;
 	double E = const_E*sq_v;
 	double v = sqrt(sq_v);
 	double vsigma[3];
@@ -115,7 +117,7 @@ void t_elon::scatter(t_particle &particle)
 	for(i=0;i<3;i++)
 	    vsigma[i] /= svmax;
 
-	double gamma = rnd->uni();
+	double gamma = Species<D>::rnd->uni();
 	double tmp=0;
 	for(i=0;i<3;i++)
 	{
@@ -129,7 +131,7 @@ void t_elon::scatter(t_particle &particle)
 
 	    //pruzny rozptyl
 	    case 0:
-		sq_v *= 1-rnd->uni()*2*mass/M_ARP;
+		sq_v *= 1-Species<D>::rnd->uni()*2*Species<D>::mass/M_ARP;
 	//	cerr << (SQR(particle.vx)+SQR(particle.vz)+SQR(particle.vy)) / sq_v << endl;
 		break;
 
@@ -145,7 +147,7 @@ void t_elon::scatter(t_particle &particle)
 		{
 		    //t_castice *p_castice2;
 		    sq_v = (E-15.76)/const_E;
-		    sq_v *= 1-rnd->uni(); //XXX ???
+		    sq_v *= 1-Species<D>::rnd->uni(); //XXX ???
 
 		    /*
 		    //vytvoreni elektronu
@@ -168,7 +170,7 @@ void t_elon::scatter(t_particle &particle)
 	{
 	    v = sqrt(sq_v);
 	    //nahodna zmena smeru
-	    rnd->rot(v,particle.vx,particle.vz,particle.vy);
+	    Species<D>::rnd->rot(v,particle.vx,particle.vz,particle.vy);
 	}
     }// konec e-i interakce
     else
@@ -176,17 +178,17 @@ void t_elon::scatter(t_particle &particle)
 	// e-e INTERAKCE
 
 	//Generujeme partnera
-	int i = rand()%particles.size();
-	while(particles[i].empty == true)
+	int i = rand()%Species<D>::particles.size();
+	while(Species<D>::particles[i].empty == true)
 	{
-	    i = rand()%particles.size();
+	    i = rand()%Species<D>::particles.size();
 	}
 
-	t_particle *p_c2 = &(particles[i]);
+	t_particle *p_c2 = &(Species<D>::particles[i]);
 
 	//vypoceteme relativni rychlost elektronu
 	double v_rel = (SQR(p_c2->vx-particle.vx) + SQR(p_c2->vz-particle.vz) + SQR(p_c2->vy-particle.vy));
-	double E = 0.5*mass*v_rel;
+	double E = 0.5*Species<D>::mass*v_rel;
 	v_rel = sqrt(v_rel);
 
 	//spoctemez nyni srazkovou freq
@@ -200,7 +202,7 @@ void t_elon::scatter(t_particle &particle)
 	vsigma /= 6.371e-10;
 
 	//rozhodneme, jestli dochazi ke srazce
-	if(vsigma > rnd->uni())
+	if(vsigma > Species<D>::rnd->uni())
 	{
 	    //prepocet v_1 do tezistove soustavy
 	    double v1_cm_x = (particle.vx - p_c2->vx)*0.5;
@@ -209,7 +211,7 @@ void t_elon::scatter(t_particle &particle)
 	    double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
 	    //provedeni nahodne rotace
-	    rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
+	    Species<D>::rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
 
 	    //zpetna transformace
 	    //p_c->vx = v1_cm_x + v_cm_x;

@@ -9,28 +9,30 @@ static const double E_MIN=1e-3;
 static const double E_MAX=1.0;
 };
 
-class t_argon_neutral : public Species
+template <int D>
+class t_argon_neutral : public Species<D>
 {
     void scatter(t_particle &particle){};
     public:
     t_argon_neutral(int _n, int n2, double temperature, double vsigma_max, Param &param, t_random &random, 
-	    Fields *_field, Species *_species_list[], double _dt=1e-8)
-	: Species(0, 0, param, random, _field, 6.68173e-26, _species_list, ARGON)
+	    Fields *_field, BaseSpecies *_species_list[], double _dt=1e-8)
+	: Species<D>(0, 0, param, random, _field, 6.68173e-26, _species_list, ARGON)
     {
-	charge = 0.0;
+	Species<D>::charge = 0.0;
 //	double pressure = 0.0;
 //	density = pressure/(param.k_B*temperature);
     };
 };
 
-class t_argon_metastable : public Species
+template <int D>
+class t_argon_metastable : public Species<D>
 {
     public:
     t_argon_metastable(int _n, int n2, double temperature, double vsigma_max, Param &param, t_random &random, 
-	    Fields *_field, Species *_species_list[], double _dt=1e-8)
-	: Species(0, 0, param, random, _field, 6.68173e-26, _species_list, ARGON_META)
+	    Fields *_field, BaseSpecies *_species_list[], double _dt=1e-8)
+	: Species<D>(0, 0, param, random, _field, 6.68173e-26, _species_list, ARGON_META)
     {
-	charge = 0.0;
+	Species<D>::charge = 0.0;
     };
     void scatter(t_particle &particle){};
     void advance()
@@ -69,7 +71,8 @@ double sigma_in_ct(double E)
 tabulate sigma_in_el_tab(0, argon::E_MAX, 1000, sigma_in_el);
 tabulate sigma_in_ct_tab(0, argon::E_MAX, 1000, sigma_in_ct);
 
-class t_argon : public Species
+template <int D>
+class t_argon : public Species<D>
 {
     //mass = 5e-26;
     //charge = 1.6e-19;
@@ -87,13 +90,13 @@ class t_argon : public Species
 
     public:
     t_argon(int _n, int n2, double temperature, double vsigma_max, Param &param, t_random &random, 
-	    Fields *_field, Species *_species_list[], double _dt=1e-8)
-	: Species(_n, n2, param, random, _field, 6.68173e-26, _species_list, ARGON_POS)
+	    Fields *_field, BaseSpecies *_species_list[], double _dt=1e-8)
+	: Species<D>(_n, n2, param, random, _field, 6.68173e-26, _species_list, ARGON_POS)
     {
 	ArArsvmax = 1.22e-15;
 	ArO2svmax = 2e-15;	//XXX just a random no-nonsense number
 
-	charge = 1.602189e-19;
+	Species<D>::charge = 1.602189e-19;
 
 	ArArCS.push_back(new vec_interpolate(sigma2_in_el,argon::E_MIN,argon::E_MAX,200) );
 	ArArType.push_back(ELASTIC);
@@ -101,44 +104,45 @@ class t_argon : public Species
 	ArArCS.push_back(new vec_interpolate(sigma2_in_ct,argon::E_MIN,argon::E_MAX,200) );
 	ArArType.push_back(CX);
 
-	cout << "t_argon: veV(E_MAX) = "<<veV(argon::E_MAX) <<' '<< argon::E_MAX<<endl;
-	ArArsvmax = svmax_find(ArArCS,veV(argon::E_MAX));
+	cout << "t_argon: veV(E_MAX) = "<< Species<D>::veV(argon::E_MAX) <<' '<< argon::E_MAX<<endl;
+	ArArsvmax = svmax_find(ArArCS, Species<D>::veV(argon::E_MAX));
 
 	cout << "ArArsvmax = "<< ArArsvmax <<endl;
 
-	if(dt==0)
-	    dt = min(lifetime/10.0,1e-8);
-	cerr << "Ar+ dt = "<< dt << " ; " << lifetime/dt << " timesteps per collision" << endl;
+	if(Species<D>::dt==0)
+	    Species<D>::dt = min(Species<D>::lifetime/10.0,1e-8);
+	cerr << "Ar+ dt = "<< Species<D>::dt << " ; " << Species<D>::lifetime/Species<D>::dt << " timesteps per collision" << endl;
     };
     void lifetime_init()
     {
-	ArO2Freq = ArO2svmax * species_list[O2]->density;
-	ArArFreq = ArArsvmax * species_list[ARGON]->density;
-	cout << species_list[ARGON]->name << ' '<< species_list[ARGON_POS]->density << ' '<< density<<endl;
-	lifetime = 1.0/(ArO2Freq + ArArFreq);
-	cout << "argon lifetime " << lifetime/dt <<endl;
-	Species::lifetime_init();
+	ArO2Freq = ArO2svmax * Species<D>::species_list[O2]->density;
+	ArArFreq = ArArsvmax * Species<D>::species_list[ARGON]->density;
+	cout << Species<D>::species_list[ARGON]->name << ' '<< Species<D>::species_list[ARGON_POS]->density << ' '<< Species<D>::density<<endl;
+	Species<D>::lifetime = 1.0/(ArO2Freq + ArArFreq);
+	cout << "argon lifetime " << Species<D>::lifetime/Species<D>::dt <<endl;
+	Species<D>::lifetime_init();
     }
 };
 
 
 
 
-void t_argon::scatter(t_particle &particle)
+template <int D>
+void t_argon<D>::scatter(t_particle &particle)
 {
 
-    double const_E = 0.5*mass/charge;
+    double const_E = 0.5*Species<D>::mass/Species<D>::charge;
 
     //druha interagujici castice
     double vr2, vz2, vt2;
-    species_list[ARGON]->rndv(vr2, vz2, vt2);
+    Species<D>::species_list[ARGON]->rndv(vr2, vz2, vt2);
 
     double sq_v_rel = SQR(vr2-particle.vx) + SQR(vz2-particle.vz) + SQR(vt2-particle.vy);
     double v = sqrt(sq_v_rel);
     double E = const_E * sq_v_rel; //[eV]
 
 
-    double gamma = rnd->uni() * ArArsvmax * 1e20;
+    double gamma = Species<D>::rnd->uni() * ArArsvmax * 1e20;
     double tmp = 0;
     unsigned int i;
     for(i=0; i<ArArCS.size(); i++)
@@ -168,7 +172,7 @@ void t_argon::scatter(t_particle &particle)
 		double v1_cm = sqrt(SQR(v1_cm_x) + SQR(v1_cm_y) + SQR(v1_cm_z));
 
 		//provedeni nahodne rotace
-		rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
+		Species<D>::rnd->rot(v1_cm,v1_cm_x,v1_cm_y,v1_cm_z);
 
 		//zpetna transformace
 		//particle.vx = v1_cm_x + v_cm_x;

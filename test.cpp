@@ -50,13 +50,12 @@ int main(int argc, char *argv[])
     //fields.u.print(fw1);
 
     // initialize the PIC model !
-    Pic pic(param);
+    Pic<CARTESIAN> pic(param);
 
     pic.species_list[H_NEG]->resize(1000);
     pic.species_list[H_NEG]->add_particles_on_disk(1000, 1e-2, 1e-2, 3e-3);
 
     ofstream fw((param.output_dir+"/out.dat").c_str());
-    /*
     ofstream fwt1((param.output_dir+"/traj1.dat").c_str());
     ofstream fwt2((param.output_dir+"/traj2.dat").c_str());
     ofstream fwv1((param.output_dir+"/vel1.dat").c_str());
@@ -65,33 +64,30 @@ int main(int argc, char *argv[])
     t_particle *p_p;
     p_p = &(pic.species_list[H_NEG]->particles[0]);
     p_p->vz = -fabs(p_p->vz);
-    p_p->r = 1e-2;
+    p_p->x = 1e-2;
     p_p->z = 1.1e-2;
-    p_p->vz = 1e4;
-    p_p->vr = -pic.species_list[H_NEG]->veV(0.01);
+    p_p->vx = 1e4;
+    p_p->vx = -pic.species_list[H_NEG]->veV(0.01);
     cout <<"veV "<< -pic.species_list[H_NEG]->veV(1) <<endl;
-    p_p->vt = 0;
+    p_p->vy = 0;
 
     p_p[1].z = 1e-2;
-    p_p[1].r = 1.1e-2;
-    p_p[1].vr = 0;
-    p_p[1].vt = 0;
+    p_p[1].x = 1.1e-2;
+    p_p[1].vx = 0;
+    p_p[1].vy = 0;
     p_p[1].vz = -pic.species_list[H_NEG]->veV(.001);
-    p_p[1].vr = 0.3*p_p[1].vz;
-    */
+    p_p[1].vx = 0.3*p_p[1].vz;
     for(int i=1; i<param.niter+1; ++i)
     {
 
 	pic.advance();
-        /*
         if(i%10==0)
         {
-            fwt1 << p_p->r <<' '<< setprecision(10) << p_p->z <<endl;
-            fwt2 << p_p[1].r <<' '<< setprecision(10) << p_p[1].z <<endl;
-            fwv1 << p_p->vr <<' '<< p_p->vz <<' '<< p_p->vt <<endl;
-            fwv2 << setprecision(10) << p_p[1].vr <<' '<< p_p[1].vz <<' '<< p_p[1].vt <<endl;
+            fwt1 << p_p->x <<' '<< setprecision(10) << p_p->z <<endl;
+            fwt2 << p_p[1].x <<' '<< setprecision(10) << p_p[1].z <<endl;
+            fwv1 << p_p->vx <<' '<< p_p->vz <<' '<< p_p->vy <<endl;
+            fwv2 << setprecision(10) << p_p[1].vx <<' '<< p_p[1].vz <<' '<< p_p[1].vy <<endl;
         }
-        */
 	if(i%20==0) pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)

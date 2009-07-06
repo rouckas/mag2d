@@ -24,22 +24,25 @@ using namespace std;
 
 struct rusage picusage2,picusage1;
 
-Species * make_species(species_type type, int n1, int n2, Param &param, t_random &rnd, Fields &field, Species *species_list[])
+template <int D>
+Species<D> * make_species(species_type type, int n1, int n2, Param &param, t_random &rnd, Fields &field, Species<D> *_species_list[])
 {
+    BaseSpecies **species_list = (BaseSpecies**)_species_list;
+
     switch(type)
     {
 	case ARGON:
-	    return new t_argon_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	    return new t_argon_neutral<D>(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case ARGON_POS:
-	    return new t_argon(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	    return new t_argon<D>(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case ELECTRON:
-	    return new t_elon(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	    return new t_elon<D>(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case HYDROGEN:
-	    return new t_hydrogen_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	    return new t_hydrogen_neutral<D>(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case H_NEG:
-	    return new t_hydrogen_neg(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	    return new t_hydrogen_neg<D>(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	case HELIUM:
-	    return new t_helium_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
+	    return new t_helium_neutral<D>(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
 	    /*
 	case O2:
 	    return new t_O2_neutral(n1, n2, 0, 0, param, rnd, &field, species_list, 0);
@@ -54,14 +57,14 @@ Species * make_species(species_type type, int n1, int n2, Param &param, t_random
     }
 }
     
-
+template <int D>
 class Pic
 {
     private:
 	t_timer timer;
     public:
 	Param & param;
-	Species *species_list[NTYPES];
+	Species<D> *species_list[NTYPES];
 	Fields field;
 	t_random rnd;
 	int iter;
@@ -77,17 +80,17 @@ class Pic
 		if(is_particle[i])
 		    total_density += param.density[i];
 
-	    species_list[ARGON] = make_species(ARGON,0 ,0 , param, rnd, field, species_list);
-	    species_list[HYDROGEN] = make_species(HYDROGEN,0 ,0 , param, rnd, field, species_list);
-	    species_list[HELIUM] = make_species(HELIUM,0 ,0 , param, rnd, field, species_list);
+	    species_list[ARGON] = make_species<D>(ARGON,0 ,0 , param, rnd, field, species_list);
+	    species_list[HYDROGEN] = make_species<D>(HYDROGEN,0 ,0 , param, rnd, field, species_list);
+	    species_list[HELIUM] = make_species<D>(HELIUM,0 ,0 , param, rnd, field, species_list);
 	    //total_density = param.density[ARGON_POS] + param.density[ELECTRON] + param.density[O2_POS];
 
 	    //nparticles_spec = int((param.density[ELECTRON]/total_density)*param.n_particles_total);
 	    //species_list[ELECTRON] = make_species(ELECTRON, nparticles_spec*(1+NPARTICL_SAFE),nparticles_spec, param, rnd, field, species_list);
-	    species_list[ELECTRON] = make_species(ELECTRON,0,0, param, rnd, field, species_list);
+	    species_list[ELECTRON] = make_species<D>(ELECTRON,0,0, param, rnd, field, species_list);
 	    //species_list[ELECTRON]->source5_refresh(param.src_fact);
 
-	    species_list[H_NEG] = make_species(H_NEG,0,0, param, rnd, field, species_list);
+	    species_list[H_NEG] = make_species<D>(H_NEG,0,0, param, rnd, field, species_list);
 
 	    species_list[ELECTRON]->lifetime_init();
 	    species_list[H_NEG]->lifetime_init();
