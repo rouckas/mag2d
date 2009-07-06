@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     fs::copy_file(config_file,config_backup);
 
     // initialize the PIC model !
-    Pic pic(param);
+    Pic<CYLINDRICAL> pic(param);
 
     pic.species_list[ELECTRON]->resize(10000);
     pic.species_list[ELECTRON]->add_monoenergetic_particles_on_cylinder_cylindrical(10000, 1.0, 5e-2, 4e-3, 6e-2);
@@ -106,13 +106,6 @@ int main(int argc, char *argv[])
 		    pic.species_list[ii]->source5_save(param.output_dir + "/particles_source_" + pic.species_list[ii]->name + ".dat");
 		}
 		*/
-	}
-
-	//XXX deprecated
-	if(t_source_refresh != 0 && i%t_source_refresh==0)
-	{
-	    pic.species_list[ARGON_POS]->source5_refresh(SRC_FACT);
-	    pic.species_list[ELECTRON]->source5_refresh(SRC_FACT);
 	}
 
     }
