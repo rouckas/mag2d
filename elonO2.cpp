@@ -3,7 +3,7 @@
 #include "particles.cpp"
 #include "tabulate.cpp"
 #include "random.cpp"
-#include "input.cpp"
+#include "input.hpp"
 #include "mymath.cpp"
 
 #define M_ARP 6.68173e-26       //kg

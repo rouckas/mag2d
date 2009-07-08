@@ -1,9 +1,7 @@
 #define GNUPLOT
-#include "param.cpp"
-#include <cstdlib>
+#include "param.hpp"
 #include <iostream>
 #include <iomanip>
-#include <sstream>
 #include <fstream>
 #include "pic.cpp"
 

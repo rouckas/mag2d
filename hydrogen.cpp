@@ -1,7 +1,7 @@
 #ifndef HYDROGEN_H
 #define HYDROGEN_H
 
-#include "particles.cpp"
+#include "particles.hpp"
 #include "random.cpp"
 #include "tabulate.cpp"
 namespace hydrogen{

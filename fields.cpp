@@ -1,501 +1,65 @@
-#ifndef FIELD_H
-#define FIELD_H
-//#define SQR(x) ((x)*(x))
-#define MAX(x,y) ((x)>(y)?(x):(y))
-#define MIN(x,y) ((x)>(y)?(y):(x))
-
-
-#include <suitesparse/umfpack.h>
-#include "param.cpp"
-#include "matrix.cpp"
-#include "util.cpp"
 #include <cmath>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <limits>
-using namespace std;
+#include <suitesparse/umfpack.h>
+#include "fields.hpp"
 
-//#define SQR(x) ((x)*(x))
-inline double SQR(double x){return x*x;};
-
-enum {FIXED, FREE, BOUNDARY};
-
-
-typedef struct{
-            double l, r, t, b;
-}t_umf_metrika;
-
-
-
-class t_grid
-//definuje geometrii experimentu
+/*
+ *********************** definitions for Field ********************************
+ */
+void Field::resize(double x_sampl, double z_sampl, double dx, double dz, double _rmin, double _zmin)
 {
-    public:
-	int M;
-	int N;
-	double dx,dz;
-	Matrix<char> mask;
-	Matrix<t_umf_metrika> metrika;
-	Matrix<double> voltage;
-	t_grid(Param &param);
-	Param *p_param;
-        void penning_trap();
-        void penning_trap_simple(double trap_voltage = -1.0);
-        double U_trap;
-        void rf_trap();
-        void rf_22PT();
-        void MAC_filter();
-        void empty();
-	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
-	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
-	bool is_free(double r, double z);
-};
-class Field : public Matrix<double>
-{
-    public:
-	Field(Param &param) : Matrix<double>(param.x_sampl, param.z_sampl),
-            idx(param.idx), idz(param.idz), rmin(0), zmin(0) {};
-        Field() : Matrix<double>(), idx(0), idz(0), rmin(0), zmin(0) {};
-        void resize(double x_sampl, double z_sampl, double dx, double dz, double _rmin=0, double _zmin=0)
-        {
-            idx = 1.0/dx, idz = 1.0/dz;
-            rmin = _rmin, zmin = _zmin;
-            Matrix<double>::resize(x_sampl, z_sampl);
-        }
-	inline void accumulate(double charge, double x, double y);
-        inline double interpolate(double r, double z);
-        bool hasnan()
-        {
-	    for(int j=0; j<jmax; j++)
-		for(int l=0; l<lmax; l++)
-                    if(isnan(data[j][l]))
-                        return true;
-            return false;
-        }
-	void print( ostream & out = cout , double factor = 1.0)
-	{
-	    double dx=1.0/idx, dz=1.0/idz;
-	    for(int j=0; j<jmax; j++)
-	    {
-		for(int l=0; l<lmax; l++)
-		    out << j*dx <<"\t"<< l*dz <<"\t"<< data[j][l]*factor <<endl;
-		out << endl;
-	    }
-	}
-	void print( const char * filename , double factor = 1.0)
-	{
-	    ofstream out(filename);
-	    print(out, factor);
-	}
-    private:
-	double idx, idz;
-        double rmin, zmin;
-};
+    idx = 1.0/dx, idz = 1.0/dz;
+    rmin = _rmin, zmin = _zmin;
+    Matrix<double>::resize(x_sampl, z_sampl);
+}
 
-class Fields
-//stara se o reseni Poissonovy rce na danem gridu
+bool Field::hasnan()
 {
-    public:
-	t_grid grid;
-	Field u;
-	Field uAvg;
-	Field rho;
-	Fields(Param &param);
-	void solve();
-	void boundary_solve();
-	void reset();
-	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) ;
-	void B(double x, double y, double &Br, double &Bz, double &Bt);
-        void load_magnetic_field(const char * fname);
-	inline void accumulate(double charge, double x, double y);
-	~Fields();
-    private:
-        Field Br, Bz;
-	double idx, idz;
-	Param *p_param;
-	int *Ap;
-	int *Ai;
-	double *Ax;
-	void *Symbolic, *Numeric ;
-    public:
-	void u_sample();
-	void u_reset();
-	void u_print(const char * fname);
-    private:
-	int nsampl;
-};
+    for(int j=0; j<jmax; j++)
+        for(int l=0; l<lmax; l++)
+            if(isnan(data[j][l]))
+                return true;
+    return false;
+}
+
+void Field::print( ostream & out , double factor)
+{
+    double dx=1.0/idx, dz=1.0/idz;
+    for(int j=0; j<jmax; j++)
+    {
+        for(int l=0; l<lmax; l++)
+            out << j*dx <<"\t"<< l*dz <<"\t"<< data[j][l]*factor <<endl;
+        out << endl;
+    }
+}
+
+void Field::print( const char * filename , double factor)
+{
+    ofstream out(filename);
+    print(out, factor);
+}
+
+
+/*
+ *********************** definitions for Fields *******************************
+ */
+
 void Fields::u_sample()
 {
     uAvg.add(u);
     nsampl++;
 }
+
 void Fields::u_reset()
 {
     uAvg.reset();
     nsampl = 0;
 }
+
 void Fields::u_print(const char * fname)
 {
     uAvg.print(fname,1.0/nsampl);
 }
 
-
-
-t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl), 
-    dx(param.dx), dz(param.dz),
-    mask(param.x_sampl,param.z_sampl), metrika(param.x_sampl,param.z_sampl), voltage(param.x_sampl,param.z_sampl)
-{
-    p_param = &param;
-			
-    switch(param.geometry)
-    {
-        case Param::PENNING_SIMPLE:
-            penning_trap_simple();
-            break;
-        case Param::PENNING:
-            penning_trap();
-            break;
-        case Param::MAC:
-            MAC_filter();
-            break;
-        case Param::RF_QUAD:
-            rf_trap();
-            break;
-        case Param::RF_22PT:
-            rf_22PT();
-            break;
-        case Param::EMPTY:
-        default:
-            empty();
-            break;
-    }
-
-}
-void t_grid::empty()
-{
-    int i, j;
-    /*
-     * Vytvoreni sondy
-     */
-    for(i=0; i<M; i++)
-	for(j=0; j<N; j++)
-	{
-	    if(i==0 || i==M-1 || j==0 || j==N-1)
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
-	    }else
-	    {
-		mask[i][j] = FREE;
-	    }
-	}
-}
-void t_grid::rf_22PT()
-{
-    int i, j;
-    /*
-     * Vytvoreni sondy
-     */
-    for(i=0; i<M; i++)
-	for(j=0; j<N; j++)
-	{
-	    if(i==0 || i==M-1 || j==0 || j==N-1)
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
-	    }else
-	    {
-		mask[i][j] = FREE;
-	    }
-	}
-
-    double xcenter = 1e-2;
-    double ycenter = 1e-2;
-    double r_22pt = 0.75e-2;
-    double r_rod = 0.05e-2;
-    int npoles = 22;
-    for(int i=0; i<npoles; i++)
-    {
-        double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
-        double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
-        int sign = i%2==0 ? -1 : 1;
-        circle_electrode(x, y, r_rod, p_param->u_probe*sign);
-    }
-
-    for(i=2;i<M-2;i++)
-	for(j=2;j<N-2;j++)
-	{
-	    if( ( mask[i-1][j] == FIXED ||
-			mask[i+1][j] == FIXED ||
-			mask[i][j-1] == FIXED ||
-			mask[i][j+1] == FIXED ) &&
-		    mask[i][j] != FIXED )
-            {
-		mask[i][j] = BOUNDARY;
-            }
-	}
-}
-void t_grid::rf_trap()
-{
-    int i, j;
-    /*
-     * Vytvoreni sondy
-     */
-    for(i=0; i<M; i++)
-	for(j=0; j<N; j++)
-	{
-	    if(i==0 || i==M-1 || j==0 || j==N-1)
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
-	    }else
-	    {
-		mask[i][j] = FREE;
-	    }
-	}
-
-    circle_electrode(5e-3, 1e-2, 2e-3, p_param->u_probe);
-    circle_electrode(15e-3, 1e-2, 2e-3, p_param->u_probe);
-    circle_electrode(1e-2, 5e-3, 2e-3, -p_param->u_probe);
-    circle_electrode(1e-2, 15e-3, 2e-3, -p_param->u_probe);
-
-    for(i=2;i<M-2;i++)
-	for(j=2;j<N-2;j++)
-	{
-	    if( ( mask[i-1][j] == FIXED ||
-			mask[i+1][j] == FIXED ||
-			mask[i][j-1] == FIXED ||
-			mask[i][j+1] == FIXED ) &&
-		    mask[i][j] != FIXED )
-            {
-		mask[i][j] = BOUNDARY;
-            }
-	}
-}
-void t_grid::MAC_filter()
-{
-    int i, j;
-    /*
-     * Vytvoreni sondy
-     */
-    for(i=0; i<M; i++)
-	for(j=0; j<N; j++)
-	{
-	    if(i==M-1 || j==0 || j==N-1)
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
-	    }else
-	    {
-		mask[i][j] = FREE;
-	    }
-	}
-    square_electrode(5e-3, 4.5e-2, 1e-2, 1.5e-2, -.00);
-    square_electrode(5e-3, 7e-3, 2e-2, 8e-2, 0.0);
-    square_electrode(5e-3, 4.5e-2, 8.5e-2, 9e-2, -.00);
-
-    double threshold = p_param->u_probe;
-    double ofs = 3e-2;
-    square_electrode(3e-2, 3.3e-2, 11e-2+ofs, 14e-2+ofs, 0.8*threshold);
-    square_electrode(4.5e-2, 4.8e-2, 15e-2+ofs, 25e-2+ofs, threshold);
-    square_electrode(3e-2, 3.3e-2, 26e-2+ofs, 29e-2+ofs, 1.0*threshold);
-    square_electrode(2.5e-2, 2.8e-2, 29e-2+ofs, 30.5e-2+ofs, 1.0*threshold);
-
-    square_electrode(15e-3, 4.5e-2, 35e-2, 35.3e-2, .0);
-    //probe
-    square_electrode(0.0, 4.5e-2, 39.5e-2, 40e-2, 3e3);
-
-    // collector
-    for(i=2;i<M-2;i++)
-	for(j=2;j<N-2;j++)
-	{
-	    if( ( mask[i-1][j] == FIXED ||
-			mask[i+1][j] == FIXED ||
-			mask[i][j-1] == FIXED ||
-			mask[i][j+1] == FIXED ) &&
-		    mask[i][j] != FIXED )
-		mask[i][j] = BOUNDARY;
-	}
-}
-void t_grid::penning_trap()
-{
-    int i, j;
-    /*
-     * Vytvoreni sondy
-     */
-    for(i=0; i<M; i++)
-	for(j=0; j<N; j++)
-	{
-	    if(i==M-1 || j==0 || j==N-1)
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = -i*p_param->dx*p_param->extern_field + p_param->x_max*p_param->extern_field*0.5;
-		voltage[i][j] = 0.0;
-	    }else
-	    {
-		mask[i][j] = FREE;
-	    }
-	}
-    square_electrode(1.57e-2/2, 1.67e-2/2, 1e-3, 25e-3, -5);
-
-    // collector
-    square_electrode(0, 1.46e-2/2, 15e-3, 16e-3, 10);
-    square_electrode(0, 7e-3/2, 12e-3, 19e-3, 10);
-    square_electrode(0, 1.9e-3, 1e-3, 12e-3, 10);
-
-
-    // lenses
-    square_electrode(4e-3, 7e-3, 52e-3, 53e-3, -5);
-    square_electrode(2.5e-3, 7e-3, 46e-3, 47e-3, 0);
-
-    for(i=2;i<M-2;i++)
-	for(j=2;j<N-2;j++)
-	{
-	    if( ( mask[i-1][j] == FIXED ||
-			mask[i+1][j] == FIXED ||
-			mask[i][j-1] == FIXED ||
-			mask[i][j+1] == FIXED ) &&
-		    mask[i][j] != FIXED )
-		mask[i][j] = BOUNDARY;
-	}
-}
-void t_grid::penning_trap_simple(double trap_voltage)
-{
-    U_trap = trap_voltage;
-    int i, j;
-    for(i=0; i<M; i++)
-	for(j=0; j<N; j++)
-	{
-	    if(i==M-1 || j==0 || j==N-1)
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
-	    }else
-	    {
-		mask[i][j] = FREE;
-	    }
-	}
-    // this trap consists of series of tubes on different potential
-    //
-    double inner_radius = 1e-2;
-    double outer_radius = 1.1e-2;
-    // "injection chamber" at zero potential
-    square_electrode(inner_radius, outer_radius, 0, 1e-2, -0.5);
-
-    // first closing electrode
-    square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, 0);
-
-    // trap tube
-    square_electrode(inner_radius, outer_radius, 2.1e-2, 6e-2, trap_voltage);
-
-    // second closing electrode
-    square_electrode(inner_radius, outer_radius, 6.1e-2, 7.5e-2, -10);
-
-
-    for(i=2;i<M-2;i++)
-	for(j=2;j<N-2;j++)
-	{
-	    if( ( mask[i-1][j] == FIXED ||
-			mask[i+1][j] == FIXED ||
-			mask[i][j-1] == FIXED ||
-			mask[i][j+1] == FIXED ) &&
-		    mask[i][j] != FIXED )
-		mask[i][j] = BOUNDARY;
-	}
-}
-void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax, double _voltage)
-{
-    for(int i=0; i<M; i++)
-	for(int j=0; j<N; j++)
-	{
-	    double r, z;
-	    r = i*dx;
-	    z = j*dz;
-	    // suboptimal, but simple
-	    if(r>rmin && r<rmax && z>zmin && z<zmax) 
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = _voltage;
-	    }
-	}
-}
-void t_grid::circle_electrode(double rcenter, double zcenter, double radius, double _voltage)
-{
-    double sqradius = SQR(radius);
-    for(int i=0; i<M; i++)
-	for(int j=0; j<N; j++)
-	{
-	    double r, z;
-	    r = i*dx - rcenter;
-	    z = j*dz - zcenter;
-	    // suboptimal, but simple
-	    if(SQR(r) + SQR(z) <= sqradius) 
-	    {
-		mask[i][j] = FIXED;
-		voltage[i][j] = _voltage;
-	    }
-	}
-}
-bool t_grid::is_free(double r, double z)
-{
-    int i = (int)(r*p_param->idx);
-    int j = (int)(z*p_param->idz);
-    if(mask[i][j]==FREE || mask[i+1][j]==FREE || mask[i][j+1]==FREE || mask[i+1][j+1]==FREE)
-	return true;
-    else return false;
-}
-
-inline void Field::accumulate(double charge, double r, double z)
-{
-    r -= rmin;
-    z -= zmin;
-    int i = (int)(r * idx);
-    int j = (int)(z * idz);
-
-    double u = r*idx - i;
-    double v = z*idz - j;
-
-    if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
-	throw std::runtime_error("Field::accumulate() outside of range\n");
-    data[i][j] += (1-u)*(1-v)*charge;
-    data[i+1][j] += u*(1-v)*charge;
-    data[i][j+1] += (1-u)*v*charge;
-    data[i+1][j+1] += u*v*charge;
-
-}
-inline double Field::interpolate(double r, double z)
-{
-    r -= rmin;
-    z -= zmin;
-    int i = (int)(r * idx);
-    int j = (int)(z * idz);
-
-    double u = r*idx - i;
-    double v = z*idz - j;
-
-    if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
-	throw std::runtime_error("Field::interpolate() outside of range\n");
-
-    return (1-u)*(1-v)*data[i][j] + u*(1-v)*data[i+1][j] + (1-u)*v*data[i][j+1] + u*v*data[i+1][j+1];
-}
-inline void Fields::accumulate(double charge, double r, double z)
-{
-    int i = (int)(r * idx);
-    int j = (int)(z * idz);
-
-    double u = r*idx - i;
-    double v = z*idz - j;
-
-    //if(i<0 || i>p_param->x_sampl-1 || j<0 || j>p_param->z_sampl-1)
-//	throw std::runtime_error("Field::accumulate() outside of range\n");
-    rho[i][j] += (1-u)*(1-v)*charge;
-    rho[i+1][j] += u*(1-v)*charge;
-    rho[i][j+1] += (1-u)*v*charge;
-    rho[i+1][j+1] += u*v*charge;
-
-}
 Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), nsampl(0)
 {
     //if(param.selfconsistent == false)
@@ -652,7 +216,6 @@ Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), n
     (void) umfpack_di_numeric (Ap, Ai, Ax, Symbolic, &Numeric, NULL, NULL) ;
     umfpack_di_free_symbolic (&Symbolic) ;
 }
-    
 
 void Fields::boundary_solve()
 {
@@ -693,13 +256,13 @@ void Fields::solve()
 {
     (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, u[0], rho[0], Numeric, NULL, NULL) ;
 }
+
 void Fields::reset()
 {
     for(int i=0; i<grid.M; i++)		//cislo radku
 	for(int j=0; j<grid.N; j++)	//cislo sloupce
 	    rho[i][j] = 0;
 }
-
 
 Fields::~Fields()
 {
@@ -709,145 +272,314 @@ Fields::~Fields()
     delete [] Ax;
 }
 
-
-
 /*
- * vypocte gradient 2d potencialu bilinearni interpolaci
+ *********************** definitions for t_grid *******************************
  */
-void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
-{
-    int i,j;
-    double g1,g2,g3,g4;
-    double fx,fy;
-    double idx = p_param->idx;
-    double idz = p_param->idz;
 
+t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl), 
+    dx(param.dx), dz(param.dz),
+    mask(param.x_sampl,param.z_sampl), metrika(param.x_sampl,param.z_sampl), voltage(param.x_sampl,param.z_sampl)
+{
+    p_param = &param;
+			
+    switch(param.geometry)
+    {
+        case Param::PENNING_SIMPLE:
+            penning_trap_simple();
+            break;
+        case Param::PENNING:
+            penning_trap();
+            break;
+        case Param::MAC:
+            MAC_filter();
+            break;
+        case Param::RF_QUAD:
+            rf_trap();
+            break;
+        case Param::RF_22PT:
+            rf_22PT();
+            break;
+        case Param::EMPTY:
+        default:
+            empty();
+            break;
+    }
+
+}
+
+void t_grid::empty()
+{
+    int i, j;
     /*
-     * nejprve x-ova slozka
+     * Vytvoreni sondy
      */
-    i = (int)(x*idx+0.5);
-    j = (int)(y*idz);
-    j = MIN(j,p_param->z_sampl-2);
-    if(i>0 && i<p_param->x_sampl-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i-1][j])*idx;
-	g2 = (u[i][j+1]-u[i-1][j+1])*idx;
-	g3 = (u[i+1][j+1]-u[i][j+1])*idx;
-	g4 = (u[i+1][j]-u[i][j])*idx;
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+}
 
-	//interpolace
-	fx = x*idx-i+.5;
-	fy = y*idz-j;
-	grad_x = g1*(1-fx)*(1-fy) + g2*(1-fx)*fy + g3*fx*fy + g4*fx*(1-fy);
-    }else if(i==p_param->x_sampl-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i-1][j])*idx;
-	g2 = (u[i][j+1]-u[i-1][j+1])*idx;
-
-	//interpolace
-	fy = y*idz-j;
-	grad_x = g1*(1-fy) + g2*fy;
-    }else if(i==0)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g3 = (u[i+1][j+1]-u[i][j+1])*idx;
-	g4 = (u[i+1][j]-u[i][j])*idx;
-
-	//interpolace
-	fy = y*idz-j;
-	grad_x = g3*fy + g4*(1-fy);
-    }
-
-
-
+void t_grid::rf_22PT()
+{
+    int i, j;
     /*
-     * ted y-ova slozka
+     * Vytvoreni sondy
      */
-    i = (int)(x*idx);
-    j = (int)(y*idz+0.5);
-    i = MIN(i,p_param->x_sampl-2);
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
 
+    double xcenter = 1e-2;
+    double ycenter = 1e-2;
+    double r_22pt = 0.75e-2;
+    double r_rod = 0.05e-2;
+    int npoles = 22;
+    for(int i=0; i<npoles; i++)
+    {
+        double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
+        double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
+        int sign = i%2==0 ? -1 : 1;
+        circle_electrode(x, y, r_rod, p_param->u_probe*sign);
+    }
 
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
+}
+
+void t_grid::rf_trap()
+{
+    int i, j;
     /*
-       =if(pot_mask[i][j]==OKRAJ || pot_mask[i][j+1]==OKRAJ)
-       {
-       }else
-       */
-    if(j>0 && j<p_param->z_sampl-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i][j-1])*idz;
-	g2 = (u[i+1][j]-u[i+1][j-1])*idz;
-	g3 = (u[i+1][j+1]-u[i+1][j])*idz;
-	g4 = (u[i][j+1]-u[i][j])*idz;
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
 
-	//interpolace
-	fx = x*idx-i;
-	fy = y*idz-j+0.5;
-	grad_y = g1*(1-fx)*(1-fy) + g2*(1-fy)*fx + g3*fx*fy + g4*fy*(1-fx);
-    }else if(j==p_param->z_sampl-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i][j-1])*idz;
-	g2 = (u[i+1][j]-u[i+1][j-1])*idz;
+    circle_electrode(5e-3, 1e-2, 2e-3, p_param->u_probe);
+    circle_electrode(15e-3, 1e-2, 2e-3, p_param->u_probe);
+    circle_electrode(1e-2, 5e-3, 2e-3, -p_param->u_probe);
+    circle_electrode(1e-2, 15e-3, 2e-3, -p_param->u_probe);
 
-	//interpolace
-	fx = x*idx-i;
-	grad_y = g1*(1-fx) + g2*fx;
-    }else if(j==0)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g3 = (u[i+1][j+1]-u[i+1][j])*idz;
-	g4 = (u[i][j+1]-u[i][j])*idz;
-
-	//interpolace
-	fx = x*idx-i;
-	grad_y = g3*fx + g4*(1-fx);
-    }
-
-    if(p_param->rf)
-    {
-        double phase = sin(p_param->rf_omega*time);
-        grad_x *= phase;
-        grad_y *= phase;
-    }
-
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
 }
-void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt)
+
+void t_grid::MAC_filter()
 {
-    if(p_param->magnetic_field_const)
-    {
-        /*
-           double K = (0.03-0.003)/(4.1-3.0)*1e2;
-           double a = 0.03-K*4.1*1e-2;
-           Bz = K*I->z + a;
-           Br = -K*0.5*I->r;
-           if(I->z<3e-2)
-           {
-           Bz = 0.003;
-           Br = 0;
-           }
-           */
-        _Br = p_param->Br;
-        _Bz = p_param->Bz;
-        _Bt = p_param->Bt;
-    }
-    else
-    {
-        _Br = Br.interpolate(x, y);
-        _Bz = Bz.interpolate(x, y);
-        _Bt = 0.00;
-    }
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+    square_electrode(5e-3, 4.5e-2, 1e-2, 1.5e-2, -.00);
+    square_electrode(5e-3, 7e-3, 2e-2, 8e-2, 0.0);
+    square_electrode(5e-3, 4.5e-2, 8.5e-2, 9e-2, -.00);
+
+    double threshold = p_param->u_probe;
+    double ofs = 3e-2;
+    square_electrode(3e-2, 3.3e-2, 11e-2+ofs, 14e-2+ofs, 0.8*threshold);
+    square_electrode(4.5e-2, 4.8e-2, 15e-2+ofs, 25e-2+ofs, threshold);
+    square_electrode(3e-2, 3.3e-2, 26e-2+ofs, 29e-2+ofs, 1.0*threshold);
+    square_electrode(2.5e-2, 2.8e-2, 29e-2+ofs, 30.5e-2+ofs, 1.0*threshold);
+
+    square_electrode(15e-3, 4.5e-2, 35e-2, 35.3e-2, .0);
+    //probe
+    square_electrode(0.0, 4.5e-2, 39.5e-2, 40e-2, 3e3);
+
+    // collector
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+		mask[i][j] = BOUNDARY;
+	}
 }
-int double2int(double x, double eps=1e-2)
+
+void t_grid::penning_trap()
 {
-    int res = (int)(x+0.5);
-    if(fabs(res-x) > eps)
-	throw std::runtime_error("double2int() " + double2string(x) + " is not integer\n");
-    return res;
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = -i*p_param->dx*p_param->extern_field + p_param->x_max*p_param->extern_field*0.5;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+    square_electrode(1.57e-2/2, 1.67e-2/2, 1e-3, 25e-3, -5);
+
+    // collector
+    square_electrode(0, 1.46e-2/2, 15e-3, 16e-3, 10);
+    square_electrode(0, 7e-3/2, 12e-3, 19e-3, 10);
+    square_electrode(0, 1.9e-3, 1e-3, 12e-3, 10);
+
+
+    // lenses
+    square_electrode(4e-3, 7e-3, 52e-3, 53e-3, -5);
+    square_electrode(2.5e-3, 7e-3, 46e-3, 47e-3, 0);
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+		mask[i][j] = BOUNDARY;
+	}
 }
+
+void t_grid::penning_trap_simple(double trap_voltage)
+{
+    U_trap = trap_voltage;
+    int i, j;
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+    // this trap consists of series of tubes on different potential
+    //
+    double inner_radius = 1e-2;
+    double outer_radius = 1.1e-2;
+    // "injection chamber" at zero potential
+    square_electrode(inner_radius, outer_radius, 0, 1e-2, -0.5);
+
+    // first closing electrode
+    square_electrode(inner_radius, outer_radius, 1.1e-2, 2e-2, 0);
+
+    // trap tube
+    square_electrode(inner_radius, outer_radius, 2.1e-2, 6e-2, trap_voltage);
+
+    // second closing electrode
+    square_electrode(inner_radius, outer_radius, 6.1e-2, 7.5e-2, -10);
+
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+		mask[i][j] = BOUNDARY;
+	}
+}
+
+void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax, double _voltage)
+{
+    for(int i=0; i<M; i++)
+	for(int j=0; j<N; j++)
+	{
+	    double r, z;
+	    r = i*dx;
+	    z = j*dz;
+	    // suboptimal, but simple
+	    if(r>rmin && r<rmax && z>zmin && z<zmax) 
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = _voltage;
+	    }
+	}
+}
+
+void t_grid::circle_electrode(double rcenter, double zcenter, double radius, double _voltage)
+{
+    double sqradius = SQR(radius);
+    for(int i=0; i<M; i++)
+	for(int j=0; j<N; j++)
+	{
+	    double r, z;
+	    r = i*dx - rcenter;
+	    z = j*dz - zcenter;
+	    // suboptimal, but simple
+	    if(SQR(r) + SQR(z) <= sqradius) 
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = _voltage;
+	    }
+	}
+}
+    
 void Fields::load_magnetic_field(const char * fname)
 {
     vector<double> rvec, zvec, Brvec, Bzvec;
@@ -938,4 +670,3 @@ void Fields::load_magnetic_field(const char * fname)
             if(isnan(Br[i][j]) || isnan(Bz[i][j]))
                 throw std::runtime_error("Fields::load_magnetic_field() garbage loaded");
 }
-#endif

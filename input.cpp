@@ -1,12 +1,8 @@
-#ifndef INPUT_H
-#define INPUT_H
-#include <fstream>
-#include <string>
-#include <vector>
 #include <sstream>
-using namespace std;
+#include <fstream>
+#include "input.hpp"
 
-void load( const string  & fname, vector<double> & xdata, vector<double> & ydata, const string & tag, double * Eloss, const string tag2="", int ncols=3)
+void load( const string  & fname, vector<double> & xdata, vector<double> & ydata, const string & tag, double * Eloss, const string tag2, int ncols)
 {
     ifstream fr(fname.c_str());
     string line;
@@ -62,4 +58,3 @@ void load( const string  & fname, vector<double> & xdata, vector<double> & ydata
 	ydata.push_back(d3);
     }
 }
-#endif

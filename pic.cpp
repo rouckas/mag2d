@@ -1,7 +1,7 @@
 //#include "random.h"
 #define GNUPLOT
-#include "fields.cpp"
-#include "param.cpp"
+#include "fields.hpp"
+#include "param.hpp"
 #ifdef GNUPLOT
 #include "gnuplot_i.h"
 #endif

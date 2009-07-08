@@ -1,7 +1,7 @@
 #ifndef HELIUM_H
 #define HELIUM_H
 
-#include "particles.cpp"
+#include "particles.hpp"
 
 template <int D>
 class t_helium_neutral : public Species<D>

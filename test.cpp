@@ -1,5 +1,5 @@
 #define GNUPLOT
-#include "param.cpp"
+#include "param.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>

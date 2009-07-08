@@ -29,14 +29,14 @@ OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
 #OPTIM=-march=athlon-xp -mfpmath=sse -O3 -ffast-math -msse
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) $(OPTIM) $(DEFINES) -c $<
 .cpp.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) $(OPTIM) $(DEFINES) -c $<
 
 
-SOURCES = particles.cpp argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp fields.cpp argonO2.cpp histogram.cpp matrix.cpp speclist.hpp hydrogen.cpp timer.hpp
+SOURCES = argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp argonO2.cpp matrix.cpp hydrogen.cpp timer.hpp
 
-OBJ = gnuplot_i.o histogram.o
+OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o
 
 plasma2d: test.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ test.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
@@ -52,5 +52,13 @@ rot_test: rot_test.cpp random.c random.h
 	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ rot_test.cpp random.c
 maxwell_test: maxwell_test.cpp random.c random.h
 	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ maxwell_test.cpp random.c gnuplot_i.c histogram.cpp
-gnuplot_i.o: gnuplot_i.h
+gnuplot_i.o: gnuplot_i.h gnuplot_i.c
+	g++ -c gnuplot_i.c
 histogram.o: histogram.hpp
+particles.o: particles.hpp
+fields.o: fields.hpp param.cpp
+speclist.o: speclist.hpp
+input.o: input.hpp
+param.o: param.hpp
+clean:
+	rm -f *.o

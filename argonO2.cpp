@@ -1,7 +1,7 @@
 #ifndef ARGON_H
 #define ARGON_H
 
-#include "particles.cpp"
+#include "particles.hpp"
 #include "random.cpp"
 #include "tabulate.cpp"
 namespace argon{

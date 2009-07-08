@@ -1,6 +1,6 @@
 #ifndef ELON_H
 #define ELON_H
-#include "particles.cpp"
+#include "particles.hpp"
 #include "tabulate.cpp"
 #include "random.cpp"
 

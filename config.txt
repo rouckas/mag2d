@@ -30,15 +30,16 @@ extern_field = 500.0		#[V/m]
 #magnetic field
 #magnetic_field_file = MagPole.txt
 magnetic_field_const = 1
-Bt = 0.03
+Bt = 0.00
 
 # total number of particles in simulation
 n_particles_total = 40000
 macroparticle_factor = 1
 
 # mesh dimension
-r_sampl = 100
-z_sampl = 100
+x_sampl = 200
+y_sampl = 200
+z_sampl = 200
 
 # working area dimension
 r_max = 2e-2	#[m]
@@ -87,7 +88,7 @@ temperature = 300.0		#[K]
 dt = 0				#[s]
 
 [HELIUM]
-pressure = ${* 133.0 1e-3}		#[Pa]
+pressure = ${* 133.0 1e-6}		#[Pa]
 temperature = 300.0		#[K]
 dt = 0				#[s]
 
