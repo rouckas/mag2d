@@ -2,7 +2,7 @@
 #define FIELD3D_H
 
 #include "matrix.cpp"
-#include "param.cpp"
+#include "param.hpp"
 #include <suitesparse/umfpack.h>
 #include <iostream>
 #include <fstream>
