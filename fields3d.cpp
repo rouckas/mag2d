@@ -3,6 +3,7 @@
 
 #include "matrix.cpp"
 #include "param.hpp"
+#include "mymath.cpp"
 #include <suitesparse/umfpack.h>
 #include <iostream>
 #include <fstream>
@@ -18,17 +19,22 @@ class Field3D : public Array3D<double>
 
         Field3D(Param &param) :
             Array3D<double>(param.x_sampl, param.y_sampl, param.z_sampl), xmin(0), ymin(0), zmin(0),
-            idx(param.idx), idy(param.idy), idz(param.idz) {};
+            idx(param.idx), idy(param.idy), idz(param.idz),
+            xmax(param.x_max), ymax(param.y_max), zmax(param.z_max) {};
 
         inline void accumulate(double charge, double x, double y, double z);
         inline double interpolate(double x, double y, double z);
+        inline void grad(double x, double y, double z, double & gx, double & gy, double & gz);
         void print( ostream & out = cout, double factor = 1.0);
         void print_vtk( ostream & out = cout);
         void print( const char * filename, string format = "table", double factor = 1.0);
 
     private:
-        double idx, idy, idz;
+        inline double local_interpolate(double g[], double u, double v, double w);
+        inline double grad_component(double x, double y, double z, int dirx, int dirz, int diry);
         double xmin, ymin, zmin;
+        double idx, idy, idz;
+        double xmax, ymax, zmax;
 };
 
 class Electrode
@@ -323,6 +329,66 @@ inline double Field3D::interpolate(double x, double y, double z)
     res += u*v*w * data[i+1][j+1][k+1];
 
     return res;
+}
+
+inline double Field3D::local_interpolate(double g[], double u, double v, double w)
+{
+    return (1-u)*(1-v)*(1-w) * g[0] +
+        u*(1-v)*(1-w) * g[1] +
+        (1-u)*v*(1-w) * g[2] +
+        u*v*(1-w) * g[3] +
+        (1-u)*(1-v)*w * g[4] +
+        u*(1-v)*w * g[5] +
+        (1-u)*v*w * g[6] +
+        u*v*w * g[7];
+}
+
+inline double Field3D::grad_component(double x, double y, double z, int dirx, int dirz, int diry)
+{
+    double g[8];
+    int i, j, k;
+    double u, v, w;
+    int ind, indmax;
+
+    // x component of the gradient
+    x = clamp(x*idx, 0.5*dirx, xmax - 0.5*dirx);
+    y = clamp(y*idy, 0.5*diry, ymax - 0.5*diry);
+    x = clamp(z*idz, 0.5*dirz, zmax - 0.5*dirz);
+    //this should ensure, than no index is outside the
+    //array, but floating point arithmetics is a bitch...
+
+    i = (int)(x + 0.5*dirx);
+    j = (int)(y + 0.5*diry);
+    k = (int)(z + 0.5*dirz);
+    u = x + 0.5*dirx - i;
+    v = y + 0.5*diry - j;
+    w = z + 0.5*dirz - k;
+
+    if(dirx)
+        ind = i, indmax = imax;
+    else if(diry)
+        ind = j, indmax = jmax;
+    else
+        ind = k, indmax = kmax;
+
+    g[0] = data[i][j][k] - data[i-dirx][j-diry][k-dirz];
+    g[1] = data[i+1][j][k] - data[i-dirx][j-diry][k-dirz];
+    g[2] = data[i][j+1][k] - data[i-1-dirx][j+1-diry][k-dirz];
+    g[3] = data[i+1][j+1][k] - data[i-dirx][j+1-diry][k-dirz];
+
+    g[4] = data[i][j][k+1] - data[i-1-dirx][j-diry][k+1-dirz];
+    g[5] = data[i+1][j][k+1] - data[i-dirx][j-diry][k+1-dirz];
+    g[6] = data[i][j+1][k+1] - data[i-1-dirx][j+1-diry][k+1-dirz];
+    g[7] = data[i+1][j+1][k+1] - data[i-dirx][j+1-diry][k+1-dirz];
+
+    return local_interpolate(g, u, v, w);
+}
+
+inline void Field3D::grad(double x, double y, double z, double & gx, double & gy, double & gz)
+{
+    gx = grad_component(x, y, z, 1, 0, 0);
+    gy = grad_component(x, y, z, 0, 1, 0);
+    gz = grad_component(x, y, z, 0, 0, 1);
 }
 
 
