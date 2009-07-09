@@ -222,7 +222,7 @@ class ElMag3D
             //nonselfconsistent simulation
             if(geometry.electrodes.size() > 1 && !param.selfconsistent)
             {
-                for(int i=0; i<geometry.electrodes.size(); i++)
+                for(unsigned int i=0; i<geometry.electrodes.size(); i++)
                     potentials.push_back(new Field3D(param));
                 multielectrode = true;
             }
@@ -233,7 +233,7 @@ class ElMag3D
             if(multielectrode)
             {
 
-                for(int i=0; i<geometry.electrodes.size(); i++)
+                for(unsigned int i=0; i<geometry.electrodes.size(); i++)
                 {
                     voltage.reset();
                     geometry.electrodes[i]->set_voltage(voltage, geometry.mask);
@@ -243,7 +243,7 @@ class ElMag3D
             else
             {
                 voltage.reset();
-                for(int i=0; i<geometry.electrodes.size(); i++)
+                for(unsigned int i=0; i<geometry.electrodes.size(); i++)
                     geometry.electrodes[i]->set_voltage(voltage, geometry.mask);
                 solver.solve(u, voltage, rho);
             }
@@ -253,7 +253,7 @@ class ElMag3D
             //for now it just performs sum
         {
             u.reset();
-            for(int i=0; i<potentials.size(); i++)
+            for(unsigned int i=0; i<potentials.size(); i++)
                 u.add(*(potentials[i]));
         }
     private:
