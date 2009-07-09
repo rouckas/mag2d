@@ -23,6 +23,12 @@ inline T cube(T x){return x*x*x;};
 template<class T>
 inline T max(T x, T y){return x>y ? x : y ;};
 
+template<class T>
+inline T clamp(T x, T xmin, T xmax)
+{
+    return x>xmax ? xmax : (x<xmin ? xmin : x);
+}
+
 //template<class T>
 //inline T min(T x, T y){return x<y ? x : y ;};
 
