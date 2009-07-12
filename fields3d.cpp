@@ -351,9 +351,9 @@ inline double Field3D::grad_component(double x, double y, double z, int dirx, in
     int ind, indmax;
 
     // x component of the gradient
-    x = clamp(x*idx, 0.5*dirx, xmax - 0.5*dirx);
-    y = clamp(y*idy, 0.5*diry, ymax - 0.5*diry);
-    x = clamp(z*idz, 0.5*dirz, zmax - 0.5*dirz);
+    x = clamp(x*idx, 0.5*dirx, xmax*idx - 0.5*dirx);
+    y = clamp(y*idy, 0.5*diry, ymax*idy - 0.5*diry);
+    x = clamp(z*idz, 0.5*dirz, zmax*idz - 0.5*dirz);
     //this should ensure, than no index is outside the
     //array, but floating point arithmetics is a bitch...
 
