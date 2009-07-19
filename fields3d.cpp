@@ -65,17 +65,30 @@ class Quadrupole : public Electrode
         };
 };
 
-enum {FREE, FIXED, BOUNDARY};
 
 class Geometry
 {
+    private:
+        double idx, idy, idz;
     public:
         double x_sampl, y_sampl, z_sampl;
         Array3D<signed char> mask;
         vector<Electrode*> electrodes;
         vector<Array3D<double>*> potentials;
         Field3D voltage;
-        Geometry(Param &param) : x_sampl(param.x_sampl), y_sampl(param.y_sampl),
+        bool is_free(double x, double y, double z)
+        {
+            int i = (int)(x*idx);
+            int j = (int)(y*idy);
+            int k = (int)(z*idz);
+            if(mask[i][j][k]==FREE || mask[i+1][j][k]==FREE || mask[i][j+1][k]==FREE || mask[i+1][j+1][k]==FREE ||
+                mask[i][j][k+1]==FREE || mask[i+1][j][k+1]==FREE || mask[i][j+1][k+1]==FREE || mask[i+1][j+1][k+1]==FREE)
+                return true;
+            else return false;
+        }
+        Geometry(Param &param) :
+            idx(param.idx), idy(param.idy), idz(param.idz),
+            x_sampl(param.x_sampl), y_sampl(param.y_sampl),
             z_sampl(param.z_sampl), mask(param.x_sampl, param.y_sampl, param.z_sampl),
             electrodes(0), voltage(param)
         {
@@ -220,9 +233,10 @@ class ElMag3D
 {
     public:
         Field3D u, rho, voltage;
+        Geometry geometry;
 
         ElMag3D(Param &param) : u(param), rho(param), voltage(param),
-            potentials(0), geometry(param), multielectrode(false),
+            geometry(param), potentials(0), multielectrode(false),
             solver(geometry, param, "solver_numeric.umf")
         {
             //do we have multiple independent sets of electrodes in
@@ -266,7 +280,6 @@ class ElMag3D
     private:
         vector<Field3D*> potentials;
 
-        Geometry geometry;
         bool multielectrode;
     public:
         // solver must be initialized after geometry
