@@ -32,6 +32,7 @@ class Field3D : public Array3D<double>
     private:
         inline double local_interpolate(double g[], double u, double v, double w);
         inline double grad_component(double x, double y, double z, int dirx, int dirz, int diry);
+        inline double grad_component_NGP(double x, double y, double z, int dirx, int dirz, int diry);
         double xmin, ymin, zmin;
         double idx, idy, idz;
         double xmax, ymax, zmax;
@@ -343,17 +344,16 @@ inline double Field3D::local_interpolate(double g[], double u, double v, double 
         u*v*w * g[7];
 }
 
-inline double Field3D::grad_component(double x, double y, double z, int dirx, int dirz, int diry)
+inline double Field3D::grad_component(double x, double y, double z, int dirx, int diry, int dirz)
 {
     double g[8];
     int i, j, k;
     double u, v, w;
-    int ind, indmax;
 
     // x component of the gradient
     x = clamp(x*idx, 0.5*dirx, xmax*idx - 0.5*dirx);
     y = clamp(y*idy, 0.5*diry, ymax*idy - 0.5*diry);
-    x = clamp(z*idz, 0.5*dirz, zmax*idz - 0.5*dirz);
+    z = clamp(z*idz, 0.5*dirz, zmax*idz - 0.5*dirz);
     //this should ensure, than no index is outside the
     //array, but floating point arithmetics is a bitch...
 
@@ -364,24 +364,32 @@ inline double Field3D::grad_component(double x, double y, double z, int dirx, in
     v = y + 0.5*diry - j;
     w = z + 0.5*dirz - k;
 
-    if(dirx)
-        ind = i, indmax = imax;
-    else if(diry)
-        ind = j, indmax = jmax;
-    else
-        ind = k, indmax = kmax;
-
     g[0] = data[i][j][k] - data[i-dirx][j-diry][k-dirz];
-    g[1] = data[i+1][j][k] - data[i-dirx][j-diry][k-dirz];
-    g[2] = data[i][j+1][k] - data[i-1-dirx][j+1-diry][k-dirz];
-    g[3] = data[i+1][j+1][k] - data[i-dirx][j+1-diry][k-dirz];
+    g[1] = data[i+1][j][k] - data[i+1-dirx][j-diry][k-dirz];
+    g[2] = data[i][j+1][k] - data[i-dirx][j+1-diry][k-dirz];
+    g[3] = data[i+1][j+1][k] - data[i+1-dirx][j+1-diry][k-dirz];
 
-    g[4] = data[i][j][k+1] - data[i-1-dirx][j-diry][k+1-dirz];
-    g[5] = data[i+1][j][k+1] - data[i-dirx][j-diry][k+1-dirz];
-    g[6] = data[i][j+1][k+1] - data[i-1-dirx][j+1-diry][k+1-dirz];
-    g[7] = data[i+1][j+1][k+1] - data[i-dirx][j+1-diry][k+1-dirz];
+    g[4] = data[i][j][k+1] - data[i-dirx][j-diry][k+1-dirz];
+    g[5] = data[i+1][j][k+1] - data[i+1-dirx][j-diry][k+1-dirz];
+    g[6] = data[i][j+1][k+1] - data[i-dirx][j+1-diry][k+1-dirz];
+    g[7] = data[i+1][j+1][k+1] - data[i+1-dirx][j+1-diry][k+1-dirz];
 
-    return local_interpolate(g, u, v, w);
+    return local_interpolate(g, u, v, w)*(idx*dirx + idy*diry + idz*dirz);
+}
+
+inline double Field3D::grad_component_NGP(double x, double y, double z, int dirx, int diry, int dirz)
+{
+    int i, j, k;
+
+    x = clamp(x*idx, 0.5*dirx, xmax*idx - 0.5*dirx);
+    y = clamp(y*idy, 0.5*diry, ymax*idy - 0.5*diry);
+    z = clamp(z*idz, 0.5*dirz, zmax*idz - 0.5*dirz);
+
+    i = (int)(x + 0.5*(1-dirx));
+    j = (int)(y + 0.5*(1-diry));
+    k = (int)(z + 0.5*(1-dirz));
+
+    return (data[i+dirx][j+diry][k+dirz] - data[i][j][k])*(idx*dirx + idy*diry + idz*dirz);
 }
 
 inline void Field3D::grad(double x, double y, double z, double & gx, double & gy, double & gz)
