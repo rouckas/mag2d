@@ -41,7 +41,6 @@ class BaseSpecies
 	double source_len;
 	ofstream output;
     protected:
-	Fields *field;
 	int niter;
 	BaseSpecies ** species_list;
 	Param *p_param;
@@ -81,7 +80,7 @@ class BaseSpecies
 	double probe_current_sum;
 
 
-	BaseSpecies(int n1, int n2, Param &param, t_random &_rnd, Fields *_field,
+	BaseSpecies(int n1, int n2, Param &param, t_random &_rnd,
 	       double mass, BaseSpecies * _species_list[], species_type _type = NONE );
 
 	// generate randomly new particle velocity according to species' velocity
@@ -161,9 +160,10 @@ template <>
 class Species<CARTESIAN> : public BaseSpecies
 {
     public:
+        Fields * field;
         Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
                 double _mass, BaseSpecies * _species_list[], species_type _type) :
-            BaseSpecies(_n, n2, param, _rnd, _field, _mass, _species_list, _type) {};
+            BaseSpecies(_n, n2, param, _rnd, _mass, _species_list, _type), field(_field) {};
 
 	void advance();
         void accumulate();
@@ -180,9 +180,10 @@ template <>
 class Species<CYLINDRICAL> : public BaseSpecies
 {
     public:
+        Fields * field;
         Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
                 double _mass, BaseSpecies * _species_list[], species_type _type) :
-            BaseSpecies(_n, n2, param, _rnd, _field, _mass, _species_list, _type) {};
+            BaseSpecies(_n, n2, param, _rnd, _mass, _species_list, _type), field(_field) {};
 
 	void advance();
         void accumulate();

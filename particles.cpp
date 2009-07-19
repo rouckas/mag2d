@@ -4,10 +4,10 @@
 /*
  * *********************** definitions for BaseSpecies ************************
  */
-BaseSpecies::BaseSpecies(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
+BaseSpecies::BaseSpecies(int _n, int n2, Param &param, t_random &_rnd,
         double _mass, BaseSpecies * _species_list[], species_type _type)
     : empty(0),
-    field(_field), niter(0), p_param(&param), rnd(&_rnd),
+    niter(0), p_param(&param), rnd(&_rnd),
     particles(_n), type(_type), name(species_names[_type]), mass(_mass),
     temperature(param.temperature[_type]), density(param.density[_type]), dt(param.dt[_type]),
     rho(param),
