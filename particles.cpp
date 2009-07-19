@@ -33,17 +33,6 @@ BaseSpecies::BaseSpecies(int _n, int n2, Param &param, t_random &_rnd,
         particles[i].empty = true;
     }
 
-    for(int i=0; i<n2; i++)
-    {
-        particles[i].empty = false;
-        particles[i].x = param.x_max*(rnd->uni());
-        particles[i].z = param.z_max*(rnd->uni());
-        //XXX BAD in cylindrical coords (maybe not if vt = d(theta)/dt*r):
-        particles[i].vx = rnd->rnor()*v_max/(M_SQRT2);
-        particles[i].vz = rnd->rnor()*v_max/(M_SQRT2);
-        particles[i].vy = rnd->rnor()*v_max/(M_SQRT2);
-        particles[i].time_to_death = rnd->rexp()*lifetime;
-    }
 
     // prepare output file
     output.open( (param.output_dir + "/" + name + ".dat").c_str() );
@@ -460,6 +449,21 @@ void Species<CYLINDRICAL>::accumulate()
 /*
  * ******************** Species<CARTESIAN> definitions *********************
  */
+void Species<CARTESIAN>::add_particles_everywhere(int nparticles)
+{
+    for(int i=0; i<nparticles; i++)
+    {
+        int ii = insert();
+        particles[ii].x = p_param->x_max*(rnd->uni());
+        particles[ii].y = p_param->y_max*(rnd->uni());
+        particles[ii].z = p_param->z_max*(rnd->uni());
+        particles[ii].vx = rnd->rnor()*v_max/(M_SQRT2);
+        particles[ii].vy = rnd->rnor()*v_max/(M_SQRT2);
+        particles[ii].vz = rnd->rnor()*v_max/(M_SQRT2);
+        particles[ii].time_to_death = rnd->rexp()*lifetime;
+    }
+}
+
 void Species<CARTESIAN>::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;

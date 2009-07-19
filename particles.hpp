@@ -168,6 +168,7 @@ class Species<CARTESIAN> : public BaseSpecies
 	void advance();
         void accumulate();
 
+        void add_particles_everywhere(int nparticles);
         void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
         void add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius);
 

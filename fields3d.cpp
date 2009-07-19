@@ -4,6 +4,7 @@
 #include "matrix.cpp"
 #include "param.hpp"
 #include "mymath.cpp"
+#include "fields.hpp"
 #include <suitesparse/umfpack.h>
 #include <iostream>
 #include <fstream>
