@@ -250,6 +250,13 @@ class ElMag3D
             }
             rho.reset();
         }
+        void E(double x, double y, double z, double & Ex, double & Ey, double & Ez)
+        {
+            u.grad(x, y, z, Ex, Ey, Ez);
+            Ex *= -1.0;
+            Ey *= -1.0;
+            Ez *= -1.0;
+        }
         void solve()
         {
             if(multielectrode)
