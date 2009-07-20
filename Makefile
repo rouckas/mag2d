@@ -37,9 +37,13 @@ OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
 SOURCES = argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp argonO2.cpp matrix.cpp hydrogen.cpp timer.hpp
 
 OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o
+OBJ3D = fields3d.o species3d.o
 
 plasma2d: test.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ test.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
+plasma3d: plasma3d.cpp $(SOURCES) $(OBJ) $(OBJ3D)
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ plasma3d.cpp $(OBJ) $(OBJ3D) $(OPTIM) $(INC) $(LIB)
+
 penning: penning.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ penning.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
 MAC: MAC.cpp $(SOURCES) $(OBJ)
@@ -60,5 +64,7 @@ fields.o: fields.hpp param.cpp
 speclist.o: speclist.hpp
 input.o: input.hpp
 param.o: param.hpp
+fields3d.o: fields3d.hpp
+species3d.o: species3d.hpp
 clean:
 	rm -f *.o
