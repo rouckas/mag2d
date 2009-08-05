@@ -7,3 +7,5 @@ grafy.gnuplot
 plot.dat
 gmon.out
 *.o
+*.dat
+*.gch
