@@ -1,0 +1,79 @@
+PROBLEM: prejmenovat z-souradnici na y-souradnici ve valcovych sour.??? 
+Co potrebuju znat?
+
+        polohy mrizovych bodu s fixnim potencialem: Array3D mask
+        id elektrody v kazdem bode mrize ... id = index elektrody v poli elektrod
+        class Electrodes: 
+
+moznosti jak pocitat potencial:
+    1) Do pole voltages nastavit potencial vsech elektrod a vyresit
+    pole selfkonzistentne v kazdem kroku - OK pro selfkonzistentni simulaci
+    pouzitelne pro neselfkonzistentni simulaci, ale je zbytecne prepocitavat
+    potencial v kazdem kroku obzvlaste s malym poctem castic.
+
+    2) Do pole voltages nastavit potencial vsech elektrod, vyresit na pocatku
+    a pote v kazdem kroku nasobit fazovym faktorem: vhodne pro
+    neselfkonzistentni simulaci s konst vnejsim polem nebo s elektrodami ve 
+    stejne fazi: napriklad pricny rez 22-polem.
+    
+    3) Kazdy system elektrod ve fazi ma svoje reseni Laplaceovy rovnice: zobecneni
+    metody 2 pro rozfazovane elektrody, napriklad kompletni simulace 22-polu
+        a) v kazdem kroku se do pole "u" vypocte vazeny soucet: vhodne pro neself. simulace
+        s rozfazovanymi elektrodami s velkym poctem castic. Ve 3D: kazda interpolace vyzaduje
+        nacteni 8 bodu, pro P castic, E elektrod a M mrizovych bodu potrebujeme ~ M*E operaci
+        pro vypocet souctu a P*8 operaci pro interpolaci, tedy N ~ M*E + P*8
+        b) pokazde, kdyz se castice dotazuje na hodnotu potencialu vypocist soucet
+        pres vsechny elektrody: vhodne pro neself. simulace s malym poctem castic
+        N ~ P*E*8
+
+jak to sjednotit????
+
+Nutne je potreba neco jako class Electrode, ktera bude umet nastavit svuj potencial do
+prave strany Poissonovy rovnice, Je potreba, aby si dokazala uchovat reseni poissonovy
+rce. Budou tri rezimy: 
+
+
+    selfkonzistentni single electrode - 
+        foreach electrode:
+            electrode.set_voltage(elmag.voltage) sets voltage*phase
+            solve(rho, mask, voltage, elmag.u)
+
+
+    neselfkonzistentni single electrode - 
+        ctor: 
+            electrode.set_voltage(elmag.voltage)
+            solve(rho=0, mask, voltage, elmag.u)
+
+        foreach particle:
+            E = -grad(elmag.u)*phase
+
+
+    neselfkonzistentni multiple electrode
+        ctor:
+            foreach electrode:
+                electrode.set_voltage((elmag|*this).voltage)
+                (electrode.?)solve(rho=0, mask, (elmag?).voltage, this->u)
+    mnohocasticova varianta:
+        if not single_electrode:
+            foreach electrode:
+                elmag.u += this->u*phase
+        foreach particle
+            E = -grad(elmag.u)*single_electrode_phase
+    malocasticova varianta:
+        foreach particle:
+            if single_electrode:
+                E = -grad(elmag.u)*single_electrode_phase
+            else:
+                foreach electrode:
+                    E += -grad(electrode.u)
+staci jen jedno pole voltage, proto ho umistime do class elmag
+metoda solve potrebuje odkazy na sdilene objekty UMFPACK Numeric
+a mask, proto nebude prvkem tridy Electrode. mask je sdileny, proto
+nebude parametrem.
+potrebujeme metody pro "kresleni" elementarnich tvaru do pole mask
+class Shape
+class SquareShape
+{
+    bool inside(x,y,z)
+}
+
