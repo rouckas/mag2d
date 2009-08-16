@@ -5,7 +5,7 @@
 /*
  *********************** definitions for Field ********************************
  */
-void Field::resize(double x_sampl, double z_sampl, double dx, double dz, double _rmin, double _zmin)
+void Field::resize(int x_sampl, int z_sampl, double dx, double dz, double _rmin, double _zmin)
 {
     idx = 1.0/dx, idz = 1.0/dz;
     rmin = _rmin, zmin = _zmin;

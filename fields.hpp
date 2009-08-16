@@ -54,7 +54,7 @@ class Field : public Matrix<double>
 	Field(Param &param) : Matrix<double>(param.x_sampl, param.z_sampl),
             idx(param.idx), idz(param.idz), rmin(0), zmin(0) {};
         Field() : Matrix<double>(), idx(0), idz(0), rmin(0), zmin(0) {};
-        void resize(double x_sampl, double z_sampl, double dx, double dz, double _rmin=0, double _zmin=0);
+        void resize(int x_sampl, int z_sampl, double dx, double dz, double _rmin=0, double _zmin=0);
 	inline void accumulate(double charge, double x, double y);
         inline double interpolate(double r, double z);
         bool hasnan();
