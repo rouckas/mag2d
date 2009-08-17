@@ -183,6 +183,14 @@ void ElMag3D::potential_sum()
         u.add(*(potentials[i]));
 }
 
+void Field3D::resize(int x_sampl, int y_sampl, int z_sampl, double dx, double dy, double dz,
+                double _xmin, double _ymin, double _zmin)
+{
+    idx = 1.0/dx, idy = 1.0/dy, idz = 1.0/dz;
+    xmin = _xmin, ymin = _ymin, zmin = _zmin;
+    Array3D<double>::resize(x_sampl, y_sampl, z_sampl);
+}
+
 void Field3D::print( ostream & out, double factor)
 {
     double dx=1.0/idx, dy=1.0/idy, dz=1.0/idz;

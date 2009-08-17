@@ -22,6 +22,8 @@ class Field3D : public Array3D<double>
             idx(param.idx), idy(param.idy), idz(param.idz),
             xmax(param.x_max), ymax(param.y_max), zmax(param.z_max) {};
 
+        void resize(int x_sampl, int y_sampl, int z_sampl, double dx, double dy, double dz,
+                double xmin=0, double ymin=0, double zmin=0);
         inline void accumulate(double charge, double x, double y, double z);
         inline double interpolate(double x, double y, double z);
         inline void grad(double x, double y, double z, double & gx, double & gy, double & gz);
