@@ -25,6 +25,7 @@ class Field3D : public Array3D<double>
         inline void accumulate(double charge, double x, double y, double z);
         inline double interpolate(double x, double y, double z);
         inline void grad(double x, double y, double z, double & gx, double & gy, double & gz);
+        bool hasnan();
         void print( ostream & out = cout, double factor = 1.0);
         void print_vtk( ostream & out = cout);
         void print( const char * filename, string format = "table", double factor = 1.0);

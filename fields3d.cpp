@@ -198,6 +198,14 @@ void Field3D::print( ostream & out, double factor)
     }
 }
 
+bool Field3D::hasnan()
+{
+    for(int i=0; i<imax*jmax*kmax; i++)
+        if(isnan(base[i]))
+            return true;
+    return false;
+}
+
 void Field3D::print_vtk( ostream & out)
     //method to export the field in a legacy vtk format
 {
