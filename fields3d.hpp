@@ -31,6 +31,7 @@ class Field3D : public Array3D<double>
         void print( ostream & out = cout, double factor = 1.0);
         void print_vtk( ostream & out = cout);
         void print( const char * filename, string format = "table", double factor = 1.0);
+        void load_table( const char * filename, int col = 0);
 
     private:
         inline double local_interpolate(double g[], double u, double v, double w);
