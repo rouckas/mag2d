@@ -114,6 +114,7 @@ class ElMag3D
 {
     public:
         Field3D u, rho, voltage;
+        Field3D Bx, By, Bz;
         Geometry geometry;
 
         ElMag3D(Param &param);
@@ -123,6 +124,12 @@ class ElMag3D
             Ex *= -1.0;
             Ey *= -1.0;
             Ez *= -1.0;
+        }
+        void B(double x, double y, double z, double & Bx, double & By, double & Bz)
+        {
+            Bx = this->Bx.interpolate(x, y, z);
+            By = this->By.interpolate(x, y, z);
+            Bz = this->Bz.interpolate(x, y, z);
         }
         void solve();
         void potential_sum();
