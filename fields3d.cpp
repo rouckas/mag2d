@@ -139,6 +139,7 @@ Solver::Solver(Geometry & _geometry, Param & _param, string filename) : param(_p
 }
 
 ElMag3D::ElMag3D(Param &param) : u(param), rho(param), voltage(param),
+    Bx(param), By(param), Bz(param),
     geometry(param), potentials(0), multielectrode(false),
     solver(geometry, param, "solver_numeric.umf")
 {

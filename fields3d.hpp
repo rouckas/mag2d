@@ -131,6 +131,12 @@ class ElMag3D
             By = this->By.interpolate(x, y, z);
             Bz = this->Bz.interpolate(x, y, z);
         }
+        void load_magnetic_field(const char * fname)
+        {
+            Bx.load_table(fname, 0);
+            By.load_table(fname, 1);
+            Bz.load_table(fname, 2);
+        }
         void solve();
         void potential_sum();
             //TODO do a weighted sum of solutions for single electrodes,
