@@ -3,6 +3,7 @@
 #define MYMATH_H
 
 #include <cmath>
+#include <cassert>
 using namespace std;
 
 #ifdef AMD64
@@ -22,6 +23,17 @@ inline T cube(T x){return x*x*x;};
 
 template<class T>
 inline T max(T x, T y){return x>y ? x : y ;};
+
+inline bool eq(double x, double y, int ulps = 16)
+{
+    assert(sizeof(double) == sizeof(long int));
+    if (x == y)
+        return true;
+    long int intDiff = fabs(*(long int*)&x - *(long int*)&y);
+    if (intDiff <= ulps)
+        return true;
+    return false;
+}
 
 template<class T>
 inline T clamp(T x, T xmin, T xmax)
