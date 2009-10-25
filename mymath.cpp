@@ -55,7 +55,6 @@ inline double norm(double x, double y){return sqrt(sqr(x)+sqr(y));}
 inline void normalize(double &x, double &y, double &z, double norm = 1.0)
 {
     double sqnorm = sqr(x) + sqr(y) + sqr(z);
-    cout << " eq " << eq(sqnorm, 1.0) << sqnorm <<endl;
     if(!eq(sqnorm, 1.0))
     {
         sqnorm = sqrt(sqnorm);
