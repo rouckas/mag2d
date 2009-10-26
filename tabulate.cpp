@@ -1,6 +1,8 @@
 #ifndef TABUL_H
 #define TABUL_H
 #include <stdexcept>
+#include <vector>
+using namespace std;
 class callable
 {
     public:
