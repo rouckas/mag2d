@@ -1,6 +1,7 @@
 #ifndef TABUL_H
 #define TABUL_H
 #include <stdexcept>
+#include <limits>
 #include <vector>
 using namespace std;
 class callable
@@ -114,6 +115,9 @@ class vec_interpolate
 	    for(int i=0; i<samples; i++)
 	;//	cout << xdata[i] <<' '<<ydata[i]<<endl;
 	}
+        vec_interpolate(double val) : samples(0), xdata(0), ydata(0),
+        xmin(-numeric_limits<double>::infinity()),
+        xmax(-numeric_limits<double>::infinity()) {}
 	~vec_interpolate()
 	{
 	}
