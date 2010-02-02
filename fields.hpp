@@ -42,6 +42,7 @@ class t_grid
         double U_trap;
         void rf_trap();
         void rf_22PT();
+        void rf_8PT();
         void MAC_filter();
         void empty();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);

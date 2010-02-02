@@ -296,6 +296,9 @@ t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl),
         case Param::RF_QUAD:
             rf_trap();
             break;
+        case Param::RF_8PT:
+            rf_8PT();
+            break;
         case Param::RF_22PT:
             rf_22PT();
             break;
@@ -355,6 +358,52 @@ void t_grid::rf_22PT()
     {
         double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
         double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
+        int sign = i%2==0 ? -1 : 1;
+        circle_electrode(x, y, r_rod, p_param->u_probe*sign);
+    }
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
+}
+
+void t_grid::rf_8PT()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+
+    double xcenter = 1e-2;
+    double ycenter = 1e-2;
+    double r_rod = 0.33e-2/2;
+    double r_8pt = 0.5e-2 + r_rod;
+    int npoles = 8;
+    for(int i=0; i<npoles; i++)
+    {
+        double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
+        double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
         int sign = i%2==0 ? -1 : 1;
         circle_electrode(x, y, r_rod, p_param->u_probe*sign);
     }
