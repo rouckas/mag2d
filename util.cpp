@@ -1,6 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 #include <sstream>
+#include <cmath>
+#include <stdexcept>
 using namespace std;
 
 inline string double2string(double x)
