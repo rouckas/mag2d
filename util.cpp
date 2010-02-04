@@ -26,4 +26,12 @@ inline int double2int(double x, double eps=1e-2)
 	throw std::runtime_error("double2int() " + double2string(x) + " is not integer\n");
     return res;
 }
+
+inline double string2double(string str)
+{
+    istringstream i(str);
+    double x;
+    i >> x;
+    return x;
+}
 #endif
