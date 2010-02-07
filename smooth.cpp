@@ -3,19 +3,35 @@
 #include <sstream>
 #include <string>
 #include <stdexcept>
+#include <cstdlib>
+#include <vector>
+#include "util.cpp"
 using namespace std;
-#define MAXCOLS 10
 
-int main()
+int main(int argc, char* argv[])
 {
-    double columns[MAXCOLS];
-    int ncols = 2;
-    double sums[MAXCOLS];
-    int avgcols[MAXCOLS];
-    int navgcols=2;
-    avgcols[0] = 0;
-    avgcols[1] = 1;
-    int winsize = 10;
+    if(argc < 4)
+    {
+        cout << "program smooth, usage: cat input.txt | smooth winsize ncols \
+n2 n3 ... ni > output.txt\n   winsize - size of averaging window\n   ncols - \
+total number of columns\n   n2 n3 ... ni - columns that should be averaged\n";
+        exit(1);
+    }
+
+    int winsize = string2double(argv[1]);
+    unsigned int ncols = string2double(argv[2]);
+    vector<unsigned int> avgcols;
+    for(int i=3; i< argc; i++)
+    {
+        avgcols.push_back(string2double(argv[i]));
+        if(avgcols[i-3] >= ncols)
+            throw runtime_error("averaging column number greater than total number of columns\n");
+    }
+
+    vector<double> columns(ncols);
+    vector<double> sums(avgcols.size());
+
+
 
     istream fr(cin.rdbuf());
     ostream fw(cout.rdbuf());
@@ -34,20 +50,20 @@ int main()
         s_line.clear();
         s_line.str(line);
 
-        int i=0;
+        unsigned int i=0;
         while( i < ncols && s_line >> columns[i] ) i++;
         if(i < ncols) continue;
-        for(int j=0; j<navgcols;  j++)
+        for(unsigned int j=0; j<avgcols.size();  j++)
             sums[j] += columns[avgcols[j]];
 
         if(lineno % winsize == 0)
         {
-            for(int j=0; j<navgcols;  j++)
+            for(unsigned int j=0; j<avgcols.size();  j++)
             {
                 columns[avgcols[j]] = sums[j]/winsize;
                 sums[j] = 0;
             }
-            for(int i=0; i<ncols; i++)
+            for(unsigned int i=0; i<ncols; i++)
                 fw << columns[i] << "\t";
             fw << endl;
         }
