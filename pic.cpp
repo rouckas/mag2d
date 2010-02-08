@@ -9,7 +9,7 @@
 #include "hydrogen.cpp"
 #include "helium.cpp"
 //#include "oxygen.cpp"
-#include "elon.cpp"
+#include "elonHe.cpp"
 //#include "elon.cpp"
 #include <cstdlib>
 #include <iostream>
