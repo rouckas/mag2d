@@ -267,7 +267,7 @@ void t_elon<D>::scatter(t_particle &particle, int species, double svmax, vector<
 
         case ELASTIC :
             // TODO extend this to low energy electrons
-            E *= 1-Species<D>::rnd->uni()*2*Species<D>::mass/Species<D>::species_list[O2]->mass;
+            E *= 1-Species<D>::rnd->uni()*2*Species<D>::mass/Species<D>::species_list[species]->mass;
             break;
     }
     // do the random rotation if any non-null collision occured
