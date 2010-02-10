@@ -252,26 +252,54 @@ void t_elon<D>::scatter(t_particle &particle, int species, double svmax, vector<
 
     // select apropriate collision type
     if(i==CCS.size()) return;// NULL collision
+
+    bool rot = false;
     switch(CType[i])
     {
         case IONIZATION :
             E -= CLoss[i];
             E *= 1-Species<D>::rnd->uni(); //TODO ???
-            hit1++;
+            rot = true;
             break;
 
         case EXCITATION :
             E -= CLoss[i];
-            hit2++;
+            rot = true;
             break;
 
         case ELASTIC :
-            // TODO extend this to low energy electrons
-            E *= 1-Species<D>::rnd->uni()*2*Species<D>::mass/Species<D>::species_list[species]->mass;
+            // some arbitrary criterion for the limit of high energy electrons
+            double T = E * Species<D>::p_param->q_e / Species<D>::p_param->k_B * 2.0/3.0;
+            if(T > 10*Species<D>::species_list[species]->temperature)
+            {
+                E *= 1-Species<D>::rnd->uni()*2*Species<D>::mass/Species<D>::species_list[species]->mass;
+                rot = true;
+            }
+            else
+            {
+                double vr2,vz2,vt2;
+                Species<D>::species_list[species]->rndv(vr2,vz2,vt2);
+
+                double m2 = Species<D>::species_list[species]->mass;
+                double tmp = 1.0/(Species<D>::mass+m2);
+                //prepocet v_1 do tezistove soustavy
+                double v1_cm_x = (particle.vx - vr2)*m2*tmp;
+                double v1_cm_y = (particle.vz - vz2)*m2*tmp;
+                double v1_cm_z = (particle.vy - vt2)*m2*tmp;
+
+                //provedeni nahodne rotace
+                Species<D>::rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
+
+                //zpetna transformace
+                //particle.vx = v1_cm_x + v_cm_x;
+                particle.vx = v1_cm_x + (particle.vx*Species<D>::mass + vr2*m2)*tmp;
+                particle.vz = v1_cm_y + (particle.vz*Species<D>::mass + vz2*m2)*tmp;
+                particle.vy = v1_cm_z + (particle.vy*Species<D>::mass + vt2*m2)*tmp;
+            }
             break;
     }
     // do the random rotation if any non-null collision occured
-    if(i<CCS.size())
+    if(rot)
         Species<D>::rnd->rot(Species<D>::veV(E),particle.vx,particle.vz,particle.vy);
 	
 }
