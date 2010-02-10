@@ -4268,6 +4268,7 @@ Phys. Rev. A 15, 1847 (1977) AT LOW ENERGY, and from Hayashi, Institute
 of Plasma Physics Report No. IPPJ-AM-19, (1981) AT HIGH ENERGIES
 entry #    en(eV)    Effective Qm - Defined in introduction(1E-16*cm^2)
 
+              ENERGY     Effective Qm - Defined in introduction       
        1        0     4.96
        2    0.001     4.98
        3    0.002     5.02
@@ -4334,6 +4335,7 @@ HE EXCITATION - FROM 1960'S ANALYSIS OF MEIR-LEIBNITZ AND OTHERS BY
 PHELPS
 ELOSS=19.80,EMIN=19.6,EMAX=1000.,QSCALE=1.0
 
+               ENERGY     CROSS SECTION       
        1        0        0
        2     19.8        0
        3    20.02    0.041
@@ -4358,6 +4360,7 @@ HE TOTAL IONIZATION - RAPP AND ENGLANDER-GOLDEN, 1965
 ELOSS=24.6,EMIN=24.0,EMAX=1000.,QSCALE=1.0,EBR=15.8
 (30 eV entry corrected 3/23/02)
 
+               ENERGY     CROSS SECTION       
        1        0        0
        2     24.6        0
        3       30    0.071
