@@ -397,8 +397,8 @@ void t_grid::rf_8PT()
 
     double xcenter = 1e-2;
     double ycenter = 1e-2;
-    double r_rod = 0.33e-2/2;
-    double r_8pt = 0.5e-2 + r_rod;
+    double r_rod = 0.1e-2;
+    double r_8pt = 0.3e-2 + r_rod;
     int npoles = 8;
     for(int i=0; i<npoles; i++)
     {
