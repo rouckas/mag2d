@@ -52,7 +52,10 @@ class t_random
 #define CONG  (jcong=69069*jcong+1234567)
 	inline uint32 mwc(){ return (znew<<16)+wnew;};
 	inline uint32 kiss(){ return ((mwc()^CONG)+SHR3);};
-	inline float uni(){return .5 + (signed) iuni() * .2328306e-9; };
+	inline float uni(){return .5 + (signed) iuni() * 2.3283064365386963e-10; };
+	inline float uni_small(){
+                float tmp = .5 + (signed) iuni() * .2328306e-9;
+                return tmp > 1e-5 ? tmp : uni() * 1e-5;};
 /************/
 /*
 //#define SHR3  (jsr^=(jsr<<17), jsr^=(jsr>>13), jsr^=(jsr<<5))
