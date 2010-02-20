@@ -24,8 +24,8 @@ CFLAGS = -g -pg -Wall
 
 MODUL=poisson.c random.c
 OBJ=gnuplot_i.o
-OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
 OPTIM=-march=nocona	-mfpmath=sse -O3 -ffast-math -msse
+OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
 #OPTIM=-march=athlon-xp -mfpmath=sse -O3 -ffast-math -msse
 
 .c.o:
