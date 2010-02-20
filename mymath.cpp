@@ -14,6 +14,11 @@ typedef unsigned long int uint32;
 typedef long int int32;
 #endif
 
+inline void mymath_test()
+{
+    assert(sizeof(uint32) == 4);
+    assert(sizeof(int32) == 4);
+}
 
 template<class T>
 inline T sqr(T x){return x*x;};

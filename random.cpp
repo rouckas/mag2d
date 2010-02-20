@@ -165,8 +165,13 @@ class t_random
 
 
 	/*--------This procedure sets the seed and creates the tables------*/
-	t_random(uint32 jsrseed = -1) {
-	    if(jsrseed < 0) jsrseed = time(NULL);
+        t_random() { initialize(time(NULL)); }
+	t_random(uint32 jsrseed) { initialize(jsrseed); }
+
+    private:
+	void initialize(uint32 jsrseed) {
+            cout << jsrseed <<endl;
+            mymath_test();
 	    jsr=123456789;
 	    const double m1 = 2147483648.0, m2 = 4294967296.;
 	    double dn=3.442619855899,tn=dn,vn=9.91256303526217e-3, q;
@@ -242,7 +247,6 @@ class t_random
 
 	}
 
-    private:
 	/* nfix() generates variates from the residue when rejection in RNOR occurs. */
 	float nfix(void) 
 	{
