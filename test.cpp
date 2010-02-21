@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
     p_p[1].vy = 0;
     p_p[1].vz = -pic.species_list[H_NEG]->veV(.001);
     p_p[1].vx = 0.3*p_p[1].vz;
-    for(int i=1; i<param.niter+1; ++i)
+    for(unsigned long int i=1; i<param.niter+1; ++i)
     {
 
 	pic.advance();

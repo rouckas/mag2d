@@ -34,4 +34,13 @@ inline double string2double(string str)
     i >> x;
     return x;
 }
+
+template<class T>
+inline T string2(string str)
+{
+    istringstream i(str);
+    T x;
+    i >> x;
+    return x;
+}
 #endif

@@ -67,7 +67,7 @@ class Pic
 	Species<D> *species_list[NTYPES];
 	Fields field;
 	t_random rnd;
-	int iter;
+	unsigned long int iter;
 	Pic(Param & _param) : param(_param), field(param), iter(0)
 	{
 	    field.reset();

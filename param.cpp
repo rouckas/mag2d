@@ -1,6 +1,7 @@
 #include <map>
 #include <stdexcept>
 #include "param.hpp"
+#include "util.cpp"
 
 namespace physconst
 {
@@ -38,7 +39,8 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     Bz = config("Bz", 0.0);
     Bt = config("Bt", 0.0);
 
-    niter = config("niter",100000);
+    string niter_str = config("niter","100000");
+    niter = string2<unsigned long int>(niter_str);
     dt_elon = config("dt_elon",1e-11);
 
     selfconsistent = config("selfconsistent",1);
@@ -49,8 +51,11 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
         printf("error: selfconsistent rf trap not implemented\n");
         exit(1);
     }
-    t_print = config("t_print",0);
-    t_equilib = config("t_equilib",niter+1);
+    string t_print_str = config("t_print","0");
+    t_print = string2<unsigned long int>(t_print_str);
+    string t_equilib_str = config("t_equilib","niter+1");
+    if(t_equilib_str == "niter+1") t_equilib = niter+1;
+    else t_equilib = string2<unsigned long int>(t_equilib_str);
     particle_reload = config("particle_reload",0);
     particle_reload_dir = config("particle_reload_dir",".");
 

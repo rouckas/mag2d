@@ -69,7 +69,7 @@ int main(int argc, char * argv[])
 
     ofstream fw((param.output_dir + "/traj1.dat").c_str());
     ofstream fwv((param.output_dir + "/vel1.dat").c_str());
-    for(int i=0; i<param.niter; i++)
+    for(unsigned long int i=0; i<param.niter; i++)
     {
         fw << pp->x <<" "<< pp->y <<" "<< pp->z <<endl;
         fwv << pp->vx <<" "<< pp->vy <<" "<< pp->vz <<endl;

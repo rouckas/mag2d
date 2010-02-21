@@ -47,7 +47,7 @@ class Param
         double dt[NTYPES];
         double temperature[NTYPES];
         double dt_elon;
-        int niter;
+        unsigned long int niter;
         t_advancer advancer;
         Coord coord;
         Boundary boundary;
@@ -57,8 +57,8 @@ class Param
         bool rf;
         double rf_omega;
         bool particle_reload;
-        int t_print;
-        int t_equilib;
+        unsigned long int t_print;
+        unsigned long int t_equilib;
         std::string particle_reload_dir;
         std::string output_dir;
         bool do_plot;

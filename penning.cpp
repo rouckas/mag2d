@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     p_p[1].vx = 0.3*p_p[1].vz;
     p_p[1].empty  = false;
 
-    for(int i=1; i<param.niter+1; ++i)
+    for(unsigned long int i=1; i<param.niter+1; ++i)
     {
 
 	pic.advance();

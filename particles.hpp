@@ -41,7 +41,7 @@ class BaseSpecies
 	double source_len;
 	ofstream output;
     protected:
-	int niter;
+	unsigned long int niter;
 	BaseSpecies ** species_list;
 	Param *p_param;
 	t_random * rnd;
