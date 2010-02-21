@@ -29,13 +29,25 @@ inline T cube(T x){return x*x*x;};
 template<class T>
 inline T max(T x, T y){return x>y ? x : y ;};
 
-inline bool eq(double x, double y, int ulps = 16)
+union intdouble{
+    long int i;
+    double d;
+};
+
+// Test of approximate float equality described in
+// http://www.cygnus-software.com/papers/comparingfloats/comparingfloats.htm
+// Float is casted to int using union, because it is probably
+// the only way compatible with g++ strict aliasing rules
+// as described under -fstrict-aliasing in g++ manual
+inline bool eq(double x, double y, long int ulps = 16)
 {
     assert(sizeof(double) == sizeof(long int));
     if (x == y)
         return true;
-    long int intDiff = fabs(*(long int*)&x - *(long int*)&y);
-    if (intDiff <= ulps)
+    intdouble ux, uy;
+    ux.d = x;
+    uy.d = y;
+    if (abs(ux.i-uy.i) <= ulps)
         return true;
     return false;
 }
