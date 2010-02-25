@@ -59,7 +59,7 @@ maxwell_test: maxwell_test.cpp random.c random.h
 gnuplot_i.o: gnuplot_i.h gnuplot_i.c
 	g++ -c gnuplot_i.c
 histogram.o: histogram.hpp
-particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp
+particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp param.hpp
 fields.o: fields.hpp
 speclist.o: speclist.hpp
 input.o: input.hpp
