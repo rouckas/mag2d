@@ -204,18 +204,15 @@ void BaseSpecies::print_status( ostream & out)
         //<< probe_current_sum/nsampl*p_param->probe_length/p_param->dz << " "
         << probe_charge << " "
         << probe_energy_dist.mean_tot() << " " << probe_current/(nsampl*dt)<< endl;
-    //energy_dist.reset();
-    //energy_dist_compute();
+}
+
+void BaseSpecies::print_distribution()
+{
     energy_dist.print( (p_param->output_dir + "/" + name + "_energy_dist.dat").c_str() );
     probe_energy_dist.print( (p_param->output_dir + "/" + name + "_probe_energy_dist.dat").c_str() );
     rhoAverage.print( (p_param->output_dir + "/" + name + "_rho.dat").c_str() , 1.0/nsampl);
     probe_angular_dist.print( (p_param->output_dir + "/" + name + "_probe_angular_dist.dat").c_str() );
     probe_angular_normalized_dist.print( (p_param->output_dir + "/" + name + "_probe_angular_normalized_dist.dat").c_str() );
-    //exit(0);
-    // print energy distribution to file DONE
-    // print probe energy distribution to file DONE
-    // TODO print probe angular distribution to file
-    // print spatial density distribution to file DONE
 }
 
 void BaseSpecies::dist_sample()

@@ -102,14 +102,18 @@ int main(int argc, char *argv[])
 	fwt2 << p_p[1].x <<' '<< setprecision(10) << p_p[1].z <<endl;
 	fwv1 << p_p->vx <<' '<< p_p->vz <<' '<< p_p->vy <<endl;
 	fwv2 << setprecision(10) << p_p[1].vx <<' '<< p_p[1].vz <<' '<< p_p[1].vy <<endl;
-	if(i%20==0) pic.dist_sample();
+	if(i%param.t_dist_sample==0) pic.dist_sample();
 
 	if(param.t_print != 0 && i%param.t_print == 0)
 	{
 	    pic.print_status(fw);
 	    cout << "plot " <<i<<endl;
-	    if(param.do_plot) pic.plot();
 	    if(i<param.t_equilib) pic.dist_reset();
+	}
+	if(param.t_print_dist != 0 && i%param.t_print_dist == 0)
+	{
+	    pic.print_distribution();
+	    if(param.do_plot) pic.plot();
 	}
 	continue;
 

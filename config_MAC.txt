@@ -56,6 +56,10 @@ selfconsistent = 0
 # simulation state is printed each t_print timesteps
 t_print = 1000
 
+# distributions of particles and electric potential are
+# printed each t_print_dist timesteps (expensive operations)
+t_print_dist = 10000
+
 # after t_equilib timesteps the results are averaged
 t_equilib = 10000
 

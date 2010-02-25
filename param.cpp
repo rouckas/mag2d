@@ -53,6 +53,9 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     }
     string t_print_str = config("t_print","0");
     t_print = string2<unsigned long int>(t_print_str);
+    string t_print_dist_str = config("t_print_dist","0");
+    t_print_dist = string2<unsigned long int>(t_print_dist_str);
+    t_dist_sample = t_print/10;
     string t_equilib_str = config("t_equilib","niter+1");
     if(t_equilib_str == "niter+1") t_equilib = niter+1;
     else t_equilib = string2<unsigned long int>(t_equilib_str);

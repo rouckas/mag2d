@@ -206,8 +206,14 @@ class Pic
 	    for(int i=0; i<NTYPES; i++)
 		if( is_particle[i] && species_list[i] != NULL )
 		    species_list[i]->print_status();
-	    field.u_print( (param.output_dir + "/potential.dat").c_str() );
 	}
+        void print_distribution()
+        {
+	    for(int i=0; i<NTYPES; i++)
+		if( is_particle[i] && species_list[i] != NULL )
+		    species_list[i]->print_distribution();
+	    field.u_print( (param.output_dir + "/potential.dat").c_str() );
+        }
 	void save()
 	{
 	    for(int ii=0; ii<NTYPES; ii++)

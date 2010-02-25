@@ -149,6 +149,7 @@ class BaseSpecies
 	    // this routine assumes input CS in units 1e-16 cm^2, possible source of errors...
     public:
 	void print_status( ostream & out = cout);
+        void print_distribution();
 	void dist_sample();
 	void dist_reset();
 };

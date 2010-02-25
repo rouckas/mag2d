@@ -58,6 +58,8 @@ class Param
         double rf_omega;
         bool particle_reload;
         unsigned long int t_print;
+        unsigned long int t_print_dist;
+        unsigned long int t_dist_sample;
         unsigned long int t_equilib;
         std::string particle_reload_dir;
         std::string output_dir;
