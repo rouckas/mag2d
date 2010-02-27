@@ -132,6 +132,7 @@ class Pic
             while(fr.good())
             {
                 getline(fr, line);
+                if(line[0] == '#') continue;
                 istringstream s_line;
                 vector<string> toks(0);
                 s_line.str(line);

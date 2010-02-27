@@ -1,3 +1,4 @@
+#sample init script for plasma2d
 add_particles_on_disk H_NEG 1000 1e-2 1e-2 3e-3
 add_tracked_particle H_NEG 1e-2 1e-2 100 10 0
 add_tracked_particle H_NEG 1e-2 1e-2 -100 10 0
