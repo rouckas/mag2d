@@ -125,7 +125,7 @@ class BaseSpecies
 	int insert()
 	{
 	    if(empty.size()==0)
-		throw runtime_error(name + ": particle array full, size = " + int2string(particles.size()));
+                resize(int(particles.size()*1.1) + 1);
 	    int tmp = empty.back();
 	    if(particles[tmp].empty == false)
 		throw runtime_error("error inserting particle");
