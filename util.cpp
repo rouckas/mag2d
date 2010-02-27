@@ -40,7 +40,8 @@ inline T string2(string str)
 {
     istringstream i(str);
     T x;
-    i >> x;
+    if(!(i >> x))
+        throw std::runtime_error("string2: error converting string " + str + " to T\n");
     return x;
 }
 #endif
