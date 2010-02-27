@@ -15,6 +15,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <map>
 #include "random.cpp"
 #include "timer.hpp"
 using namespace std;
@@ -65,6 +66,7 @@ class Pic
     public:
 	Param & param;
 	Species<D> *species_list[NTYPES];
+        map<string, species_type> string2speciestype;
 	Fields field;
 	t_random rnd;
 	unsigned long int iter;
@@ -73,7 +75,10 @@ class Pic
 	    field.reset();
 
 	    for(int i=0; i<NTYPES; i++)
+            {
 		species_list[i] = NULL;
+                string2speciestype[species_names[i]] = (species_type)i;
+            }
 
 	    double total_density = 0;
 	    for(int i=0; i<NTYPES; i++)
@@ -120,6 +125,48 @@ class Pic
 		delete species_list[i];
 	    if(param.do_plot) plot_destroy();
 	}
+        void run_initscript(string filename)
+        {
+            ifstream fr(filename.c_str());
+            string line;
+            while(fr.good())
+            {
+                getline(fr, line);
+                istringstream s_line;
+                vector<string> toks(0);
+                s_line.str(line);
+                string tok;
+                while( s_line >> tok )
+                    toks.push_back(tok);
+                if(toks.size()==0) continue;
+
+                if(toks[0] == "add_particles_on_disk")
+                {
+                    if(toks.size() != 6)
+                        throw runtime_error("Pic::run_initscript: wrong number of" +
+                               string(" parameters (") + int2string(toks.size()) + ") to " + toks[0] + "\n");
+                    if(string2speciestype.find(toks[1])==string2speciestype.end())
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
+                    species_type species = string2speciestype[toks[1]];
+                    int nparticles = string2<int>(toks[2]);
+                    double centerx = string2<double>(toks[3]);
+                    double centery = string2<double>(toks[4]);
+                    double radius = string2<double>(toks[5]);
+                    species_list[species]->add_particles_on_disk(nparticles, centerx, centery, radius);
+                    cout << species_list[species]->name <<" " <<centerx<<" "<< centery<<" "<<radius<< " add on disk\n";
+                }
+                else if(toks[0] == "add_particle")
+                {
+                    if(string2speciestype.find(toks[1])==string2speciestype.end())
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
+                    species_type species = string2speciestype[toks[1]];
+                    cout << species_list[species]->name << "add particle\n";
+                }
+                cout <<endl;
+            }
+
+        }
+
 	void advance()
 	{
 	    timer.start();
