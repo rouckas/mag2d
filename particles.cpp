@@ -1,6 +1,15 @@
 #include "particles.hpp"
 
 
+TrackedParticle::TrackedParticle(BaseSpecies *species, unsigned int index, Param &param) :
+    pp(&(species->particles[index]))
+{
+    string fname = param.output_dir + "/" + species->name
+        + "_traj_" + int2string(index) + ".dat";
+    fw.open(fname.c_str());
+}
+
+
 /*
  * *********************** definitions for BaseSpecies ************************
  */

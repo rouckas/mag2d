@@ -153,16 +153,24 @@ class Pic
                     double centery = string2<double>(toks[4]);
                     double radius = string2<double>(toks[5]);
                     species_list[species]->add_particles_on_disk(nparticles, centerx, centery, radius);
-                    cout << species_list[species]->name <<" " <<centerx<<" "<< centery<<" "<<radius<< " add on disk\n";
+                    cout << species_list[species]->name <<" add on disk " <<centerx<<" "<< centery<<" "<<radius<< "\n";
                 }
-                else if(toks[0] == "add_particle")
+                else if(toks[0] == "add_tracked_particle")
                 {
+                    if(toks.size() != 7)
+                        throw runtime_error("Pic::run_initscript: wrong number of" +
+                               string(" parameters (") + int2string(toks.size()) + ") to " + toks[0] + "\n");
                     if(string2speciestype.find(toks[1])==string2speciestype.end())
                         throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
                     species_type species = string2speciestype[toks[1]];
-                    cout << species_list[species]->name << "add particle\n";
+                    double x = string2<double>(toks[2]);
+                    double y = string2<double>(toks[3]);
+                    double vx = string2<double>(toks[4]);
+                    double vy = string2<double>(toks[5]);
+                    double vz = string2<double>(toks[6]);
+                    species_list[species]->add_tracked_particle(x, y, vx, vy, vz);
+                    cout << species_list[species]->name <<" add tracked particle " <<x<<" "<< y<<" "<<" "<<vx<<" "<<vy<<" "<<vz<<endl;
                 }
-                cout <<endl;
             }
 
         }
@@ -254,6 +262,12 @@ class Pic
 		if( is_particle[i] && species_list[i] != NULL )
 		    species_list[i]->print_status();
 	}
+        void print_trace()
+        {
+	    for(int i=0; i<NTYPES; i++)
+		if( is_particle[i] && species_list[i] != NULL )
+		    species_list[i]->print_trace();
+        }
         void print_distribution()
         {
 	    for(int i=0; i<NTYPES; i++)

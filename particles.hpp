@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <iostream>
+#include <iomanip>
 #include <cmath>
 #include <string>
 #include "fields.hpp"
@@ -30,6 +31,23 @@ class t_particle
     bool empty;
 };
 
+class BaseSpecies;
+
+class TrackedParticle
+{
+    public:
+        TrackedParticle(BaseSpecies *_species, unsigned int _index, Param &param);
+        void print()
+        {
+            fw << setprecision(10) << pp->x <<' ' << pp->z <<' '<< pp->vx <<' '<< pp->vz <<' '<< pp->vy <<endl;
+        }
+    private:
+        ofstream fw;
+        t_particle *pp;
+};
+
+
+
 
 
 class BaseSpecies
@@ -43,6 +61,7 @@ class BaseSpecies
     protected:
 	unsigned long int niter;
 	BaseSpecies ** species_list;
+        vector<TrackedParticle*> tracked_particles;
 	Param *p_param;
 	t_random * rnd;
     public:
@@ -149,6 +168,11 @@ class BaseSpecies
 	    // this routine assumes input CS in units 1e-16 cm^2, possible source of errors...
     public:
 	void print_status( ostream & out = cout);
+        void print_trace()
+        {
+            for(vector<TrackedParticle*>::iterator I = tracked_particles.begin(); I != tracked_particles.end(); ++I)
+                (*I)->print();
+        }
         void print_distribution();
 	void dist_sample();
 	void dist_reset();
@@ -172,6 +196,19 @@ class Species<CARTESIAN> : public BaseSpecies
         void add_particles_everywhere(int nparticles);
         void add_particles_on_disk(int nparticles, double centerx, double centery, double radius);
         void add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius);
+        void add_tracked_particle(double x, double y, double vx, double vy, double vz)
+        {
+            int ii = insert();
+            t_particle *pp = &(particles[ii]);
+            pp->x = x;
+            pp->z = y;
+            pp->y = 0;
+            pp->vx = vx;
+            pp->vy = vz;
+            pp->vz = vy;
+            TrackedParticle *ptp = new TrackedParticle(this, ii, *p_param);
+            tracked_particles.push_back(ptp);
+        }
 
 	void source();
 	void source_old();
