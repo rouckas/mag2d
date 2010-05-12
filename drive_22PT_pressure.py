@@ -16,6 +16,7 @@ coord = CARTESIAN
 # probe voltage
 # or rf trap amplitude
 u_probe =  20.0		#[V]
+rf_amplitude = 20.0
 
 #RF trap ?
 rf = 1

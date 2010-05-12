@@ -259,7 +259,8 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
 
     if(p_param->rf)
     {
-        double phase = sin(p_param->rf_omega*time);
+        double phase = p_param->rf_amplitude*sin(p_param->rf_omega*time) +
+            p_param->rf_U0;
         grad_x *= phase;
         grad_y *= phase;
     }

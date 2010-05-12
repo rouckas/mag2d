@@ -20,6 +20,7 @@ geometry = RF_8PT
 # probe voltage
 # or rf trap amplitude
 u_probe =  8.0		#[V]
+rf_amplitude = 8.0
 
 #RF trap ?
 rf = 1

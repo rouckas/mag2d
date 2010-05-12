@@ -55,6 +55,8 @@ class Param
         int src_fact;
         bool selfconsistent;
         bool rf;
+        double rf_amplitude;
+        double rf_U0;
         double rf_omega;
         bool particle_reload;
         unsigned long int t_print;

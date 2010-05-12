@@ -45,6 +45,8 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
 
     selfconsistent = config("selfconsistent",1);
     rf = config("rf", 1);
+    rf_amplitude = config("rf_amplitude", 10.0);
+    rf_U0 = config("rf_U0", 0.0);
     rf_omega = config("rf_omega", 1e8);
     if(selfconsistent && rf)
     {

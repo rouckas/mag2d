@@ -359,7 +359,7 @@ void t_grid::rf_22PT()
         double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
         double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
         int sign = i%2==0 ? -1 : 1;
-        circle_electrode(x, y, r_rod, p_param->u_probe*sign);
+        circle_electrode(x, y, r_rod, sign);
     }
 
     for(i=2;i<M-2;i++)
@@ -405,7 +405,7 @@ void t_grid::rf_8PT()
         double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
         double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
         int sign = i%2==0 ? -1 : 1;
-        circle_electrode(x, y, r_rod, p_param->u_probe*sign);
+        circle_electrode(x, y, r_rod, sign);
     }
 
     for(i=2;i<M-2;i++)
@@ -441,10 +441,10 @@ void t_grid::rf_trap()
 	    }
 	}
 
-    circle_electrode(5e-3, 1e-2, 2e-3, p_param->u_probe);
-    circle_electrode(15e-3, 1e-2, 2e-3, p_param->u_probe);
-    circle_electrode(1e-2, 5e-3, 2e-3, -p_param->u_probe);
-    circle_electrode(1e-2, 15e-3, 2e-3, -p_param->u_probe);
+    circle_electrode(5e-3, 1e-2, 2e-3, 1.0);
+    circle_electrode(15e-3, 1e-2, 2e-3, 1.0);
+    circle_electrode(1e-2, 5e-3, 2e-3, -1.0);
+    circle_electrode(1e-2, 15e-3, 2e-3, -1.0);
 
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)

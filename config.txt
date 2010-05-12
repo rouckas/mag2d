@@ -9,7 +9,11 @@ geometry = RF_22PT
 
 # probe voltage
 # or rf trap amplitude
-u_probe =  20.0		#[V]
+# rf_U0 stands for DC difference
+# between poles
+u_probe =  0.0		#[V]
+rf_amplitude = 20.0
+rf_U0 = 0.0
 
 #RF trap ?
 rf = 1
