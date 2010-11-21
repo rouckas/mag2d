@@ -78,26 +78,17 @@ int main(int argc, char *argv[])
 	    pic.print_distribution();
 	    if(param.do_plot) pic.plot();
 	}
-	continue;
 
 	if(t_save != 0 && i%t_save==0 )
 	{
 	    pic.save();
-	    /*
-	    for(int ii=0; ii<NTYPES; ii++)
-		if( is_particle[ii] && pic.species_list[ii] != NULL )
-		{
-		    pic.species_list[ii]->save(param.output_dir + "/particles_" + pic.species_list[ii]->name + ".dat");
-		    pic.species_list[ii]->source5_save(param.output_dir + "/particles_source_" + pic.species_list[ii]->name + ".dat");
-		}
-		*/
 	}
 
 	//XXX deprecated
 	if(t_source_refresh != 0 && i%t_source_refresh==0)
 	{
-	    pic.species_list[ARGON_POS]->source5_refresh(SRC_FACT);
-	    pic.species_list[ELECTRON]->source5_refresh(SRC_FACT);
+	    //pic.species_list[ARGON_POS]->source5_refresh(SRC_FACT);
+	    //pic.species_list[ELECTRON]->source5_refresh(SRC_FACT);
 	}
 
     }
