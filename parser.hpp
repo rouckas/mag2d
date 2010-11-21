@@ -22,6 +22,7 @@ class SpeciesParams
         double mass;
         double dt;
         double density;
+        double temperature;
 };
 
 class InteractionParams

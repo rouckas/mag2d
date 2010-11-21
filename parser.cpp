@@ -79,8 +79,12 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
                 last->charge = string2<double>(line[1]);
             else if(line[0] == "DENSITY")
                 last->density = string2<double>(line[1]);
+            else if(line[0] == "DT")
+                last->dt = string2<double>(line[1]);
+            else if(line[0] == "TEMPERATURE")
+                last->temperature = string2<double>(line[1]);
             else
-                throw runtime_error("config_parse: unrecognized species  parameter\"" + line[0] + "\"");
+                throw runtime_error("config_parse: unrecognized species  parameter \"" + line[0] + "\"");
         }
 
         if(state == DECODE_INTERACTION)
