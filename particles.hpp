@@ -14,8 +14,8 @@
 #include "mymath.cpp"
 #include "input.hpp"
 #include "tabulate.cpp"
-#include "speclist.hpp"
 #include "util.cpp"
+#include "parser.hpp"
 
 using namespace std;
 //#define NTYPES 8
@@ -47,7 +47,19 @@ class TrackedParticle
 };
 
 
+class Interaction
+{
+    public:
+        string name;
+        CollType type;
+        double rate;
+        BaseSpecies * primary;
+        BaseSpecies * secondary;
+        Interaction(InteractionParams * params) : name(params->name),
+            type(params->type), rate(params->rate)
+        {};
 
+};
 
 
 class BaseSpecies
@@ -65,9 +77,11 @@ class BaseSpecies
 	Param *p_param;
 	t_random * rnd;
     public:
+        vector<Interaction *> interactions;
 	vector<t_particle> particles;
-	species_type type;
+	SpeciesType type;
 	string name;
+        bool particle;
 	double mass;
 	double charge;
 	double lifetime;
@@ -99,8 +113,35 @@ class BaseSpecies
 	double probe_current_sum;
 
 
-	BaseSpecies(int n1, int n2, Param &param, t_random &_rnd,
-	       double mass, BaseSpecies * _species_list[], species_type _type = NONE );
+        BaseSpecies(SpeciesParams * params, Param &param, t_random &_rnd) :
+            empty(0), niter(0),
+            p_param(&param), rnd(&_rnd),
+            particles(0),
+            type(params->type),
+            name(params->name),
+            particle(true), //XXX
+            mass(params->mass), charge(params->charge),
+            lifetime(INFINITY),
+            temperature(params->temperature),
+            density(params->density),
+            dt(params->dt),
+            rho(param),
+            energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
+            source_energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
+            probe_energy_dist(100,0.0,temperature*param.k_B/param.q_e*20.0),
+            probe_angular_dist(30,0.0,M_PI*0.5),
+            probe_angular_normalized_dist(30,0.0,M_PI*0.5),
+            probe_current(0),
+            probe_charge(0),
+            rhoAverage(param),
+            nsampl(0)
+
+        {
+            v_max = sqrt(2.0*physconst::k_B*temperature/mass);
+            output.open( (param.output_dir + "/" + name + ".dat").c_str() );
+            rho.reset();
+        };
+
 
 	// generate randomly new particle velocity according to species' velocity
 	// distribution
@@ -155,12 +196,15 @@ class BaseSpecies
 	int n_particles(){ return particles.size() - empty.size();}
         void resize(unsigned int newsize);
 
-	virtual void scatter(t_particle &particle) = 0;
+	void scatter(t_particle &particle) 
+        {
+            throw runtime_error("BaseSpecies::scatter not implemented");
+        }
 	vector<t_particle> source2_particles;
 	void source5_save(const string filename);
 	void source5_load(const string filename);
 	int source5_factor;
-	virtual void lifetime_init();
+	void lifetime_init();
     protected:
 	void load_CS(const string & fname, vector<vec_interpolate*> & CS, vector<double> & Loss,
 	       	const vector<string> & CSnames, const string & tag="", int ncols=3);
@@ -186,9 +230,8 @@ class Species<CARTESIAN> : public BaseSpecies
 {
     public:
         Fields * field;
-        Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
-                double _mass, BaseSpecies * _species_list[], species_type _type) :
-            BaseSpecies(_n, n2, param, _rnd, _mass, _species_list, _type), field(_field) {};
+        Species(SpeciesParams * params, Param &param, t_random &rnd, Fields & _field):
+            BaseSpecies(params, param, rnd), field(&_field) {};
 
 	void advance();
         void accumulate();
@@ -220,9 +263,8 @@ class Species<CYLINDRICAL> : public BaseSpecies
 {
     public:
         Fields * field;
-        Species(int _n, int n2, Param &param, t_random &_rnd, Fields *_field,
-                double _mass, BaseSpecies * _species_list[], species_type _type) :
-            BaseSpecies(_n, n2, param, _rnd, _mass, _species_list, _type), field(_field) {};
+        Species(SpeciesParams * params, Param &param, t_random &rnd, Fields & _field):
+            BaseSpecies(params, param, rnd), field(&_field) {};
 
 	void advance();
         void accumulate();

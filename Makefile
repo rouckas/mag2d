@@ -34,9 +34,9 @@ OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
 	$(CC) $(CFLAGS) $(OPTIM) $(DEFINES) $(INC) -c $<
 
 
-SOURCES = argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp pic.cpp oxygen.cpp param.cpp output.cpp argonO2.cpp matrix.cpp hydrogen.cpp timer.hpp elonHe.cpp
+SOURCES = argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp pic.cpp param.cpp output.cpp matrix.cpp hydrogen.cpp timer.hpp 
 
-OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o
+OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o parser.o
 OBJ3D = fields3d.o species3d.o
 
 plasma2d: test.cpp $(SOURCES) $(OBJ)
@@ -59,7 +59,8 @@ maxwell_test: maxwell_test.cpp random.c random.h
 gnuplot_i.o: gnuplot_i.h gnuplot_i.c
 	g++ -c gnuplot_i.c
 histogram.o: histogram.hpp
-particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp param.hpp fields.hpp
+particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp param.hpp fields.hpp parser.hpp
+parser.o: parser.hpp
 fields.o: fields.hpp
 speclist.o: speclist.hpp
 input.o: input.hpp

@@ -100,32 +100,15 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
         geometry = string2geo[geometry_str];
 
     //parse plasma parameters
-    double particle_density_total = 0.0;
+    double particle_density_total = 1.0;
+    //XXX
+    cerr << "particle_density_total is not calculated, this is wrong for selfconsistent sim." <<endl;
+    /*
     for(int i=0; i<NTYPES; i++)
     {
-        string spec_name = species_names[i];
-        config.set_prefix( (spec_name+"/").c_str() );
-        
-        temperature[i] = config("temperature",-1.0);
-        if(temperature[i] == -1.0)
-        {
-            double tmp = config("energy",0.0);
-            temperature[i] = tmp*q_e/k_B*2.0/3.0;
-        }
-
-        density[i] = config("density",0.0);
-        if(density[i] == 0.0)
-        {
-            double tmp = config("pressure",0.0);
-            if(temperature[i]!=0.0)
-                density[i] = tmp/(k_B*temperature[i]);
-        }
         if(is_particle[i]) particle_density_total += density[i];
-
-        dt[i] = config("dt",1e-11);
-
-        cout << spec_name << ' ' << density[i] << ' ' << temperature[i] <<endl;
     }
+    */
 
     dx = x_max/(x_sampl-1);
     dy = y_max/(y_sampl-1);

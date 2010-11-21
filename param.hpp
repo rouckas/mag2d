@@ -2,7 +2,6 @@
 #define PARAM_H
 #include <string>
 #include <GetPot>
-#include "speclist.hpp"
 
 using namespace std;
 enum t_advancer { ADVANCE2, ADVANCE_OLD, ADVANCE_PROB, ADVANCE2_EULER };
@@ -43,9 +42,6 @@ class Param
         double pressure;            //[Pa]
         double neutral_temperature; //[K]
         double macroparticle_factor;
-        double density[NTYPES];
-        double dt[NTYPES];
-        double temperature[NTYPES];
         double dt_elon;
         unsigned long int niter;
         t_advancer advancer;

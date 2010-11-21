@@ -13,41 +13,6 @@ TrackedParticle::TrackedParticle(BaseSpecies *species, unsigned int index, Param
 /*
  * *********************** definitions for BaseSpecies ************************
  */
-BaseSpecies::BaseSpecies(int _n, int n2, Param &param, t_random &_rnd,
-        double _mass, BaseSpecies * _species_list[], species_type _type)
-    : empty(0),
-    niter(0), p_param(&param), rnd(&_rnd),
-    particles(_n), type(_type), name(species_names[_type]), mass(_mass),
-    temperature(param.temperature[_type]), density(param.density[_type]), dt(param.dt[_type]),
-    rho(param),
-    energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
-    source_energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
-    probe_energy_dist(100,0.0,temperature*param.k_B/param.q_e*20.0),
-    probe_angular_dist(30,0.0,M_PI*0.5),
-    probe_angular_normalized_dist(30,0.0,M_PI*0.5),
-    probe_current(0),
-    probe_charge(0),
-    rhoAverage(param),
-    nsampl(0)
-{
-    species_list = _species_list;
-
-    lifetime = log(0);
-    v_max = sqrt(2.0*physconst::k_B*temperature/mass);
-
-    empty.reserve(_n);
-    for(int i=n2; i<_n; i++)
-    {
-        empty.push_back(i);
-        particles[i].empty = true;
-    }
-
-
-    // prepare output file
-    output.open( (param.output_dir + "/" + name + ".dat").c_str() );
-    rho.reset();
-}
-
 void BaseSpecies::save(const string filename)
 {
     ofstream fw(filename.c_str(),ios::out | ios::binary);
@@ -159,6 +124,14 @@ void BaseSpecies::source5_load(const string filename)
 
 void BaseSpecies::lifetime_init()
 {
+    double rate = 0;
+    for(size_t i=0; i<interactions.size(); i++)
+        rate += interactions[i]->rate * interactions[i]->secondary->density;
+    if(rate > 0.0)
+        lifetime = 1.0/rate;
+    else
+        lifetime = INFINITY;
+
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); I++)
         if( I->empty == false)
             I->time_to_death = rnd->rexp()*lifetime;
