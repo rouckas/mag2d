@@ -36,6 +36,13 @@ class Speclist
             for(size_t i=0; i<vs.size(); i++)
                 data.push_back(new Species<D>(vs[i], param, rnd, fields));
 
+            // prepare room for lists of interactions by species
+            for(size_t i=0; i<vs.size(); i++)
+            {
+                data[i]->interactions_by_species.resize(vs.size());
+                data[i]->rates_by_species.resize(vs.size());
+            }
+
             /*
              * create Interaction classes
              */
@@ -54,12 +61,13 @@ class Speclist
                 data[j]->interactions.push_back(pi);
 
                 // find the secondary interacting species
-                j=0;
-                while(j<data.size() && vi[i]->secondary != data[j]->name)
-                    j++;
-                if(j== data.size())
+                size_t k=0;
+                while(k<data.size() && vi[i]->secondary != data[k]->name)
+                    k++;
+                if(k== data.size())
                     throw runtime_error("Speclist::Speclist: unrecognized primary species \"" + vi[i]->secondary + "\" of interaction \"" + vi[i]->name + "\"\n");
-                pi->secondary = data[j];
+                pi->secondary = data[k];
+                data[j]->interactions_by_species[k].push_back(pi);
             }
 
             for(size_t i=0; i<data.size(); i++)

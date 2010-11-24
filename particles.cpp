@@ -127,6 +127,16 @@ void BaseSpecies::lifetime_init()
     double rate = 0;
     for(size_t i=0; i<interactions.size(); i++)
         rate += interactions[i]->rate * interactions[i]->secondary->density;
+    for(size_t i=0; i<rates_by_species.size(); i++)
+    {
+        rates_by_species[i] = 0;
+        // this could be simplified, if we had a list of species
+        // in Species. It would however introduce more dependencies...
+        // or not, depending on implementation :-)
+        for(size_t j=0; j<interactions_by_species[i].size(); j++)
+            rates_by_species[i] += interactions_by_species[i][j]->rate * interactions_by_species[i][j]->secondary->density;
+    }
+
     if(rate > 0.0)
         lifetime = 1.0/rate;
     else
@@ -176,6 +186,36 @@ double BaseSpecies::svmax_find(const vector<vec_interpolate*> & CS, double _vmax
     }
     svmax *= 1e-20;
     return svmax;
+}
+
+void BaseSpecies::scatter(t_particle &particle)
+{
+    //select interacting species
+    double gamma = rnd->uni() / lifetime;
+    double tmp = 0.0;
+    size_t specid;
+    for(specid=0; specid < rates_by_species.size(); specid++)
+    {
+        tmp += rates_by_species[specid];
+        if(tmp > gamma)
+            break;
+    }
+
+    //select interaction
+    gamma = rnd->uni() * rates_by_species[specid];
+    tmp = 0.0;
+    size_t intid;
+    for(intid=0; intid < interactions_by_species[specid].size(); intid++)
+    {
+        //having an internal list of interactions would really simplify things...
+        tmp += interactions_by_species[specid][intid]->rate * interactions_by_species[specid][intid]->secondary->density;
+        if(tmp > gamma)
+            break;
+    }
+    Interaction * interaction = interactions_by_species[specid][intid];
+
+    cout << "interaction " << interaction->name << " of " <<
+        interaction->primary->name << " with " << interaction->secondary->name <<endl;
 }
 
 void BaseSpecies::print_status( ostream & out)

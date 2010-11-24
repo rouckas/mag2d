@@ -72,12 +72,13 @@ class BaseSpecies
 	ofstream output;
     protected:
 	unsigned long int niter;
-	BaseSpecies ** species_list;
         vector<TrackedParticle*> tracked_particles;
 	Param *p_param;
 	t_random * rnd;
     public:
         vector<Interaction *> interactions;
+        vector< vector<Interaction *> > interactions_by_species;
+        vector<double> rates_by_species;
 	vector<t_particle> particles;
 	SpeciesType type;
 	string name;
@@ -196,10 +197,6 @@ class BaseSpecies
 	int n_particles(){ return particles.size() - empty.size();}
         void resize(unsigned int newsize);
 
-	void scatter(t_particle &particle) 
-        {
-            throw runtime_error("BaseSpecies::scatter not implemented");
-        }
 	vector<t_particle> source2_particles;
 	void source5_save(const string filename);
 	void source5_load(const string filename);
@@ -210,6 +207,7 @@ class BaseSpecies
 	       	const vector<string> & CSnames, const string & tag="", int ncols=3);
 	double svmax_find(const vector<vec_interpolate*> & CS, double _vmax, int samples=1000);
 	    // this routine assumes input CS in units 1e-16 cm^2, possible source of errors...
+	void scatter(t_particle &particle);
     public:
 	void print_status( ostream & out = cout);
         void print_trace()
