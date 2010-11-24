@@ -214,8 +214,13 @@ void BaseSpecies::scatter(t_particle &particle)
     }
     Interaction * interaction = interactions_by_species[specid][intid];
 
-    cout << "interaction " << interaction->name << " of " <<
-        interaction->primary->name << " with " << interaction->secondary->name <<endl;
+    //cout << "interaction " << interaction->name << " of " <<
+    //    interaction->primary->name << " with " << interaction->secondary->name <<endl;
+    switch(interaction->type)
+    {
+        default:
+            throw runtime_error("BaseSpecies::scatter: interaction " + interaction->name + " not implemented\n");
+    }
 }
 
 void BaseSpecies::print_status( ostream & out)
