@@ -163,6 +163,45 @@ class t_random
 	    z = len*cs_theta*cp;
 	}
 
+	void deflect(double angle, double &x, double &y, double &z)
+	{
+            double len = tan(angle/2.0);
+
+            //generate random vector
+            double x1, y1, z1;
+	    double tmp = (1-2*uni());
+	    x1 = len*tmp;
+	    tmp = sqrt(1-sqr(tmp));
+
+	    double sp,cp;
+	    sincos(2*M_PI*uni(),&sp,&cp);
+
+	    y1 = len*tmp*sp;
+	    z1 = len*tmp*cp;
+
+            //generate random rotation axis by vector multiplication
+            double tx, ty, tz;
+            tx = y*z1 - z*y1;
+            ty = z*x1 - x*z1;
+            tz = x*y1 - y*x1;
+
+            // rotation
+            //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+            double xprime = x - y*tz + z*ty;
+            double yprime = y - z*tx + x*tz;
+            double zprime = z - x*ty + y*tx;
+
+            tmp = 2.0/(1+SQR(len));
+            x1 = tx*tmp;
+            y1 = ty*tmp;
+            z1 = tz*tmp;
+
+            x += - yprime*z1 + zprime*y1;
+            y += - zprime*x1 + xprime*z1;
+            z += - xprime*y1 + yprime*x1;
+
+	};
+
 
 	/*--------This procedure sets the seed and creates the tables------*/
         t_random() { initialize(time(NULL)); }
