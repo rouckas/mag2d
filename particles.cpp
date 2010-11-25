@@ -212,8 +212,36 @@ void BaseSpecies::scatter(t_particle &particle)
 
     //cout << "interaction " << interaction->name << " of " <<
     //    interaction->primary->name << " with " << interaction->secondary->name <<endl;
+    //cout << "interaction type " << interaction->type << " ELASTIC: " << ELASTIC <<endl;
     switch(interaction->type)
     {
+        case ELASTIC:
+            {
+                //cout << "ELASTIC v0 = " << particle.vx << " " << particle.vy << " " << particle.vz;
+                double vr2,vz2,vt2;
+                speclist[specid]->rndv(vr2,vz2,vt2);
+                //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
+
+                double m2 = speclist[specid]->mass;
+                double tmp = 1.0/(mass+m2);
+                //transform to center of mass system
+                double v1_cm_x = (particle.vx - vr2)*m2*tmp;
+                double v1_cm_y = (particle.vz - vz2)*m2*tmp;
+                double v1_cm_z = (particle.vy - vt2)*m2*tmp;
+
+                //isotropic random rotation
+                rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
+                //cout << "    v1 = " << v1_cm_x << " " << v1_cm_y << " " << v1_cm_z ;
+
+                //reverse transformation
+                //particle.vx = v1_cm_x + v_cm_x;
+                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
+                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
+                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
+                //cout << "    v1 = " << particle.vx << " " << particle.vy << " " << particle.vz <<endl;
+            }
+            break;
+
         default:
             throw runtime_error("BaseSpecies::scatter: interaction " + interaction->name + " not implemented\n");
     }
