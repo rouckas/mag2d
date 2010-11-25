@@ -76,6 +76,7 @@ class BaseSpecies
 	Param *p_param;
 	t_random * rnd;
     public:
+        vector<BaseSpecies *> speclist;
         vector<Interaction *> interactions;
         vector< vector<Interaction *> > interactions_by_species;
         vector<double> rates_by_species;

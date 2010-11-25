@@ -124,19 +124,16 @@ void BaseSpecies::source5_load(const string filename)
 
 void BaseSpecies::lifetime_init()
 {
-    double rate = 0;
-    for(size_t i=0; i<interactions.size(); i++)
-        rate += interactions[i]->rate * interactions[i]->secondary->density;
     for(size_t i=0; i<rates_by_species.size(); i++)
     {
         rates_by_species[i] = 0;
-        // this could be simplified, if we had a list of species
-        // in Species. It would however introduce more dependencies...
-        // or not, depending on implementation :-)
         for(size_t j=0; j<interactions_by_species[i].size(); j++)
-            rates_by_species[i] += interactions_by_species[i][j]->rate * interactions_by_species[i][j]->secondary->density;
+            rates_by_species[i] += interactions_by_species[i][j]->rate * speclist[i]->density;
     }
 
+    double rate = 0;
+    for(size_t i=0; i<interactions.size(); i++)
+        rate += interactions[i]->rate * interactions[i]->secondary->density;
     if(rate > 0.0)
         lifetime = 1.0/rate;
     else
@@ -207,8 +204,7 @@ void BaseSpecies::scatter(t_particle &particle)
     size_t intid;
     for(intid=0; intid < interactions_by_species[specid].size(); intid++)
     {
-        //having an internal list of interactions would really simplify things...
-        tmp += interactions_by_species[specid][intid]->rate * interactions_by_species[specid][intid]->secondary->density;
+        tmp += interactions_by_species[specid][intid]->rate * speclist[specid]->density;
         if(tmp > gamma)
             break;
     }

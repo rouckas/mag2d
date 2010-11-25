@@ -39,6 +39,8 @@ class Speclist
             // prepare room for lists of interactions by species
             for(size_t i=0; i<vs.size(); i++)
             {
+                for(size_t j=0; j<vs.size(); j++)
+                    data[i]->speclist.push_back(data[j]);
                 data[i]->interactions_by_species.resize(vs.size());
                 data[i]->rates_by_species.resize(vs.size());
             }
