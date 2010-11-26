@@ -3,6 +3,7 @@
 #define MYMATH_H
 
 #include <cmath>
+#include <cstdlib>
 #include <cassert>
 using namespace std;
 
