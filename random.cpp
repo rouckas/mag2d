@@ -17,10 +17,12 @@ for generating random variables", Journ. Statistical Software.
 #define MXW_FLUX_SAMPLES 1000
 
 
-#include <math.h>
+#include <cmath>
 #include <ctime>
 #include "mymath.cpp"
 #include <cstdlib>
+#include <iostream>
+using namespace std;
 
 class t_random
 {
@@ -185,13 +187,18 @@ class t_random
             ty = z*x1 - x*z1;
             tz = x*y1 - y*x1;
 
+            tmp = len/norm(tx, ty, tz);
+            tx *= tmp;
+            ty *= tmp;
+            tz *= tmp;
+
             // rotation
-            //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+            //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary rotation
             double xprime = x - y*tz + z*ty;
             double yprime = y - z*tx + x*tz;
             double zprime = z - x*ty + y*tx;
 
-            tmp = 2.0/(1+SQR(len));
+            tmp = 2.0/(1+len*len);
             x1 = tx*tmp;
             y1 = ty*tmp;
             z1 = tz*tmp;
@@ -209,7 +216,7 @@ class t_random
 
     private:
 	void initialize(uint32 jsrseed) {
-            cout << jsrseed <<endl;
+            cout << "seed = "<< jsrseed <<endl;
             mymath_test();
 	    jsr=123456789;
 	    const double m1 = 2147483648.0, m2 = 4294967296.;
