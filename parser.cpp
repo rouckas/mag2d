@@ -96,6 +96,8 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
             {
                 if(line[1] == "ELASTIC")
                     last->type = ELASTIC;
+                if(line[1] == "LANGEVIN")
+                    last->type = LANGEVIN;
                 else if(line[1] == "CX")
                     last->type = CX;
                 else
@@ -103,6 +105,8 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
             }
             else if(line[0] == "RATE")
                 last->rate = string2<double>(line[1]);
+            else if(line[0] == "CUTOFF")
+                last->cutoff = string2<double>(line[1]);
             else if(line[0] == "PRIMARY")
                 last->primary = line[1];
             else if(line[0] == "SECONDARY")

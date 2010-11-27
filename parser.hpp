@@ -12,7 +12,7 @@
 using namespace std;
 
 enum SpeciesType {NEUTRAL, ELECTRON, ION};
-enum CollType {ELASTIC, CX};
+enum CollType {ELASTIC, LANGEVIN, CX};
 class SpeciesParams
 {
     public:
@@ -23,6 +23,7 @@ class SpeciesParams
         double dt;
         double density;
         double temperature;
+        double polarizability;
 };
 
 class InteractionParams
@@ -31,6 +32,7 @@ class InteractionParams
         string name;
         CollType type;
         double rate;
+        double cutoff;
         string primary;
         string secondary;
 

@@ -53,11 +53,15 @@ class Interaction
         string name;
         CollType type;
         double rate;
+        double cutoff;
         BaseSpecies * primary;
         BaseSpecies * secondary;
         Interaction(InteractionParams * params) : name(params->name),
-            type(params->type), rate(params->rate)
-        {};
+            type(params->type), rate(params->rate), cutoff(params->cutoff)
+        {
+            if(type==LANGEVIN)
+                rate *= SQR(cutoff);
+        };
 
 };
 
@@ -88,6 +92,7 @@ class BaseSpecies
 	double charge;
 	double lifetime;
 	double temperature;
+        double polarizability;
 	double density;
 	double v_max;
 	double dt;
@@ -125,6 +130,7 @@ class BaseSpecies
             mass(params->mass), charge(params->charge),
             lifetime(INFINITY),
             temperature(params->temperature),
+            polarizability(params->polarizability),
             density(params->density),
             dt(params->dt),
             rho(param),
