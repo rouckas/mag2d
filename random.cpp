@@ -209,6 +209,8 @@ class t_random
 
 	};
 
+        double radius() { return sqrt(uni()); };
+
 
 	/*--------This procedure sets the seed and creates the tables------*/
         t_random() { initialize(time(NULL)); }

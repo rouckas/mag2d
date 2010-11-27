@@ -1,4 +1,5 @@
 #include "particles.hpp"
+#include <tr1/cmath>
 
 
 TrackedParticle::TrackedParticle(BaseSpecies *species, unsigned int index, Param &param) :
@@ -239,6 +240,47 @@ void BaseSpecies::scatter(t_particle &particle)
                 particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
                 particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
                 //cout << "    v1 = " << particle.vx << " " << particle.vy << " " << particle.vz <<endl;
+            }
+            break;
+
+        case LANGEVIN:
+            {
+                double vr2,vz2,vt2;
+                speclist[specid]->rndv(vr2,vz2,vt2);
+                //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
+
+                double m2 = speclist[specid]->mass;
+                double tmp = 1.0/(mass+m2);
+                //transform to center of mass system
+                double v1_cm_x = (particle.vx - vr2)*m2*tmp;
+                double v1_cm_y = (particle.vz - vz2)*m2*tmp;
+                double v1_cm_z = (particle.vy - vt2)*m2*tmp;
+
+
+                //generate random reduced impact parameter
+                double beta = rnd->radius()*interaction->cutoff;
+
+                if(beta>1.0)
+                {
+                    // small deflection angle calculation according to
+                    // Nanbu, Kitatani, J. Phys. D., 28 (1995) 324
+                    double tmp = sqrt(beta*beta*beta*beta - 1.0);
+                    double xi0 = sqrt(beta*beta - tmp);
+                    double xi1 = sqrt(beta*beta + tmp);
+                    double zeta = xi0/xi1;
+                    double theta = std::tr1::comp_ellint_1(zeta)*M_SQRT2*beta/xi1;
+                    double chi = M_PI-2*theta;
+
+                    rnd->deflect(chi, v1_cm_x, v1_cm_y, v1_cm_z);
+
+                } else {
+                    rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
+                }
+                //reverse transformation
+                //particle.vx = v1_cm_x + v_cm_x;
+                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
+                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
+                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
             }
             break;
 
