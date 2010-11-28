@@ -47,7 +47,8 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     rf = config("rf", 1);
     rf_amplitude = config("rf_amplitude", 10.0);
     rf_U0 = config("rf_U0", 0.0);
-    rf_omega = config("rf_omega", 1e8);
+    rf_omega = 2*M_PI*config("rf_freq", 20e6);
+    rf_omega = config("rf_omega", rf_omega);
     if(selfconsistent && rf)
     {
         printf("error: selfconsistent rf trap not implemented\n");
