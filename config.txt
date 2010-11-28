@@ -4,22 +4,27 @@
 # coordinate system
 coord = CARTESIAN
 
-# experiment geometry
-geometry = RF_22PT
+#boundary condition FREE or PERIODIC
+boundary = FREE
+
+# experiment geometry RF_22PT, RF_8PT, EMPTY...
+geometry = RF_8PT
 
 # probe voltage
-# or rf trap amplitude
-# rf_U0 stands for DC difference
-# between poles
 u_probe =  0.0		#[V]
-rf_amplitude = 20.0
-rf_U0 = 0.0
+
+# rf trap amplitude
+rf_amplitude = 20.0     #[V]
+
+# DC difference
+# between poles / 2
+rf_U0 = 0.0             #[V]
 
 #RF trap ?
 rf = 1
 
 #RF trap frequency
-rf_omega = 11.3e7
+rf_freq = 20e6
 
 # probe dimensions
 probe_radius = 1e-4		#[m]
@@ -50,7 +55,7 @@ r_max = 2e-2	#[m]
 z_max = 2e-2	#[m]
 
 # number of timesteps
-niter = 200000
+niter = 300000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -61,14 +66,14 @@ src_fact = 4
 selfconsistent = 0
 
 # simulation state is printed each t_print timesteps
-t_print = 10000
+t_print = 2000
 
 # distributions of particles and electric potential are
 # printed each t_print_dist timesteps (expensive operations)
-t_print_dist = 10000
+t_print_dist = 2000
 
 # after t_equilib timesteps the results are averaged
-t_equilib = 100000
+t_equilib = 200000
 
 # obvious
 do_plot = 0
@@ -82,60 +87,3 @@ particle_reload_dir = 1e-10s
 # values are 
 # ADVANCE2, ADVANCE2_EULER, ADVANCE_OLD, ADVANCE_PROB
 advancer = ADVANCE2_EULER
-
-# specification of plasma parameters
-# energy is defined as 3.0/2.0*k_B*temperature !!!
-# or at least should be...
-
-# you can specify temperature or energy, it is the
-# same but with different units
-# similarly pressure or density specifies the same
-[ARGON]
-pressure = ${* 133.0 0.0}		#[Pa]
-temperature = 300.0		#[K]
-dt = 0				#[s]
-
-[HELIUM]
-pressure = ${* 133.0 1e-6}		#[Pa]
-temperature = 300.0		#[K]
-dt = 0				#[s]
-
-[H_NEG]
-density = 1e15			#[m^-3]
-temperature = 300.0		#[K]
-dt = 2e-9			#[s]
-
-[HYDROGEN]
-pressure = ${* 133.0 0.0}		#[Pa]
-temperature = 300.0		#[K]
-dt = 0				#[s]
-
-[ARGON_POS]
-density = 1e15			#[m^-3]
-temperature = 300.0		#[K]
-dt = 1e-8			#[s]
-
-[O2_POS]
-density = 0e15			#[m^-3]
-temperature = 300.0		#[K]
-dt = 1e-8			#[s]
-
-[O2_NEG]
-density = 0e15			#[m^-3]
-temperature = 300.0		#[K]
-dt = 1e-8			#[s]
-
-[ELECTRON]
-density = 1e15			#[m^-3]
-energy = 3.0			#[eV]
-dt = 5e-11			#[s]
-
-[O2]
-pressure = 0.0			#[Pa]
-temperature = 300.0		#[K]
-dt = 1				#[s]
-
-[O_NEG]
-density = 0e15			#[m^-3]
-temperature = 300.0		#[K]
-dt = 1e-8			#[s]
