@@ -96,7 +96,7 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
             {
                 if(line[1] == "ELASTIC")
                     last->type = ELASTIC;
-                if(line[1] == "LANGEVIN")
+                else if(line[1] == "LANGEVIN")
                     last->type = LANGEVIN;
                 else if(line[1] == "CX")
                     last->type = CX;
