@@ -192,7 +192,10 @@ void BaseSpecies::scatter(t_particle &particle)
     double gamma = rnd->uni() / lifetime;
     double tmp = 0.0;
     size_t specid;
-    for(specid=0; specid < rates_by_species.size(); specid++)
+    // We do not iterate over the last item in rates_species array,
+    // it should be select automatically if no other species was
+    // chosen before
+    for(specid=0; specid < rates_by_species.size()-1; specid++)
     {
         tmp += rates_by_species[specid];
         if(tmp > gamma)
@@ -209,6 +212,12 @@ void BaseSpecies::scatter(t_particle &particle)
         if(tmp > gamma)
             break;
     }
+
+    // this should not happen now, but it happens due to floating point
+    // arithmetics. We can just skip the collision in these rare cases.
+    // This will stand for null collision when varible rate is implemented
+    if(intid==interactions_by_species[specid].size()) return;
+
     Interaction * interaction = interactions_by_species[specid][intid];
 
     //cout << "interaction " << interaction->name << " of " <<
