@@ -27,20 +27,22 @@ int main(int argc, char *argv[])
 
     // load the configuration from file
     string config_file = cl("config","config.txt");
+    string species_conf_file = cl("species_conf","species_conf.txt");
+    string initscript = cl("initscript", "initscript.txt");
     GetPot config(config_file.c_str());
 
     // initialize model parameters
     Param param(config);
+    param.species_conf_file = species_conf_file;
 
     // prepare output directory
     param.output_dir = cl("output_dir","output");
     t_output output(param.output_dir);
 
     // make backup of configuration
-    string config_backup = param.output_dir + "/config.txt";
-    if(fs::exists(config_backup) && !fs::is_directory(config_backup))
-	fs::remove(config_backup);
-    fs::copy_file(config_file,config_backup);
+    output.backup(config_file, "config.txt");
+    output.backup(species_conf_file, "species_conf.txt");
+    output.backup(initscript, "initscript.txt");
 
     // initialize Poisson solver
     //Fields fields(param);
@@ -52,7 +54,6 @@ int main(int argc, char *argv[])
     // initialize the PIC model !
     Pic<CARTESIAN> pic(param);
 
-    string initscript = cl("initscript", "initscript.txt");
     pic.run_initscript(initscript);
 
 

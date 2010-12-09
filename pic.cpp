@@ -106,7 +106,7 @@ class Pic
 	t_random rnd;
         Speclist<D> speclist;
 	unsigned long int iter;
-	Pic(Param & _param) : param(_param), field(param), speclist("species_conf.txt", _param, rnd, field), iter(0)
+	Pic(Param & _param) : param(_param), field(param), speclist(_param.species_conf_file, _param, rnd, field), iter(0)
 	{
 	    field.reset();
 

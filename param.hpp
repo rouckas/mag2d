@@ -61,6 +61,7 @@ class Param
         unsigned long int t_equilib;
         std::string particle_reload_dir;
         std::string output_dir;
+        std::string species_conf_file;
         bool do_plot;
         double neutral_density;
 
