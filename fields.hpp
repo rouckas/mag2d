@@ -8,6 +8,7 @@
 #include "param.hpp"
 #include "matrix.cpp"
 #include "util.cpp"
+#include "mymath.cpp"
 #include <sstream>
 #include <string>
 #include <limits>
@@ -259,7 +260,8 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
 
     if(p_param->rf)
     {
-        double phase = p_param->rf_amplitude*cos(p_param->rf_omega*time) +
+        double phase = mod(p_param->rf_omega*time, 10000000*M_PI);
+        phase = p_param->rf_amplitude*cos(phase) +
             p_param->rf_U0;
         grad_x *= phase;
         grad_y *= phase;
