@@ -25,7 +25,7 @@ static void tokenize(string fname, vector< vector<string> > & tokens)
 void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<InteractionParams*> & interactions)
 {
     vector< vector<string> > tokens;
-    enum { DECODE_INIT, DECODE_DEFAULT, DECODE_SPECIES, DECODE_INTERACTION } state(DECODE_INIT);
+    enum { DECODE_INIT, DECODE_DEFAULT, DECODE_SPECIES, DECODE_INTERACTION, DECODE_CROSS_SECTION } state(DECODE_INIT);
 
     tokenize(fname, tokens);
     for(size_t i=0; i< tokens.size(); i++)
@@ -111,8 +111,26 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
                 last->primary = line[1];
             else if(line[0] == "SECONDARY")
                 last->secondary = line[1];
+            else if(line[0] == "CROSS_SECTION")
+            {
+                state = DECODE_CROSS_SECTION;
+                continue;
+            }
             else
                 throw runtime_error("config_parse: unrecognized species  parameter\"" + line[0] + "\"");
+        }
+
+        if(state == DECODE_CROSS_SECTION)
+        {
+            InteractionParams * last = interactions[species_params.size()-1];
+
+            if(line[0] == "END_CROSS_SECTION")
+                state = DECODE_INTERACTION;
+            else
+            {
+                last->CS_energy.push_back(string2<double>(line[0]));
+                last->CS_value.push_back(string2<double>(line[1]));
+            }
         }
 
 

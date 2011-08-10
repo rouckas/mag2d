@@ -56,12 +56,22 @@ class Interaction
         double cutoff;
         BaseSpecies * primary;
         BaseSpecies * secondary;
+        vec_interpolate * cross_section;
         Interaction(InteractionParams * params) : name(params->name),
-            type(params->type), rate(params->rate), cutoff(params->cutoff)
+            type(params->type), rate(params->rate), cutoff(params->cutoff), cross_section(NULL)
         {
+            if(params->CS_energy.size() > 0)
+            {
+                cross_section = new vec_interpolate(params->CS_energy, params->CS_value);
+            }
             if(type==LANGEVIN)
                 rate *= SQR(cutoff);
         };
+        ~Interaction()
+        {
+            if(cross_section != NULL)
+                delete cross_section;
+        }
 
 };
 

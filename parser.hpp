@@ -35,6 +35,8 @@ class InteractionParams
         double cutoff;
         string primary;
         string secondary;
+        vector<double> CS_energy;
+        vector<double> CS_value;
 
 };
 
