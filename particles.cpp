@@ -125,20 +125,21 @@ void BaseSpecies::source5_load(const string filename)
 
 void BaseSpecies::lifetime_init()
 {
+    double rate = 0;
     for(size_t i=0; i<rates_by_species.size(); i++)
     {
-        rates_by_species[i] = 0;
-        for(size_t j=0; j<interactions_by_species[i].size(); j++)
-            rates_by_species[i] += interactions_by_species[i][j]->rate * speclist[i]->density;
+        rates_by_species[i] = svmax_find(interactions_by_species[i], veV(5.0)) * speclist[i]->density;
+        //fix this energy cutoff
+        rate += rates_by_species[i];
     }
 
-    double rate = 0;
-    for(size_t i=0; i<interactions.size(); i++)
-        rate += interactions[i]->rate * interactions[i]->secondary->density;
     if(rate > 0.0)
         lifetime = 1.0/rate;
     else
         lifetime = INFINITY;
+
+    if(lifetime < 5*dt)
+        cout << "Warning: " << name << " lifetime is shorter than 5*dt: tau/dt = " << lifetime/dt << endl;
 
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); I++)
         if( I->empty == false)
@@ -167,22 +168,27 @@ void BaseSpecies::load_CS(const string & fname, vector<vec_interpolate*> & CS, v
 
 }
 
-double BaseSpecies::svmax_find(const vector<vec_interpolate*> & CS, double _vmax, int samples)
+double BaseSpecies::svmax_find(const vector<Interaction *> & interactions, double _vmax, int samples)
     // this routine assumes input CS in units 1e-16 cm^2, possible source of errors...
 {
-    double dv = _vmax/100.0;
+    double dv = _vmax/samples;
     double svmax=0.0;
     //cout << "svmax_find: vmax = "<< _vmax<<endl;
     for(double v=0; v<_vmax; v+=dv)
     {
         double sv=0;
-        for(unsigned int i=0; i<CS.size(); i++)
-            sv += (*CS[i])(EeV(v)) * v;
+        for(unsigned int i=0; i<interactions.size(); i++)
+            if(interactions[i]->cross_section != NULL)
+            {
+                sv += (*interactions[i]->cross_section)(EeV(v)) * v;
+                //XXX this calculation of collision energy is valid only for electrons
+            }
+            else
+                sv += interactions[i]->rate;
         if(isnan(sv))continue;
         if(sv>svmax) svmax=sv;
         //cout <<name <<' '<< v <<' '<< (*CS[0])(EeV(v)) + (*CS[1])(EeV(v)) <<' '<< sv << endl;
     }
-    svmax *= 1e-20;
     return svmax;
 }
 
@@ -202,20 +208,34 @@ void BaseSpecies::scatter(t_particle &particle)
             break;
     }
 
+
+    // Generate the interacting particle
+    double vr2,vz2,vt2;
+    speclist[specid]->rndv(vr2,vz2,vt2);
+    //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
+
+    double v = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
+    double const_E = -0.5*mass/charge;
+    double E = const_E*v*v;
+    cout << " E " << E <<endl;
+
     //select interaction
     gamma = rnd->uni() * rates_by_species[specid];
     tmp = 0.0;
     size_t intid;
     for(intid=0; intid < interactions_by_species[specid].size(); intid++)
     {
-        tmp += interactions_by_species[specid][intid]->rate * speclist[specid]->density;
+        if(interactions_by_species[specid][intid]->cross_section == NULL)
+            tmp += interactions_by_species[specid][intid]->rate * speclist[specid]->density;
+        else
+            tmp += (*interactions_by_species[specid][intid]->cross_section)(E) * v * speclist[specid]->density;
+
         if(tmp > gamma)
             break;
     }
 
-    // this should not happen now, but it happens due to floating point
-    // arithmetics. We can just skip the collision in these rare cases.
-    // This will stand for null collision when varible rate is implemented
+
+    // Null collision selected
     if(intid==interactions_by_species[specid].size()) return;
 
     Interaction * interaction = interactions_by_species[specid][intid];
@@ -227,11 +247,6 @@ void BaseSpecies::scatter(t_particle &particle)
     {
         case ELASTIC:
             {
-                //cout << "ELASTIC v0 = " << particle.vx << " " << particle.vy << " " << particle.vz;
-                double vr2,vz2,vt2;
-                speclist[specid]->rndv(vr2,vz2,vt2);
-                //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
-
                 double m2 = speclist[specid]->mass;
                 double tmp = 1.0/(mass+m2);
                 //transform to center of mass system
@@ -254,10 +269,6 @@ void BaseSpecies::scatter(t_particle &particle)
 
         case LANGEVIN:
             {
-                double vr2,vz2,vt2;
-                speclist[specid]->rndv(vr2,vz2,vt2);
-                //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
-
                 double m2 = speclist[specid]->mass;
                 double tmp = 1.0/(mass+m2);
                 //transform to center of mass system

@@ -11,7 +11,7 @@ SPECIES
     TYPE NEUTRAL
     MASS 3.3452e-27
 # 1 mbar .. 2.4e16
-    DENSITY 1e14
+    DENSITY 1e20
     TEMPERATURE 300.0
 
 
@@ -36,7 +36,7 @@ INTERACTION
     TYPE LANGEVIN
     PRIMARY H_NEG
     SECONDARY H2
-    RATE 2.54e-9
+    RATE 2.54e-15
     CUTOFF 3.0
 
 INTERACTION
@@ -46,7 +46,8 @@ INTERACTION
     SECONDARY H2
     CUTOFF 3.0
     CROSS_SECTION
-        0.0 1.0
-        1.0 2.0
-        10.0 1.5
+# the unit of cross secition is m^2
+        0.0 30.0e-20
+        1.0 10.0e-20
+        10.0 1.5e-20
     END_CROSS_SECTION

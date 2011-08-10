@@ -222,7 +222,7 @@ class BaseSpecies
     protected:
 	void load_CS(const string & fname, vector<vec_interpolate*> & CS, vector<double> & Loss,
 	       	const vector<string> & CSnames, const string & tag="", int ncols=3);
-	double svmax_find(const vector<vec_interpolate*> & CS, double _vmax, int samples=1000);
+	double svmax_find(const vector<Interaction *> & interactions, double _vmax, int samples=1000);
 	    // this routine assumes input CS in units 1e-16 cm^2, possible source of errors...
 	void scatter(t_particle &particle);
     public:
