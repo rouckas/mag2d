@@ -80,6 +80,14 @@ class Speclist
         {
             return data[i];
         };
+        Species<D> * operator [] (string name)
+        {
+            size_t j=0;
+            while(j<data.size() && name != data[j]->name)
+                j++;
+            // A map can be used for this
+            return data[j];
+        };
         ~Speclist()
         {
             for(size_t i=0; i<data.size(); i++)
@@ -360,9 +368,9 @@ class Pic
 	    
 	    //gnuplot_cmd(h1, cmd.c_str());
 	    //gnuplot_cmd(h1, "set zrange [-1e-15:5e-13]");
-	    //gnuplot_splot_grid(h1, field.u[0], param.r_sampl, param.z_sampl, "potencial");
-	    speclist[ELECTRON]->rho.reset();
-	    speclist[ELECTRON]->accumulate();
-	    gnuplot_splot_grid(h1, speclist[ELECTRON]->rho[0], param.x_sampl, param.z_sampl, "rho");
+	    //gnuplot_splot_grid(h1, field.u[0], param.x_sampl, param.z_sampl, "potencial");
+	    speclist["ELECTRON"]->rho.reset();
+	    speclist["ELECTRON"]->accumulate();
+	    gnuplot_splot_grid(h1, speclist["ELECTRON"]->rho[0], param.x_sampl, param.z_sampl, "rho");
 	}
 };
