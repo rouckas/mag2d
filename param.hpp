@@ -30,8 +30,11 @@ class Param
         double probe_radius;
         double probe_length;
         double u_probe;
-        //    int n_particles;
+
+        // the cell volume is calculated from these
         double n_particles_total;
+        double density_total;
+
         double dx, dy, dz;
         double V, dV;
         double idx, idy, idz;

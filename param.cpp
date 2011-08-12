@@ -17,11 +17,11 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     z_max = config("z_max",1e-2);
     x_sampl = config("r_sampl",100);
     x_sampl = config("x_sampl",x_sampl);
-    y_sampl = config("y_sampl",100);
+    y_sampl = config("y_sampl",2);
     z_sampl = config("z_sampl",100);
 
-//	n_particles = config("n_particles",100000);
-    n_particles_total = config("n_particles_total",100000);
+    n_particles_total = config("n_particles_total",1e5);
+    density_total = config("density_total",1e11);
 //	rho = config("rho",1e15);		// XXX rho must correspond to n_particles
     pressure = config("pressure",133.0);
     neutral_temperature = config("neutral_temperature",300.0);
@@ -102,38 +102,24 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
         geometry = string2geo[geometry_str];
 
     //parse plasma parameters
-    double particle_density_total = 1.0;
-    //XXX
-    cerr << "particle_density_total is not calculated, this is wrong for selfconsistent sim." <<endl;
-    /*
-    for(int i=0; i<NTYPES; i++)
-    {
-        if(is_particle[i]) particle_density_total += density[i];
-    }
-    */
 
     dx = x_max/(x_sampl-1);
-    dy = y_max/(y_sampl-1);
     dz = z_max/(z_sampl-1);
+
     idx = 1.0/dx;
-    idy = 1.0/dy;
     idz = 1.0/dz;
-    //V = n_particles/(rho);
+
     config.set_prefix("");
     macroparticle_factor = config("macroparticle_factor",1e4);
     cout << "macroparticle_factor " << macroparticle_factor <<endl;
-    V = n_particles_total/particle_density_total;
-    // XXX check this, only in cartesian coords:
-    if(selfconsistent)
-        dV = 1;
-    else
-    {
-        if(coord == CYLINDRICAL)
-            dV = V/((x_sampl-1)*(z_sampl-1));
-        else
-            dV = V/((x_sampl-1)*(y_sampl-1));
-    }
-    cout << "param: V = "<<V<<endl;
+    V = n_particles_total/density_total;
+
+    dV = V/((x_sampl-1)*(z_sampl-1));
+    dy = dV/(dx*dz);
+
+    cout << "param: V = "<<V<<"  dV = "<<dV<<"  dy = "<<dy<<endl;
     if(coord == CYLINDRICAL)
         dy = 2*M_PI/macroparticle_factor;
+
+    idy = 1.0/dy;
 }
