@@ -41,6 +41,7 @@ class t_grid
         void penning_trap();
         void penning_trap_simple(double trap_voltage = -1.0);
         double U_trap;
+        void tube();
         void rf_trap();
         void rf_22PT();
         void rf_8PT();

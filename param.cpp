@@ -95,6 +95,7 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     string2geo["MAC"] = MAC;
     string2geo["PENNING"] = PENNING;
     string2geo["PENNING_SIMPLE"] = PENNING_SIMPLE;
+    string2geo["TUBE"] = TUBE;
     if(string2geo.find(geometry_str) == string2geo.end())
         throw std::runtime_error("Param: unrecognized geometry value " + geometry_str + "\n");
     else

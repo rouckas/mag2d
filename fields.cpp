@@ -247,6 +247,7 @@ void Fields::boundary_solve()
                     rho[i][j] = grid.voltage[i][j];
                 else
                     rho[i][j] *= -SQR(p_param->dx)/p_param->eps_0/p_param->dV;
+                    //  the SQR(p_param->dx) comes from the d^2/dx^2 operator
             }
     }
     (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, u[0], rho[0], Numeric, NULL, NULL) ;
@@ -301,6 +302,9 @@ t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl),
             break;
         case Param::RF_22PT:
             rf_22PT();
+            break;
+        case Param::TUBE:
+            tube();
             break;
         case Param::EMPTY:
         default:
@@ -407,6 +411,57 @@ void t_grid::rf_8PT()
         int sign = i%2==0 ? -1 : 1;
         circle_electrode(x, y, r_rod, sign);
     }
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
+}
+
+void t_grid::tube()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+
+    double radius = 7.5e-3;
+    double rcenter, zcenter;
+    rcenter = zcenter = 8e-3;
+    double sqradius = SQR(radius);
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    double r, z;
+	    r = i*dx - rcenter;
+	    z = j*dz - zcenter;
+	    // suboptimal, but simple
+	    if(SQR(r) + SQR(z) >= sqradius)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = 0.0;
+	    }
+	}
 
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)
