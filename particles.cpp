@@ -217,7 +217,6 @@ void BaseSpecies::scatter(t_particle &particle)
     double v = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
     double const_E = -0.5*mass/charge;
     double E = const_E*v*v;
-    cout << " E " << E <<endl;
 
     //select interaction
     gamma = rnd->uni() * rates_by_species[specid];
