@@ -1,0 +1,90 @@
+# sample config file for plasma2d
+# comments start with #
+
+# coordinate system
+coord = CARTESIAN
+
+#boundary condition FREE or PERIODIC
+boundary = FREE
+
+# experiment geometry RF_22PT, RF_8PT, EMPTY...
+geometry = TUBE
+
+# probe voltage
+u_probe =  0.0		#[V]
+
+# rf trap amplitude
+rf_amplitude = 20.0     #[V]
+
+# DC difference
+# between poles / 2
+rf_U0 = 0.0             #[V]
+
+#RF trap ?
+rf = 0
+
+#RF trap frequency
+rf_freq = 20e6
+
+# probe dimensions
+probe_radius = 1e-4		#[m]
+probe_length = 1e-2		#[m]
+
+# detect particles?
+has_probe = 1
+
+# x component of external field
+extern_field = 500.0		#[V/m]
+
+#magnetic field
+#magnetic_field_file = MagPole.txt
+magnetic_field_const = 1
+Bt = 0.00
+
+# total number of particles in simulation
+n_particles_total = 1e5
+density_total = 2e11
+macroparticle_factor = 1
+
+# mesh dimension
+x_sampl = 200
+y_sampl = 2
+z_sampl = 200
+
+# working area dimension
+x_max = 1.6e-2	#[m]
+z_max = 1.6e-2	#[m]
+
+# number of timesteps
+niter = 500000
+
+# the factor by which the source area is smaller
+# than working area, positive integer
+src_fact = 4
+
+# one for selfconsistent simulation, 0 for simulation
+# in constant homogenous extern_field
+selfconsistent = 1
+
+# simulation state is printed each t_print timesteps
+t_print = 100
+
+# distributions of particles and electric potential are
+# printed each t_print_dist timesteps (expensive operations)
+t_print_dist = 500
+
+# after t_equilib timesteps the results are averaged
+t_equilib = 200000
+
+# obvious
+do_plot = 1
+
+# if particle_reload==1 simulation state is reloaded
+# from directory particle reload_dir
+particle_reload = 0
+particle_reload_dir = 1e-10s
+
+# method of advancing particles, possible
+# values are 
+# ADVANCE2, ADVANCE2_EULER, ADVANCE_OLD, ADVANCE_PROB
+advancer = ADVANCE2_EULER

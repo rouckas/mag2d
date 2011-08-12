@@ -10,9 +10,40 @@ SPECIES
     NAME H2
     TYPE NEUTRAL
     MASS 3.3452e-27
-# 1 mbar .. 2.4e16
-    DENSITY 1e20
+# 1 mbar .. 2.4e22
+    DENSITY 0
     TEMPERATURE 300.0
+
+SPECIES
+    NAME HELIUM
+    TYPE NEUTRAL
+    MASS 6.69e-27
+    DENSITY 3.6e23
+    TEMPERATURE 77.0
+
+SPECIES
+    NAME He+
+    DT 1e-9
+    TYPE ION
+    MASS 6.69e-27
+    CHARGE +1.602189e-19
+    TEMPERATURE 77.0
+
+SPECIES
+    NAME H3+
+    DT 0.5e-9
+    TYPE ION
+    MASS 5.02e-27
+    CHARGE +1.602189e-19
+    TEMPERATURE 77.0
+
+SPECIES
+    NAME ELECTRON
+    DT 0.5e-9
+    TYPE ELECTRON
+    MASS 9.11e-31
+    CHARGE -1.602189e-19
+    TEMPERATURE 11000
 
 
 INTERACTION
@@ -44,10 +75,116 @@ INTERACTION
     TYPE ELASTIC
     PRIMARY H_NEG
     SECONDARY H2
-    CUTOFF 3.0
     CROSS_SECTION
 # the unit of cross secition is m^2
         0.0 30.0e-20
         1.0 10.0e-20
         10.0 1.5e-20
+    END_CROSS_SECTION
+
+INTERACTION
+    NAME H3+_HELIUM_ELASTIC
+    TYPE ELASTIC
+    PRIMARY H3+
+    SECONDARY HELIUM
+    RATE 4.8e-10
+
+
+INTERACTION
+    NAME He+_He_ELASTIC
+    TYPE ELASTIC
+    PRIMARY He+
+    SECONDARY HELIUM
+    CROSS_SECTION
+# the unit of cross secition is m^2, energy in eV
+# http://jila.colorado.edu/~avp/collision_data/ionneutral/IONATOM.TXT
+        0.01	120.6e-20
+        0.02	98.20e-20
+        0.05	78.33e-20
+        0.1	68.27e-20
+        0.2	61.08e-20
+        0.5	54.43e-20
+        1	50.70e-20
+        2	47.47e-20
+        5	43.27e-20
+        10	39.87e-20
+        20	36.32e-20
+        50	31.61e-20
+        100	28.15e-20
+        200	24.78e-20
+        500	20.36e-20
+        1000	17.05e-20
+        2000	13.86e-20
+        5000	10.14e-20
+        10000	7.850e-20
+    END_CROSS_SECTION
+
+INTERACTION
+    NAME ELECTRON_He_ELASTIC_
+    TYPE ELASTIC
+    PRIMARY ELECTRON
+    SECONDARY HELIUM
+    CROSS_SECTION
+# the unit of cross secition is m^2, energy in eV
+# http://jila.colorado.edu/~avp/collision_data/ionneutral/IONATOM.TXT
+            0     4.96e-20
+        0.001     4.98e-20
+        0.002     5.02e-20
+        0.003     5.07e-20
+        0.005     5.12e-20
+        0.007     5.15e-20
+       0.0085     5.18e-20
+         0.01     5.21e-20
+        0.015     5.28e-20
+         0.02     5.35e-20
+         0.03     5.46e-20
+         0.04     5.54e-20
+         0.05     5.62e-20
+         0.07     5.74e-20
+          0.1     5.86e-20
+         0.12     5.94e-20
+         0.15     6.04e-20
+         0.17     6.08e-20
+          0.2     6.16e-20
+         0.25     6.27e-20
+          0.3     6.35e-20
+         0.35     6.42e-20
+          0.4     6.49e-20
+          0.5     6.59e-20
+          0.7     6.73e-20
+            1     6.85e-20
+          1.2     6.91e-20
+          1.3     6.92e-20
+          1.5     6.96e-20
+          1.7     6.97e-20
+          1.9     6.98e-20
+          2.1     6.98e-20
+          2.2     6.98e-20
+          2.5     6.96e-20
+          2.8     6.92e-20
+            3     6.89e-20
+          3.3     6.82e-20
+          3.6     6.73e-20
+            4      6.6e-20
+          4.5     6.49e-20
+            5     6.31e-20
+            6        6e-20
+            7     5.68e-20
+            8     5.35e-20
+           10     4.72e-20
+           12      4.2e-20
+           15      3.5e-20
+           17     3.15e-20
+           20     2.64e-20
+           25     2.05e-20
+           30     1.74e-20
+           50      1.1e-20
+           75     0.88e-20
+          100     0.75e-20
+          150    0.605e-20
+          200     0.52e-20
+          300     0.41e-20
+          500      0.3e-20
+          750    0.235e-20
+         1000     0.17e-20
     END_CROSS_SECTION
