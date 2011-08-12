@@ -122,7 +122,7 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
 
         if(state == DECODE_CROSS_SECTION)
         {
-            InteractionParams * last = interactions[species_params.size()-1];
+            InteractionParams * last = interactions[interactions.size()-1];
 
             if(line[0] == "END_CROSS_SECTION")
                 state = DECODE_INTERACTION;
