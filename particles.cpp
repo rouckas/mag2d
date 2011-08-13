@@ -573,6 +573,31 @@ void Species<CARTESIAN>::add_particles_everywhere(int nparticles)
     }
 }
 
+void Species<CARTESIAN>::add_particles_bessel(int nparticles, double centerx, double centery, double radius)
+{
+    double x, y;
+    // std::tr1::cyl_bessel_j(0, x)
+    for(int i=0; i<nparticles; i++)
+    {
+        double r=0;
+        const double bessel_root = 2.404825557695773;
+        do{
+            x = (rnd->uni()*2 - 1.0);
+            y = (rnd->uni()*2 - 1.0);
+            r = sqrt(SQR(x) + SQR(y));
+        }while(r > 1.0 || rnd->uni() > std::tr1::cyl_bessel_j(0, r*bessel_root));
+        x = x*radius + centerx;
+        y = y*radius + centery;
+        if(x < 0 || x > p_param->x_max || y < 0 || y > p_param->z_max) continue;
+
+        int ii = insert();
+        t_particle * pp = &(particles[ii]);
+        pp->x = x;
+        pp->z = y;
+        rndv(pp->vx, pp->vz, pp->vy);
+    }
+}
+
 void Species<CARTESIAN>::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;

@@ -163,6 +163,21 @@ class Pic
                     toks.push_back(tok);
                 if(toks.size()==0) continue;
 
+                if(toks[0] == "add_particles_bessel")
+                {
+                    if(toks.size() != 6)
+                        throw runtime_error("Pic::run_initscript: wrong number of" +
+                               string(" parameters (") + int2string(toks.size()) + ") to " + toks[0] + "\n");
+                    if(string2speciestype.find(toks[1])==string2speciestype.end())
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
+                    SpeciesType species = string2speciestype[toks[1]];
+                    int nparticles = string2<int>(toks[2]);
+                    double centerx = string2<double>(toks[3]);
+                    double centery = string2<double>(toks[4]);
+                    double radius = string2<double>(toks[5]);
+                    speclist[species]->add_particles_bessel(nparticles, centerx, centery, radius);
+                    cout << speclist[species]->name <<" add bessel " <<centerx<<" "<< centery<<" "<<radius<< "\n";
+                }
                 if(toks[0] == "add_particles_on_disk")
                 {
                     if(toks.size() != 6)
