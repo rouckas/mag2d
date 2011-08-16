@@ -312,10 +312,10 @@ void BaseSpecies::print_status( ostream & out)
 {
     output << niter << " "
         << n_particles() << " "
-        << energy_dist.mean_tot() << " "
+        << energy_dist.mean_tot() << " " << t << endl;
         //<< probe_current_sum/nsampl*p_param->probe_length/p_param->dz << " "
-        << probe_charge << " "
-        << probe_energy_dist.mean_tot() << " " << probe_current/(nsampl*dt)<< endl;
+        //<< probe_charge << " "
+        //<< probe_energy_dist.mean_tot() << " " << probe_current/(nsampl*dt)<< endl;
 }
 
 void BaseSpecies::print_distribution()
@@ -542,6 +542,7 @@ void Species<CYLINDRICAL>::advance()
         rho.accumulate(charge, I->x, I->z);
     }
     niter++;
+    t += dt;
 }
 
 void Species<CYLINDRICAL>::accumulate()
@@ -745,6 +746,7 @@ void Species<CARTESIAN>::advance()
         //}
     }
     niter++;
+    t += dt;
 }
 
 void Species<CARTESIAN>::accumulate()

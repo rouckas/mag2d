@@ -106,6 +106,7 @@ class BaseSpecies
 	double density;
 	double v_max;
 	double dt;
+        double t;
 	double EeV(double v) { return 0.5*mass*v*v/(p_param->q_e); }
 	double veV(double EeV) { return sqrt(EeV*(p_param->q_e)/mass*2.0); }
 	void set_pressure(double pa){ density = pa/(p_param->k_B*temperature);}
@@ -143,6 +144,7 @@ class BaseSpecies
             polarizability(params->polarizability),
             density(params->density),
             dt(params->dt),
+            t(0),
             rho(param),
             energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
             source_energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
