@@ -53,6 +53,15 @@ class Matrix
 		for(int l=0; l<lmax; l++)
 		    data[j][l] += matrix[j][l];
 	}
+        void assign(Matrix const &matrix)
+	{
+	    if(jmax != matrix.jmax || lmax != matrix.lmax)
+		throw std::runtime_error("Matrix.assign(): matrix sizes don't match\n");
+
+	    for(int j=0; j<jmax; j++)
+		for(int l=0; l<lmax; l++)
+		    data[j][l] = matrix[j][l];
+	}
 	void multiply(double x)
 	{
 	    for(int j=0; j<jmax; j++)
