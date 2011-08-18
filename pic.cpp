@@ -219,6 +219,7 @@ class Pic
 	    if(param.selfconsistent)
 	    {
 		field.boundary_solve();
+                if(param.u_smooth) field.u_smooth();
 		field.reset();
 		for(size_t i=0; i<speclist.size(); i++)
                     if(speclist[i]->particle && speclist[i]->n_particles() > 0)

@@ -60,7 +60,84 @@ void Fields::u_print(const char * fname)
     uAvg.print(fname,1.0/nsampl);
 }
 
-Fields::Fields(Param &param) : grid(param), u(param), uAvg(param), rho(param), nsampl(0)
+void Fields::u_smooth()
+{
+    int ic = u.jmax-1;
+    int jc = u.lmax-1;
+    if(ic != jc)
+        throw std::runtime_error("Fields::u_smooth: smoothing of non-square matrix not implemented\n");
+
+
+    // this averages the symmetrical points in rotationally symetric
+    // geometry on a square cartesian grid
+    for(int i=0; i<=ic/2; i++)
+        for(int j=0; j<=i; j++)
+        {
+            double sum = 0;
+
+            //calculate the average
+            sum += u[i][j];
+            sum += u[ic-i][j];
+            sum += u[i][jc-j];
+            sum += u[ic-i][jc-j];
+            sum += u[jc-j][ic-i];
+            sum += u[j][i];
+            sum += u[jc-j][i];
+            sum += u[j][ic-i];
+            sum /= 8.0;
+
+            //assign to corresponding cells
+            u[i][j] = sum;
+            u[ic-i][j] = sum;
+            u[i][jc-j] = sum;
+            u[ic-i][jc-j] = sum;
+            u[jc-j][ic-i] = sum;
+            u[j][i] = sum;
+            u[jc-j][i] = sum;
+            u[j][ic-i] = sum;
+        }
+    // TODO remove this magic constant :)
+    double radius = p_param->probe_radius;
+
+    // avoid smoothing of the boundary region with sharp gradients
+    radius -= 2.0*p_param->dx;
+
+    // precalculate something ;)
+    radius = sqr(radius/p_param->dx);
+
+    uTmp.assign(u);
+
+    double icf = ic/2.0;
+    double jcf = jc/2.0;
+    for(int i=0; i<=ic; i++)
+        for(int j=0; j<=jc; j++)
+        {
+            double r = sqr(i-icf) + sqr(j-jcf);
+            if(r > radius) continue;
+
+            // use the HCIC smoothing scheme of Hockney 1971 ?
+            // http://dx.doi.org/10.1016/0021-9991(71)90032-5
+            // This scheme was becoming unstable with respect to
+            // particular spatial frequencies (dx*2)*(dy*2) at low electron
+            // temperatures. Following scheme corresponds to 2dx*2dy
+            // square particle.
+            double sum =
+                uTmp[i][j] +
+                uTmp[i-1][j]*0.5 +
+                uTmp[i+1][j]*0.5 +
+                uTmp[i][j-1]*0.5 +
+                uTmp[i][j+1]*0.5 +
+                uTmp[i-1][j-1]*0.25 +
+                uTmp[i+1][j-1]*0.25 +
+                uTmp[i-1][j+1]*0.25 +
+                uTmp[i+1][j+1]*0.25;
+
+            u[i][j] = sum/4.0;
+        }
+
+}
+
+Fields::Fields(Param &param) : grid(param), u(param), uTmp(param), uAvg(param), rho(param), nsampl(0)
 {
     //if(param.selfconsistent == false)
 //	return;

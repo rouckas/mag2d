@@ -68,6 +68,10 @@ src_fact = 4
 # in constant homogenous extern_field
 selfconsistent = 1
 
+# Apply smoothing on the potential. Currently only
+# smoothing in the tube geometry is implemented
+u_smooth = 1
+
 # simulation state is printed each t_print timesteps
 t_print = 100
 

@@ -74,6 +74,7 @@ class Fields
     public:
 	t_grid grid;
 	Field u;
+        Field uTmp;
 	Field uAvg;
 	Field rho;
 	Fields(Param &param);
@@ -97,6 +98,7 @@ class Fields
 	void u_sample();
 	void u_reset();
 	void u_print(const char * fname);
+        void u_smooth();
     private:
 	int nsampl;
 };
