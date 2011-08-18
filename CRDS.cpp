@@ -62,6 +62,24 @@ int main(int argc, char *argv[])
     {
 
 	pic.advance();
+        if(i%1000==0)
+        {
+            //adaptive lifetime and timestep calculation
+            double Emax_factor = 3.0;
+            double dt_lifetime = 3.0;
+            double Emax = pic.speclist["ELECTRON"]->energy_dist.mean()*Emax_factor;
+            pic.speclist["ELECTRON"]->lifetime_init(Emax);
+            double lifetime = pic.speclist["ELECTRON"]->lifetime;
+            double dt = lifetime/dt_lifetime;
+            cout << "ELECTRON lifetime "<< lifetime <<" s;    Emax/5 = "<< Emax/5 << " eV;     dt = "<< dt << endl;
+            if(dt > pic.speclist["ELECTRON"]->dt)
+            {
+                pic.speclist["ELECTRON"]->dt = dt;
+                pic.speclist["H3+"]->dt = dt;
+            }
+
+        }
+
         if(i%10==0)
         {
             pic.print_trace();

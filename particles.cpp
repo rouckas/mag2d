@@ -123,13 +123,19 @@ void BaseSpecies::source5_load(const string filename)
     }
 }
 
-void BaseSpecies::lifetime_init()
+void BaseSpecies::lifetime_init(double Emax)
 {
+    /* the energy cutoff should be rather small -
+     * using large Emax will calculate lifetime correctly for high energy particles,
+     * however, if dt is comparable to lifetime, high lifetime will cause underestimating
+     * of collisions even for low energy particles. Therefore, decreasing Emax will improve
+     * collisions of low energy particles. The influence on high energy particles might
+     * be positive or negative (this is valid for roughly constant cross section)
+     */
     double rate = 0;
     for(size_t i=0; i<rates_by_species.size(); i++)
     {
-        rates_by_species[i] = svmax_find(interactions_by_species[i], veV(5.0)) * speclist[i]->density;
-        //fix this energy cutoff
+        rates_by_species[i] = svmax_find(interactions_by_species[i], veV(Emax)) * speclist[i]->density;
         rate += rates_by_species[i];
     }
 
@@ -217,6 +223,7 @@ void BaseSpecies::scatter(t_particle &particle)
     double v = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
     double const_E = -0.5*mass/charge;
     double E = const_E*v*v;
+    // XXX this should be calculated in CM system, especially for ions
 
     //select interaction
     gamma = rnd->uni() * rates_by_species[specid];

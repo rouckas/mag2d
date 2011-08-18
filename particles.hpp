@@ -220,7 +220,7 @@ class BaseSpecies
 	void source5_save(const string filename);
 	void source5_load(const string filename);
 	int source5_factor;
-	void lifetime_init();
+	void lifetime_init(double Emax=5.0);
     protected:
 	void load_CS(const string & fname, vector<vec_interpolate*> & CS, vector<double> & Loss,
 	       	const vector<string> & CSnames, const string & tag="", int ncols=3);
