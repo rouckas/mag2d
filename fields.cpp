@@ -445,9 +445,9 @@ void t_grid::tube()
 	    }
 	}
 
-    double radius = 7.5e-3;
+    double radius = p_param->probe_radius;
     double rcenter, zcenter;
-    rcenter = zcenter = 8e-3;
+    rcenter = zcenter = p_param->x_max/2.0;
     double sqradius = SQR(radius);
     for(i=0; i<M; i++)
 	for(j=0; j<N; j++)

@@ -13,6 +13,9 @@ geometry = TUBE
 # probe voltage
 u_probe =  0.0		#[V]
 
+#probe radius or tube radius in TUBE geometry
+probe_radius = 7.5e-3
+
 # rf trap amplitude
 rf_amplitude = 20.0     #[V]
 
@@ -26,8 +29,7 @@ rf = 0
 #RF trap frequency
 rf_freq = 20e6
 
-# probe dimensions
-probe_radius = 1e-4		#[m]
+# probe length
 probe_length = 1e-2		#[m]
 
 # detect particles?
@@ -42,21 +44,21 @@ magnetic_field_const = 1
 Bt = 0.00
 
 # total number of particles in simulation
-n_particles_total = 1e5
-density_total = 2e11
+n_particles_total = 16e5
+density_total = 1e16
 macroparticle_factor = 1
 
 # mesh dimension
-x_sampl = 200
+x_sampl = 50
 y_sampl = 2
-z_sampl = 200
+z_sampl = 50
 
 # working area dimension
 x_max = 1.6e-2	#[m]
 z_max = 1.6e-2	#[m]
 
 # number of timesteps
-niter = 500000
+niter = 50000000
 
 # the factor by which the source area is smaller
 # than working area, positive integer
@@ -71,13 +73,13 @@ t_print = 100
 
 # distributions of particles and electric potential are
 # printed each t_print_dist timesteps (expensive operations)
-t_print_dist = 500
+t_print_dist = 1000
 
 # after t_equilib timesteps the results are averaged
-t_equilib = 200000
+t_equilib = 40000000
 
 # obvious
-do_plot = 1
+do_plot = 0
 
 # if particle_reload==1 simulation state is reloaded
 # from directory particle reload_dir

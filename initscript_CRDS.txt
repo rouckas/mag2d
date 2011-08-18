@@ -1,7 +1,7 @@
 #sample init script for plasma2d
 #add_particles_on_disk species number centerx centery radius
-add_particles_bessel H3+ 10000 8e-3 8e-3 5e-3
-add_particles_bessel ELECTRON 10000 8e-3 8e-3 5e-3
+add_particles_bessel H3+ 1600000 8e-3 8e-3 7.5e-3
+add_particles_bessel ELECTRON 1600000 8e-3 8e-3 7.5e-3
 add_tracked_particle H3+ 8.5e-3 8.5e-3 100 10 0
 add_tracked_particle H3+ 8.5e-3 8.5e-3 -100 10 0
 add_tracked_particle ELECTRON 8.5e-3 8.5e-3 100 10 0
