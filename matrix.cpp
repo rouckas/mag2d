@@ -170,4 +170,56 @@ class Array3D
                         data[i][j][k] = 0;
         }
 };
+
+template<class T>
+class Array1D
+{
+    public:
+        int imax;
+        T *data;
+        Array1D() : imax(0), data(NULL) {}
+        Array1D(int _imax) : imax(_imax)
+        {
+            data = new T [imax];
+        }
+        void resize(int _imax, int _jmax, int _kmax)
+        {
+            this->~Array1D();
+
+            imax = _imax;
+            data = new T [imax];
+        }
+        ~Array1D()
+        {
+            if(data != NULL)
+            {
+                delete [] data;
+            }
+        }
+        T & operator [] (int i) const
+        {
+        }
+        T & operator () (int i)
+        {
+            return data[i];
+        }
+        void add(Array1D const &array)
+        {
+            if(imax != array.imax)
+                throw std::runtime_error("Array1D.add(): array sizes don't match\n");
+
+            for(int i=0; i<imax; i++)
+                data[i] += array[i];
+        }
+        void multiply(double x)
+        {
+            for(int i=0; i<imax; i++)
+                data[i] *= x;
+        }
+        void reset()
+        {
+            for(int i=0; i<imax; i++)
+                data[i] = 0;
+        }
+};
 #endif
