@@ -48,6 +48,8 @@ penning: penning.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ penning.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
 CRDS: CRDS.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ CRDS.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
+CRDS1D: CRDS1D.cpp $(SOURCES) $(OBJ)
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ CRDS1D.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
 MAC: MAC.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ MAC.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
 test_scatter_speed: test_scatter_speed.cpp particles.cpp gnuplot_i.c argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp
