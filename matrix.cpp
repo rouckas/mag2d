@@ -182,7 +182,7 @@ class Array1D
         {
             data = new T [imax];
         }
-        void resize(int _imax, int _jmax, int _kmax)
+        void resize(int _imax)
         {
             this->~Array1D();
 
