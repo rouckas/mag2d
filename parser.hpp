@@ -12,7 +12,7 @@
 using namespace std;
 
 enum SpeciesType {NEUTRAL, ELECTRON, ION};
-enum CollType {ELASTIC, LANGEVIN, CX};
+enum CollType {ELASTIC, LANGEVIN, CX, COULOMB};
 class SpeciesParams
 {
     public:

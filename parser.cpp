@@ -100,6 +100,8 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
                     last->type = LANGEVIN;
                 else if(line[1] == "CX")
                     last->type = CX;
+                else if(line[1] == "COULOMB")
+                    last->type = COULOMB;
                 else
                     throw runtime_error("config_parse: unrecognized interaction type \"" + line[1] + "\"");
             }

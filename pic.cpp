@@ -51,7 +51,7 @@ class Speclist
             Interaction * pi;
             for(size_t i=0; i<vi.size(); i++)
             {
-                pi = new Interaction(vi[i]);
+                pi = new Interaction(vi[i], param);
 
                 // find the primary interacting species
                 size_t j=0;

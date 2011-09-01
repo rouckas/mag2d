@@ -8,7 +8,16 @@ TrackedParticle::TrackedParticle(BaseSpecies *species, unsigned int index, Param
     string fname = param.output_dir + "/" + species->name
         + "_traj_" + int2string(index) + ".dat";
     fw.open(fname.c_str());
-}
+};
+
+double Interaction::coulomb_sigma(double E)
+{
+    E *= param.q_e;
+    double lambda_D = param.eps_0*param.k_B*primary->temperature/(primary->density*primary->charge*primary->charge);
+    double Lambda = primary->charge*secondary->charge/(4*M_PI*param.eps_0*E);
+    double sigma = M_PI*Lambda*Lambda*log(lambda_D/Lambda);
+    return sigma;
+};
 
 
 /*
@@ -184,13 +193,7 @@ double BaseSpecies::svmax_find(const vector<Interaction *> & interactions, doubl
     {
         double sv=0;
         for(unsigned int i=0; i<interactions.size(); i++)
-            if(interactions[i]->cross_section != NULL)
-            {
-                sv += (*interactions[i]->cross_section)(EeV(v)) * v;
-                //XXX this calculation of collision energy is valid only for electrons
-            }
-            else
-                sv += interactions[i]->rate;
+            sv += interactions[i]->sigma_v(v);
         if(isnan(sv))continue;
         if(sv>svmax) svmax=sv;
         //cout <<name <<' '<< v <<' '<< (*CS[0])(EeV(v)) + (*CS[1])(EeV(v)) <<' '<< sv << endl;
@@ -216,14 +219,22 @@ void BaseSpecies::scatter(t_particle &particle)
 
 
     // Generate the interacting particle
+    // use a random sample from velocity distribution of "continuum" species,
+    // otherwise select a random particle from the ensemble
     double vr2,vz2,vt2;
-    speclist[specid]->rndv(vr2,vz2,vt2);
+    t_particle * partner = NULL;
+    if(speclist[specid]->particles.size() == 0)
+        speclist[specid]->rndv(vr2,vz2,vt2);
+    else
+    {
+        partner = speclist[specid]->random_particle();
+        vr2 = partner->vx;
+        vz2 = partner->vz;
+        vt2 = partner->vy;
+    }
     //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
 
     double v = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
-    double const_E = -0.5*mass/charge;
-    double E = const_E*v*v;
-    // XXX this should be calculated in CM system, especially for ions
 
     //select interaction
     gamma = rnd->uni() * rates_by_species[specid];
@@ -231,10 +242,7 @@ void BaseSpecies::scatter(t_particle &particle)
     size_t intid;
     for(intid=0; intid < interactions_by_species[specid].size(); intid++)
     {
-        if(interactions_by_species[specid][intid]->cross_section == NULL)
-            tmp += interactions_by_species[specid][intid]->rate * speclist[specid]->density;
-        else
-            tmp += (*interactions_by_species[specid][intid]->cross_section)(E) * v * speclist[specid]->density;
+        tmp += interactions_by_species[specid][intid]->sigma_v(v) * speclist[specid]->density;
 
         if(tmp > gamma)
             break;
@@ -251,14 +259,18 @@ void BaseSpecies::scatter(t_particle &particle)
     //cout << "interaction type " << interaction->type << " ELASTIC: " << ELASTIC <<endl;
     switch(interaction->type)
     {
+        case COULOMB:
         case ELASTIC:
             {
                 double m2 = speclist[specid]->mass;
                 double tmp = 1.0/(mass+m2);
                 //transform to center of mass system
-                double v1_cm_x = (particle.vx - vr2)*m2*tmp;
-                double v1_cm_y = (particle.vz - vz2)*m2*tmp;
-                double v1_cm_z = (particle.vy - vt2)*m2*tmp;
+                double v_cm_x = (particle.vx*mass + vr2*m2)*tmp;
+                double v_cm_z = (particle.vz*mass + vz2*m2)*tmp;
+                double v_cm_y = (particle.vy*mass + vt2*m2)*tmp;
+                double v1_cm_x = particle.vx - v_cm_x;
+                double v1_cm_z = particle.vz - v_cm_z;
+                double v1_cm_y = particle.vy - v_cm_y;
 
                 //isotropic random rotation
                 rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
@@ -266,10 +278,17 @@ void BaseSpecies::scatter(t_particle &particle)
 
                 //reverse transformation
                 //particle.vx = v1_cm_x + v_cm_x;
-                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
-                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
-                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
+                particle.vx = v1_cm_x + v_cm_x;
+                particle.vz = v1_cm_z + v_cm_z;
+                particle.vy = v1_cm_y + v_cm_y;
                 //cout << "    v1 = " << particle.vx << " " << particle.vy << " " << particle.vz <<endl;
+                if(interaction->type == COULOMB)
+                {
+                    //v2 = (p_CM - p1)/m2
+                    partner->vx = (v_cm_x*(mass+m2) - mass*particle.vx)/m2;
+                    partner->vz = (v_cm_z*(mass+m2) - mass*particle.vz)/m2;
+                    partner->vy = (v_cm_y*(mass+m2) - mass*particle.vy)/m2;
+                }
             }
             break;
 

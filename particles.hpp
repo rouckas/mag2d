@@ -56,22 +56,36 @@ class Interaction
         double cutoff;
         BaseSpecies * primary;
         BaseSpecies * secondary;
-        vec_interpolate * cross_section;
-        Interaction(InteractionParams * params) : name(params->name),
-            type(params->type), rate(params->rate), cutoff(params->cutoff), cross_section(NULL)
+        Param & param;
+        vec_interpolate * cross_section_table;
+        double sigma_v(double v)
         {
-            if(params->CS_energy.size() > 0)
+            double result;
+            if(type==COULOMB)
+                result = coulomb_sigma(EeV(v)) * v;
+            else if(cross_section_table != NULL)
+                result = (*cross_section_table)(EeV(v)) * v;
+            else result = rate;
+            return result;
+        };
+        double EeV(double v);
+        Interaction(InteractionParams * i_params, Param & _param) : name(i_params->name),
+            type(i_params->type), rate(i_params->rate), cutoff(i_params->cutoff), param(_param), cross_section_table(NULL)
+        {
+            if(i_params->CS_energy.size() > 0)
             {
-                cross_section = new vec_interpolate(params->CS_energy, params->CS_value);
+                cross_section_table = new vec_interpolate(i_params->CS_energy, i_params->CS_value);
             }
             if(type==LANGEVIN)
                 rate *= SQR(cutoff);
         };
         ~Interaction()
         {
-            if(cross_section != NULL)
-                delete cross_section;
+            if(cross_section_table != NULL)
+                delete cross_section_table;
         }
+    private:
+        double coulomb_sigma(double E);
 
 };
 
@@ -184,6 +198,18 @@ class BaseSpecies
 	    vr = rnd->maxwell1(v_max);
 	}
 
+        t_particle * random_particle()
+        {
+            int i = rnd->iuni() % particles.size();
+            while(particles[i].empty == true)
+            {
+                i = rnd->iuni() % particles.size();
+            }
+
+            return &(particles[i]);
+
+        }
+
 
 	//void save(const char *filename)
 	void save(const string filename);
@@ -292,4 +318,13 @@ class Species<CYLINDRICAL> : public BaseSpecies
         void add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height = 0.0);
 
 };
+
+
+inline double Interaction::EeV(double v)
+{
+    double mu = primary->mass*secondary->mass/(primary->mass + secondary->mass);
+    double E = 0.5*mu*v*v/param.q_e;
+    return E;
+};
+
 #endif
