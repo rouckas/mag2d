@@ -234,7 +234,8 @@ void BaseSpecies::scatter(t_particle &particle)
     }
     //cout << "    v1 = " << vr2 << " " << vz2 << " " << vt2 <<endl;
 
-    double v = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
+    double v_rel = norm(particle.vx-vr2, particle.vz-vz2, particle.vy-vt2);
+    double m2 = speclist[specid]->mass;
 
     //select interaction
     gamma = rnd->uni() * rates_by_species[specid];
@@ -242,7 +243,7 @@ void BaseSpecies::scatter(t_particle &particle)
     size_t intid;
     for(intid=0; intid < interactions_by_species[specid].size(); intid++)
     {
-        tmp += interactions_by_species[specid][intid]->sigma_v(v) * speclist[specid]->density;
+        tmp += interactions_by_species[specid][intid]->sigma_v(v_rel) * speclist[specid]->density;
 
         if(tmp > gamma)
             break;
@@ -259,10 +260,25 @@ void BaseSpecies::scatter(t_particle &particle)
     //cout << "interaction type " << interaction->type << " ELASTIC: " << ELASTIC <<endl;
     switch(interaction->type)
     {
+        case SUPERELASTIC:
+            {
+                double E = interaction->E(v_rel) + interaction->DE;
+                double v1_cm = interaction->v_rel(E);
+                // fix this v_rel // v1_cm
+                // cout << E <<" "<< interaction->E(v_rel) << " " << "CRR"<<endl;
+
+                double v1_cm_x, v1_cm_z, v1_cm_y;
+                rnd->rot(v1_cm, v1_cm_x, v1_cm_z, v1_cm_y);
+
+                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
+                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
+                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
+            }
+            break;
+
         case COULOMB:
         case ELASTIC:
             {
-                double m2 = speclist[specid]->mass;
                 double tmp = 1.0/(mass+m2);
                 //transform to center of mass system
                 double v_cm_x = (particle.vx*mass + vr2*m2)*tmp;
@@ -294,7 +310,6 @@ void BaseSpecies::scatter(t_particle &particle)
 
         case LANGEVIN:
             {
-                double m2 = speclist[specid]->mass;
                 double tmp = 1.0/(mass+m2);
                 //transform to center of mass system
                 double v1_cm_x = (particle.vx - vr2)*m2*tmp;

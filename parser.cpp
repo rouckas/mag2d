@@ -102,9 +102,13 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
                     last->type = CX;
                 else if(line[1] == "COULOMB")
                     last->type = COULOMB;
+                else if(line[1] == "SUPERELASTIC")
+                    last->type = SUPERELASTIC;
                 else
                     throw runtime_error("config_parse: unrecognized interaction type \"" + line[1] + "\"");
             }
+            else if(line[0] == "DE")
+                last->DE = string2<double>(line[1]);
             else if(line[0] == "RATE")
                 last->rate = string2<double>(line[1]);
             else if(line[0] == "CUTOFF")
