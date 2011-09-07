@@ -13,7 +13,7 @@ TrackedParticle::TrackedParticle(BaseSpecies *species, unsigned int index, Param
 double Interaction::coulomb_sigma(double E)
 {
     E *= param.q_e;
-    double lambda_D = param.eps_0*param.k_B*primary->temperature/(primary->density*primary->charge*primary->charge);
+    double lambda_D = sqrt(param.eps_0*param.k_B*primary->temperature/(primary->density*primary->charge*primary->charge));
     double Lambda = primary->charge*secondary->charge/(4*M_PI*param.eps_0*E);
     double sigma = M_PI*Lambda*Lambda*log(lambda_D/Lambda);
     return sigma;
