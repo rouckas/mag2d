@@ -68,7 +68,9 @@ class Interaction
             else result = rate;
             return result;
         };
-        double EeV(double v);
+        double EeV(double v_rel);
+        double E(double v_rel);
+        double v_rel(double E);
         Interaction(InteractionParams * i_params, Param & _param) : name(i_params->name),
             type(i_params->type), rate(i_params->rate), cutoff(i_params->cutoff), param(_param), cross_section_table(NULL)
         {
@@ -320,11 +322,24 @@ class Species<CYLINDRICAL> : public BaseSpecies
 };
 
 
-inline double Interaction::EeV(double v)
+inline double Interaction::EeV(double v_rel)
 {
     double mu = primary->mass*secondary->mass/(primary->mass + secondary->mass);
-    double E = 0.5*mu*v*v/param.q_e;
+    double E = 0.5*mu*v_rel*v_rel/param.q_e;
     return E;
+};
+inline double Interaction::E(double v_rel)
+{
+    double mu = primary->mass*secondary->mass/(primary->mass + secondary->mass);
+    double E = 0.5*mu*v_rel*v_rel;
+    return E;
+};
+
+inline double Interaction::v_rel(double E)
+{
+    double mu = primary->mass*secondary->mass/(primary->mass + secondary->mass);
+    double v_rel = sqrt(2*E/mu);
+    return v_rel;
 };
 
 #endif
