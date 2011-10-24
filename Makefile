@@ -9,7 +9,8 @@ CC = g++
 CFLAGS =  -Wall
 CFLAGS = -g -pg -Wall
 
-OPTIM=-march=core2	-mfpmath=sse -O3 -ffast-math -msse
+OPTIM=-march=core2 -mfpmath=sse -O3 -ffast-math -msse
+OPENMP=-fopenmp
 
 .c.o:
 	$(CC) $(CFLAGS) $(OPTIM) $(DEFINES) -c $<
@@ -43,6 +44,8 @@ MAC: MAC.cpp $(SOURCES) $(OBJ)
 #	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ rot_test.cpp random.c
 #maxwell_test: maxwell_test.cpp random.c random.h
 #	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ maxwell_test.cpp random.c gnuplot_i.c histogram.cpp
+test_random_omp: tests/test_random_omp.cpp src/random.cpp Makefile
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ tests/test_random_omp.cpp $(OPTIM) $(OPENMP)
 gnuplot_i.o: gnuplot_i.h
 histogram.o: histogram.hpp
 particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp param.hpp fields.hpp parser.hpp
