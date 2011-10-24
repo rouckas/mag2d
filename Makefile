@@ -2,7 +2,7 @@ SRCDIR=src
 VPATH=$(SRCDIR)
 
 INC = -I/home/rouckas/include
-LIB = -lumfpack -lm -lamd -llapack -lpthread -lboost_filesystem
+LIB = -lumfpack -lm -lamd -llapack -lpthread -lboost_filesystem -lboost_system
 DEFINES = -DAMD64
 
 CC = g++
