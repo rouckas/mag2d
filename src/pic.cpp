@@ -295,7 +295,7 @@ class Pic
 		if( speclist[i]->particle )
 		    probe_current_total += speclist[i]->probe_current;
 
-	    out << iter << " " << timer.gettime() << " " 
+	    out << iter << " " << timer.get_cpu_time() << " " 
 		<< probe_current_total/nsampl * param.probe_length/param.dz << " "
                 << field.grid.U_trap << " "
                 << field.u[0][(int)(param.z_sampl*4.0/7.5)]
