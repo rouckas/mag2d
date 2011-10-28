@@ -49,7 +49,7 @@ class t_grid
         void empty();
 	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
 	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
-	bool is_free(double r, double z);
+	bool is_free(double r, double z) const;
 };
 class Field : public Matrix<double>
 {
@@ -59,7 +59,7 @@ class Field : public Matrix<double>
         Field() : Matrix<double>(), idx(0), idz(0), rmin(0), zmin(0) {};
         void resize(int x_sampl, int z_sampl, double dx, double dz, double _rmin=0, double _zmin=0);
 	inline void accumulate(double charge, double x, double y);
-        inline double interpolate(double r, double z);
+        inline double interpolate(double r, double z) const;
         bool hasnan();
 	void print( ostream & out = cout , double factor = 1.0);
 	void print( const char * filename , double factor = 1.0);
@@ -81,8 +81,8 @@ class Fields
 	void solve();
 	void boundary_solve();
 	void reset();
-	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) ;
-	void B(double x, double y, double &Br, double &Bz, double &Bt);
+	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) const;
+	void B(double x, double y, double &Br, double &Bz, double &Bt) const;
         void load_magnetic_field(const char * fname);
 	inline void accumulate(double charge, double x, double y);
 	~Fields();
@@ -103,7 +103,7 @@ class Fields
 	int nsampl;
 };
 
-inline bool t_grid::is_free(double r, double z)
+inline bool t_grid::is_free(double r, double z) const
 {
     int i = (int)(r*p_param->idx);
     int j = (int)(z*p_param->idz);
@@ -131,7 +131,7 @@ inline void Field::accumulate(double charge, double r, double z)
 
 }
 
-inline double Field::interpolate(double r, double z)
+inline double Field::interpolate(double r, double z) const
 {
     r -= rmin;
     z -= zmin;
@@ -168,7 +168,7 @@ inline void Fields::accumulate(double charge, double r, double z)
 /*
  * vypocte gradient 2d potencialu bilinearni interpolaci
  */
-inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double time)
+inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double time) const
 {
     int i,j;
     double g1,g2,g3,g4;
@@ -272,7 +272,7 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
 
 }
 
-inline void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt)
+inline void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt) const
 {
     if(p_param->magnetic_field_const)
     {

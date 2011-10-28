@@ -104,8 +104,8 @@ class BaseSpecies
     protected:
 	unsigned long int niter;
         vector<TrackedParticle*> tracked_particles;
-	Param *p_param;
-	t_random * rnd;
+	Param * const p_param;
+	t_random * const rnd;
     public:
         vector<BaseSpecies *> speclist;
         vector<Interaction *> interactions;

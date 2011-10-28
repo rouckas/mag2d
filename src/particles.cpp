@@ -687,8 +687,8 @@ void Species<CARTESIAN>::advance()
 {
     double fr, fz;      //force vector
     double Bx, By, Bz;  //magnetic field vector
-    double qmdt = charge/mass*dt;       //auxilliary constant
-    double prob = 1.0-exp(-dt/lifetime);
+    const double qmdt = charge/mass*dt;       //auxilliary constant
+    const double prob = 1.0-exp(-dt/lifetime);
 
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
     {
