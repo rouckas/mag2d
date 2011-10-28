@@ -13,7 +13,6 @@ for generating random variables", Journ. Statistical Software.
 #include <cmath>
 #include <ctime>
 #include "mymath.cpp"
-#include <cstdlib>
 #include <iostream>
 using namespace std;
 
@@ -203,7 +202,6 @@ class t_random
         {
             jsr=123456789;
             jsr^=(uint32)jsrseed;
-            srand(jsrseed);
             /* Set up tables for other generators */
             z=shr3();
             w=shr3();
@@ -285,9 +283,9 @@ class t_random
                 we[i] = rnd.we[i];
                 fe[i] = rnd.fe[i];
             }
-            for(i=0; i<=MXW_SAMPLES; i++)
+            for(i=0; i<MXW_SAMPLES; i++)
                 mxw_data[i] = rnd.mxw_data[i];
-            for(i=0; i<=MXW_FLUX_SAMPLES; i++)
+            for(i=0; i<MXW_FLUX_SAMPLES; i++)
                 mxw_flux_data[i] = rnd.mxw_flux_data[i];
         }
 
