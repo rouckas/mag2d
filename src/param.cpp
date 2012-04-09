@@ -92,6 +92,7 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     string2geo["EMPTY"] = EMPTY;
     string2geo["RF_22PT"] = RF_22PT;
     string2geo["RF_8PT"] = RF_8PT;
+    string2geo["RF_HAITRAP"] = RF_HAITRAP;
     string2geo["RF_QUAD"] = RF_QUAD;
     string2geo["MAC"] = MAC;
     string2geo["PENNING"] = PENNING;

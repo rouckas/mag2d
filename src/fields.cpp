@@ -137,7 +137,7 @@ void Fields::u_smooth()
 
 }
 
-Fields::Fields(Param &param) : grid(param), u(param), uTmp(param), uAvg(param), rho(param), nsampl(0)
+Fields::Fields(Param &param) : grid(param), u(param), uRF(param), uTmp(param), uAvg(param), rho(param), nsampl(0)
 {
     //if(param.selfconsistent == false)
 //	return;
@@ -165,7 +165,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uTmp(param), uAvg(param), 
             for(j=0; j<param.z_sampl; j++)	//cislo sloupce
             {
                 k = j + param.z_sampl*i;
-                if(grid.mask[i][j]==FIXED)
+                if(grid.mask[i][j]==FIXED || grid.mask[i][j]==FIXED_RF)
                 {
                     Ax[l] = 1;
                     Ai[l] = k;
@@ -196,7 +196,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uTmp(param), uAvg(param), 
                     Ap[k+1] = Ap[k]+4;
                     l += 4;
                 }
-                else if(grid.mask[i][j]!=FIXED )
+                else if(grid.mask[i][j]!=FIXED && grid.mask[i][j]!=FIXED_RF)
                 {
                     double k1, k2, k3;
                     // psi[j-1,k]
@@ -236,7 +236,7 @@ Fields::Fields(Param &param) : grid(param), u(param), uTmp(param), uAvg(param), 
             {
                 k = j + param.z_sampl*i;
                 //if( i>0 && i<M-1 && j>0 && j<N-1)
-                if(grid.mask[i][j]==FIXED)
+                if(grid.mask[i][j]==FIXED || grid.mask[i][j]==FIXED_RF)
                 {
                     Ax[l] = 1;
                     Ai[l] = k;
@@ -307,6 +307,8 @@ void Fields::boundary_solve()
                 double dz = p_param->dz;
                 if(grid.mask[i][j] == FIXED)
                     rho[i][j] = grid.voltage[i][j];
+                else if(grid.mask[i][j] == FIXED_RF)
+                    rho[i][j] = 0;      //use zero as first approximation
                 else if(i>0)
                     rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dx*dx*2.0*i*dz)*p_param->macroparticle_factor;
                 else
@@ -322,12 +324,54 @@ void Fields::boundary_solve()
                 k = j + grid.N*i;
                 if(grid.mask[i][j] == FIXED)
                     rho[i][j] = grid.voltage[i][j];
+                else if(grid.mask[i][j] == FIXED_RF)
+                    rho[i][j] = 0;
                 else
                     rho[i][j] *= -SQR(p_param->dx)/p_param->eps_0/p_param->dV;
                     //  the SQR(p_param->dx) comes from the d^2/dx^2 operator
             }
     }
     (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, u[0], rho[0], Numeric, NULL, NULL) ;
+}
+
+void Fields::boundary_solve_rf()
+{// XXX this should be later merged to Fields::boundary_solve
+    if( p_param->coord == CYLINDRICAL )
+    {
+        int k;
+        for(int i=0; i<grid.M; i++)		//cislo radku
+            for(int j=0; j<grid.N; j++)	//cislo sloupce
+            {
+                k = j + grid.N*i;
+                double dx = p_param->dx;
+                double dz = p_param->dz;
+                if(grid.mask[i][j] == FIXED)
+                    rho[i][j] = 0;
+                else if(grid.mask[i][j] == FIXED_RF)
+                    rho[i][j] = grid.voltage[i][j];      //use zero as first approximation
+                else if(i>0)
+                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dx*dx*2.0*i*dz)*p_param->macroparticle_factor;
+                else
+                    rho[i][j] *= -1.0/p_param->eps_0/(M_PI*dx*dx*0.25*dz)*p_param->macroparticle_factor;
+            }
+    }
+    else
+    {
+        int k;
+        for(int i=0; i<grid.M; i++)		//cislo radku
+            for(int j=0; j<grid.N; j++)	//cislo sloupce
+            {
+                k = j + grid.N*i;
+                if(grid.mask[i][j] == FIXED)
+                    rho[i][j] = 0;
+                else if(grid.mask[i][j] == FIXED_RF)
+                    rho[i][j] = grid.voltage[i][j];
+                else
+                    rho[i][j] *= -SQR(p_param->dx)/p_param->eps_0/p_param->dV;
+                    //  the SQR(p_param->dx) comes from the d^2/dx^2 operator
+            }
+    }
+    (void) umfpack_di_solve (UMFPACK_At, Ap, Ai, Ax, uRF[0], rho[0], Numeric, NULL, NULL) ;
 }
 
 void Fields::solve()
@@ -373,6 +417,9 @@ t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl),
             break;
         case Param::RF_QUAD:
             rf_trap();
+            break;
+        case Param::RF_HAITRAP:
+            rf_haitrap();
             break;
         case Param::RF_8PT:
             rf_8PT();
@@ -440,7 +487,7 @@ void t_grid::rf_22PT()
         double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
         double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_22pt;
         int sign = i%2==0 ? -1 : 1;
-        circle_electrode(x, y, r_rod, sign);
+        circle_electrode(x, y, r_rod, sign, FIXED_RF);
     }
 
     for(i=2;i<M-2;i++)
@@ -469,7 +516,7 @@ void t_grid::rf_8PT()
 	    if(i==0 || i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
+		voltage[i][j] = p_param->extern_field*dz*(j-N/2);
 	    }else
 	    {
 		mask[i][j] = FREE;
@@ -486,12 +533,57 @@ void t_grid::rf_8PT()
         double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
         double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
         int sign = i%2==0 ? -1 : 1;
-        circle_electrode(x, y, r_rod, sign);
+        circle_electrode(x, y, r_rod, sign, FIXED_RF);
     }
 
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)
+	{// should implement BOUNDARY for RF electrodes as well, or throw it away completely
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
+	}
+}
+void t_grid::rf_haitrap()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
 	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = p_param->extern_field*dz*(j-N/2);
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+
+    double xcenter = 1e-2;
+    double ycenter = 1e-2;
+    double r_rod = 0.01e-2;
+    double r_8pt = 0.3e-2 + r_rod;
+    int npoles = 8;
+    for(int i=0; i<npoles; i++)
+    {
+        double x = xcenter + sin(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
+        double y = ycenter + cos(2*M_PI*(i+1.0/32)/npoles)*r_8pt;
+        int sign = i%2==0 ? -1 : 1;
+        circle_electrode(x, y, r_rod, sign, FIXED_RF);
+    }
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{// should implement BOUNDARY for RF electrodes as well, or throw it away completely
 	    if( ( mask[i-1][j] == FIXED ||
 			mask[i+1][j] == FIXED ||
 			mask[i][j-1] == FIXED ||
@@ -573,10 +665,10 @@ void t_grid::rf_trap()
 	    }
 	}
 
-    circle_electrode(5e-3, 1e-2, 2e-3, 1.0);
-    circle_electrode(15e-3, 1e-2, 2e-3, 1.0);
-    circle_electrode(1e-2, 5e-3, 2e-3, -1.0);
-    circle_electrode(1e-2, 15e-3, 2e-3, -1.0);
+    circle_electrode(5e-3, 1e-2, 2e-3, 1.0, FIXED_RF);
+    circle_electrode(15e-3, 1e-2, 2e-3, 1.0, FIXED_RF);
+    circle_electrode(1e-2, 5e-3, 2e-3, -1.0, FIXED_RF);
+    circle_electrode(1e-2, 15e-3, 2e-3, -1.0, FIXED_RF);
 
     for(i=2;i<M-2;i++)
 	for(j=2;j<N-2;j++)
@@ -726,7 +818,7 @@ void t_grid::penning_trap_simple(double trap_voltage)
 	}
 }
 
-void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax, double _voltage)
+void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax, double _voltage, char mask_type)
 {
     for(int i=0; i<M; i++)
 	for(int j=0; j<N; j++)
@@ -737,13 +829,13 @@ void t_grid::square_electrode(double rmin, double rmax, double zmin, double zmax
 	    // suboptimal, but simple
 	    if(r>rmin && r<rmax && z>zmin && z<zmax) 
 	    {
-		mask[i][j] = FIXED;
+		mask[i][j] = mask_type;
 		voltage[i][j] = _voltage;
 	    }
 	}
 }
 
-void t_grid::circle_electrode(double rcenter, double zcenter, double radius, double _voltage)
+void t_grid::circle_electrode(double rcenter, double zcenter, double radius, double _voltage, char mask_type)
 {
     double sqradius = SQR(radius);
     for(int i=0; i<M; i++)
@@ -755,7 +847,7 @@ void t_grid::circle_electrode(double rcenter, double zcenter, double radius, dou
 	    // suboptimal, but simple
 	    if(SQR(r) + SQR(z) <= sqradius) 
 	    {
-		mask[i][j] = FIXED;
+		mask[i][j] = mask_type;
 		voltage[i][j] = _voltage;
 	    }
 	}

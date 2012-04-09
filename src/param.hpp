@@ -19,7 +19,7 @@ class Param
 {
     public:
         enum Boundary { FREE, PERIODIC, MIRROR };
-        enum Geometry { EMPTY, RF_22PT, RF_8PT, RF_QUAD, MAC, PENNING, PENNING_SIMPLE, TUBE };
+        enum Geometry { EMPTY, RF_22PT, RF_8PT, RF_HAITRAP, RF_QUAD, MAC, PENNING, PENNING_SIMPLE, TUBE };
         double x_max, y_max, z_max;
         int x_sampl, y_sampl, z_sampl;
         double extern_field;

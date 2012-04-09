@@ -137,6 +137,10 @@ class Pic
 
 	    dist_reset();
 	    if(param.do_plot) plot_init();
+
+            field.boundary_solve_rf();
+            // rf field has to be pre-solved for selfconsistent as well,
+            // because it will not be recalculated afterwards
 	    if(!param.selfconsistent)
 	    {
 		field.boundary_solve();

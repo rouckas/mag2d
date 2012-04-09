@@ -17,7 +17,7 @@ using namespace std;
 //#define SQR(x) ((x)*(x))
 inline double SQR(double x){return x*x;};
 
-enum {FIXED, FREE, BOUNDARY};
+enum {FIXED, FIXED_RF, FREE, BOUNDARY};
 
 
 typedef struct{
@@ -45,10 +45,11 @@ class t_grid
         void rf_trap();
         void rf_22PT();
         void rf_8PT();
+        void rf_haitrap();
         void MAC_filter();
         void empty();
-	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage);
-	void circle_electrode(double xcenter, double ycenter, double radius, double voltage);
+	void square_electrode(double rmin, double rmax, double zmin, double zmax, double voltage, char mask_type = FIXED);
+	void circle_electrode(double xcenter, double ycenter, double radius, double voltage, char mask_type = FIXED);
 	bool is_free(double r, double z) const;
 };
 class Field : public Matrix<double>
@@ -60,6 +61,7 @@ class Field : public Matrix<double>
         void resize(int x_sampl, int z_sampl, double dx, double dz, double _rmin=0, double _zmin=0);
 	inline void accumulate(double charge, double x, double y);
         inline double interpolate(double r, double z) const;
+        inline void grad(double x, double y, double &grad_x, double &grad_y) const;
         bool hasnan();
 	void print( ostream & out = cout , double factor = 1.0);
 	void print( const char * filename , double factor = 1.0);
@@ -74,12 +76,14 @@ class Fields
     public:
 	t_grid grid;
 	Field u;
+	Field uRF;
         Field uTmp;
 	Field uAvg;
 	Field rho;
 	Fields(Param &param);
 	void solve();
 	void boundary_solve();
+	void boundary_solve_rf();
 	void reset();
 	void E(double x, double y, double &grad_x, double &grad_y, double time = 0) const;
 	void B(double x, double y, double &Br, double &Bz, double &Bt) const;
@@ -165,40 +169,35 @@ inline void Fields::accumulate(double charge, double r, double z)
 }
 
 
-/*
- * vypocte gradient 2d potencialu bilinearni interpolaci
- */
-inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double time) const
+inline void Field::grad(double x, double y, double &grad_x, double &grad_y) const
 {
     int i,j;
     double g1,g2,g3,g4;
     double fx,fy;
-    double idx = p_param->idx;
-    double idz = p_param->idz;
 
     /*
      * nejprve x-ova slozka
      */
     i = (int)(x*idx+0.5);
     j = (int)(y*idz);
-    j = MIN(j,p_param->z_sampl-2);
-    if(i>0 && i<p_param->x_sampl-1)
+    j = MIN(j,lmax-2);
+    if(i>0 && i<jmax-1)
     {
 	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i-1][j])*idx;
-	g2 = (u[i][j+1]-u[i-1][j+1])*idx;
-	g3 = (u[i+1][j+1]-u[i][j+1])*idx;
-	g4 = (u[i+1][j]-u[i][j])*idx;
+	g1 = (data[i][j]-data[i-1][j])*idx;
+	g2 = (data[i][j+1]-data[i-1][j+1])*idx;
+	g3 = (data[i+1][j+1]-data[i][j+1])*idx;
+	g4 = (data[i+1][j]-data[i][j])*idx;
 
 	//interpolace
 	fx = x*idx-i+.5;
 	fy = y*idz-j;
 	grad_x = g1*(1-fx)*(1-fy) + g2*(1-fx)*fy + g3*fx*fy + g4*fx*(1-fy);
-    }else if(i==p_param->x_sampl-1)
+    }else if(i==jmax-1)
     {
 	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i-1][j])*idx;
-	g2 = (u[i][j+1]-u[i-1][j+1])*idx;
+	g1 = (data[i][j]-data[i-1][j])*idx;
+	g2 = (data[i][j+1]-data[i-1][j+1])*idx;
 
 	//interpolace
 	fy = y*idz-j;
@@ -206,8 +205,8 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
     }else if(i==0)
     {
 	//vypocet gradientu v mrizovych bodech
-	g3 = (u[i+1][j+1]-u[i][j+1])*idx;
-	g4 = (u[i+1][j]-u[i][j])*idx;
+	g3 = (data[i+1][j+1]-data[i][j+1])*idx;
+	g4 = (data[i+1][j]-data[i][j])*idx;
 
 	//interpolace
 	fy = y*idz-j;
@@ -221,7 +220,7 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
      */
     i = (int)(x*idx);
     j = (int)(y*idz+0.5);
-    i = MIN(i,p_param->x_sampl-2);
+    i = MIN(i,jmax-2);
 
 
     /*
@@ -229,23 +228,23 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
        {
        }else
        */
-    if(j>0 && j<p_param->z_sampl-1)
+    if(j>0 && j<lmax-1)
     {
 	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i][j-1])*idz;
-	g2 = (u[i+1][j]-u[i+1][j-1])*idz;
-	g3 = (u[i+1][j+1]-u[i+1][j])*idz;
-	g4 = (u[i][j+1]-u[i][j])*idz;
+	g1 = (data[i][j]-data[i][j-1])*idz;
+	g2 = (data[i+1][j]-data[i+1][j-1])*idz;
+	g3 = (data[i+1][j+1]-data[i+1][j])*idz;
+	g4 = (data[i][j+1]-data[i][j])*idz;
 
 	//interpolace
 	fx = x*idx-i;
 	fy = y*idz-j+0.5;
 	grad_y = g1*(1-fx)*(1-fy) + g2*(1-fy)*fx + g3*fx*fy + g4*fy*(1-fx);
-    }else if(j==p_param->z_sampl-1)
+    }else if(j==lmax-1)
     {
 	//vypocet gradientu v mrizovych bodech
-	g1 = (u[i][j]-u[i][j-1])*idz;
-	g2 = (u[i+1][j]-u[i+1][j-1])*idz;
+	g1 = (data[i][j]-data[i][j-1])*idz;
+	g2 = (data[i+1][j]-data[i+1][j-1])*idz;
 
 	//interpolace
 	fx = x*idx-i;
@@ -253,21 +252,32 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
     }else if(j==0)
     {
 	//vypocet gradientu v mrizovych bodech
-	g3 = (u[i+1][j+1]-u[i+1][j])*idz;
-	g4 = (u[i][j+1]-u[i][j])*idz;
+	g3 = (data[i+1][j+1]-data[i+1][j])*idz;
+	g4 = (data[i][j+1]-data[i][j])*idz;
 
 	//interpolace
 	fx = x*idx-i;
 	grad_y = g3*fx + g4*(1-fx);
     }
 
+}
+/*
+ * vypocte gradient 2d potencialu bilinearni interpolaci
+ */
+inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double time) const
+{
+    u.grad(x, y, grad_x, grad_y);
+
     if(p_param->rf)
     {
+        double grad_rf_x, grad_rf_y;
+        uRF.grad(x, y, grad_rf_x, grad_rf_y);
+
         double phase = mod(p_param->rf_omega*time, 10000000*M_PI);
         phase = p_param->rf_amplitude*cos(phase) +
             p_param->rf_U0;
-        grad_x *= phase;
-        grad_y *= phase;
+        grad_x += grad_rf_x*phase;
+        grad_y += grad_rf_y*phase;
     }
 
 }
