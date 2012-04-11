@@ -38,13 +38,11 @@ class TrackedParticle
 {
     public:
         TrackedParticle(BaseSpecies *_species, unsigned int _index, Param &param);
-        void print()
-        {
-            fw << setprecision(10) << pp->x <<' ' << pp->z <<' '<< pp->vx <<' '<< pp->vz <<' '<< pp->vy <<endl;
-        }
+        void print();
     private:
+        BaseSpecies * species;
+        unsigned int index;
         ofstream fw;
-        t_particle *pp;
 };
 
 

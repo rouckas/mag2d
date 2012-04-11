@@ -2,12 +2,18 @@
 #include <tr1/cmath>
 
 
-TrackedParticle::TrackedParticle(BaseSpecies *species, unsigned int index, Param &param) :
-    pp(&(species->particles[index]))
+TrackedParticle::TrackedParticle(BaseSpecies *_species, unsigned int _index, Param &param) :
+    species(_species), index(_index)
 {
     string fname = param.output_dir + "/" + species->name
         + "_traj_" + int2string(index) + ".dat";
     fw.open(fname.c_str());
+};
+void TrackedParticle::print()
+{
+    // cannot store particle pointer directly, because it chanes during particles.resize()
+    t_particle * pp = &(species->particles[index]);
+    fw << setprecision(10) << pp->x <<' ' << pp->z <<' '<< pp->vx <<' '<< pp->vz <<' '<< pp->vy <<endl;
 };
 
 double Interaction::coulomb_sigma(double E)
