@@ -8,6 +8,7 @@
 #include <cmath>
 #include <string>
 #include "fields.hpp"
+#include "Field2D.hpp"
 #include "param.hpp"
 #include "histogram.hpp"
 #include "random.cpp"
@@ -127,7 +128,7 @@ class BaseSpecies
 	double EeV(double v) { return 0.5*mass*v*v/(p_param->q_e); }
 	double veV(double EeV) { return sqrt(EeV*(p_param->q_e)/mass*2.0); }
 	void set_pressure(double pa){ density = pa/(p_param->k_B*temperature);}
-	Field rho;
+	Field2D rho;
 	void accumulate();
 
 
@@ -143,7 +144,7 @@ class BaseSpecies
 	double probe_current;
         double probe_charge;
 	double probe_current_avg;
-	Field rhoAverage;
+	Field2D rhoAverage;
 	int nsampl;
 	double probe_current_sum;
 
@@ -162,7 +163,7 @@ class BaseSpecies
             density(params->density),
             dt(params->dt),
             t(0),
-            rho(param),
+            rho(param.x_sampl, param.z_sampl, param.dx, param.dz),
             energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
             source_energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
             probe_energy_dist(100,0.0,temperature*param.k_B/param.q_e*20.0),
@@ -170,7 +171,7 @@ class BaseSpecies
             probe_angular_normalized_dist(30,0.0,M_PI*0.5),
             probe_current(0),
             probe_charge(0),
-            rhoAverage(param),
+            rhoAverage(param.x_sampl, param.z_sampl, param.dx, param.dz),
             nsampl(0)
 
         {

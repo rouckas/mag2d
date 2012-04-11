@@ -22,8 +22,8 @@ OPENMP=-fopenmp
 
 SOURCES = Makefile random.cpp tabulate.cpp input.cpp pic.cpp param.cpp output.cpp matrix.cpp timer.hpp
 
-OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o parser.o
-OBJ3D = fields3d.o species3d.o
+OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o parser.o Field2D.o
+OBJ3D = Field3D.o fields3d.o species3d.o
 
 plasma2d: test.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/test.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 

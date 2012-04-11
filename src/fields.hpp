@@ -6,7 +6,7 @@
 
 
 #include "param.hpp"
-#include "matrix.cpp"
+#include "Field2D.hpp"
 #include "util.cpp"
 #include "mymath.cpp"
 #include <sstream>
@@ -33,9 +33,9 @@ class t_grid
 	int M;
 	int N;
 	double dx,dz;
-	Matrix<char> mask;
-	Matrix<t_umf_metrika> metrika;
-	Matrix<double> voltage;
+	Array2D<char> mask;
+	Array2D<t_umf_metrika> metrika;
+	Array2D<double> voltage;
 	t_grid(Param &param);
 	Param *p_param;
         void penning_trap();
@@ -52,34 +52,17 @@ class t_grid
 	void circle_electrode(double xcenter, double ycenter, double radius, double voltage, char mask_type = FIXED);
 	bool is_free(double r, double z) const;
 };
-class Field : public Matrix<double>
-{
-    public:
-	Field(Param &param) : Matrix<double>(param.x_sampl, param.z_sampl),
-            idx(param.idx), idz(param.idz), rmin(0), zmin(0) {};
-        Field() : Matrix<double>(), idx(0), idz(0), rmin(0), zmin(0) {};
-        void resize(int x_sampl, int z_sampl, double dx, double dz, double _rmin=0, double _zmin=0);
-	inline void accumulate(double charge, double x, double y);
-        inline double interpolate(double r, double z) const;
-        inline void grad(double x, double y, double &grad_x, double &grad_y) const;
-        bool hasnan();
-	void print( ostream & out = cout , double factor = 1.0);
-	void print( const char * filename , double factor = 1.0);
-    private:
-	double idx, idz;
-        double rmin, zmin;
-};
 
 class Fields
 //stara se o reseni Poissonovy rce na danem gridu
 {
     public:
 	t_grid grid;
-	Field u;
-	Field uRF;
-        Field uTmp;
-	Field uAvg;
-	Field rho;
+	Field2D u;
+	Field2D uRF;
+        Field2D uTmp;
+	Field2D uAvg;
+	Field2D rho;
 	Fields(Param &param);
 	void solve();
 	void boundary_solve();
@@ -91,7 +74,7 @@ class Fields
 	inline void accumulate(double charge, double x, double y);
 	~Fields();
     private:
-        Field Br, Bz;
+        Field2D Br, Bz;
 	double idx, idz;
 	Param *p_param;
 	int *Ap;
@@ -116,40 +99,6 @@ inline bool t_grid::is_free(double r, double z) const
     else return false;
 }
 
-inline void Field::accumulate(double charge, double r, double z)
-{
-    r -= rmin;
-    z -= zmin;
-    int i = (int)(r * idx);
-    int j = (int)(z * idz);
-
-    double u = r*idx - i;
-    double v = z*idz - j;
-
-    if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
-	throw std::runtime_error("Field::accumulate() outside of range\n");
-    data[i][j] += (1-u)*(1-v)*charge;
-    data[i+1][j] += u*(1-v)*charge;
-    data[i][j+1] += (1-u)*v*charge;
-    data[i+1][j+1] += u*v*charge;
-
-}
-
-inline double Field::interpolate(double r, double z) const
-{
-    r -= rmin;
-    z -= zmin;
-    int i = (int)(r * idx);
-    int j = (int)(z * idz);
-
-    double u = r*idx - i;
-    double v = z*idz - j;
-
-    if(i<0 || i>jmax-1 || j<0 || j>lmax-1)
-	throw std::runtime_error("Field::interpolate() outside of range\n");
-
-    return (1-u)*(1-v)*data[i][j] + u*(1-v)*data[i+1][j] + (1-u)*v*data[i][j+1] + u*v*data[i+1][j+1];
-}
 
 inline void Fields::accumulate(double charge, double r, double z)
 {
@@ -168,99 +117,6 @@ inline void Fields::accumulate(double charge, double r, double z)
 
 }
 
-
-inline void Field::grad(double x, double y, double &grad_x, double &grad_y) const
-{
-    int i,j;
-    double g1,g2,g3,g4;
-    double fx,fy;
-
-    /*
-     * nejprve x-ova slozka
-     */
-    i = (int)(x*idx+0.5);
-    j = (int)(y*idz);
-    j = MIN(j,lmax-2);
-    if(i>0 && i<jmax-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (data[i][j]-data[i-1][j])*idx;
-	g2 = (data[i][j+1]-data[i-1][j+1])*idx;
-	g3 = (data[i+1][j+1]-data[i][j+1])*idx;
-	g4 = (data[i+1][j]-data[i][j])*idx;
-
-	//interpolace
-	fx = x*idx-i+.5;
-	fy = y*idz-j;
-	grad_x = g1*(1-fx)*(1-fy) + g2*(1-fx)*fy + g3*fx*fy + g4*fx*(1-fy);
-    }else if(i==jmax-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (data[i][j]-data[i-1][j])*idx;
-	g2 = (data[i][j+1]-data[i-1][j+1])*idx;
-
-	//interpolace
-	fy = y*idz-j;
-	grad_x = g1*(1-fy) + g2*fy;
-    }else if(i==0)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g3 = (data[i+1][j+1]-data[i][j+1])*idx;
-	g4 = (data[i+1][j]-data[i][j])*idx;
-
-	//interpolace
-	fy = y*idz-j;
-	grad_x = g3*fy + g4*(1-fy);
-    }
-
-
-
-    /*
-     * ted y-ova slozka
-     */
-    i = (int)(x*idx);
-    j = (int)(y*idz+0.5);
-    i = MIN(i,jmax-2);
-
-
-    /*
-       =if(pot_mask[i][j]==OKRAJ || pot_mask[i][j+1]==OKRAJ)
-       {
-       }else
-       */
-    if(j>0 && j<lmax-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (data[i][j]-data[i][j-1])*idz;
-	g2 = (data[i+1][j]-data[i+1][j-1])*idz;
-	g3 = (data[i+1][j+1]-data[i+1][j])*idz;
-	g4 = (data[i][j+1]-data[i][j])*idz;
-
-	//interpolace
-	fx = x*idx-i;
-	fy = y*idz-j+0.5;
-	grad_y = g1*(1-fx)*(1-fy) + g2*(1-fy)*fx + g3*fx*fy + g4*fy*(1-fx);
-    }else if(j==lmax-1)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g1 = (data[i][j]-data[i][j-1])*idz;
-	g2 = (data[i+1][j]-data[i+1][j-1])*idz;
-
-	//interpolace
-	fx = x*idx-i;
-	grad_y = g1*(1-fx) + g2*fx;
-    }else if(j==0)
-    {
-	//vypocet gradientu v mrizovych bodech
-	g3 = (data[i+1][j+1]-data[i+1][j])*idz;
-	g4 = (data[i][j+1]-data[i][j])*idz;
-
-	//interpolace
-	fx = x*idx-i;
-	grad_y = g3*fx + g4*(1-fx);
-    }
-
-}
 /*
  * vypocte gradient 2d potencialu bilinearni interpolaci
  */

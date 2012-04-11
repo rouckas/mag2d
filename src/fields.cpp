@@ -2,41 +2,6 @@
 #include <suitesparse/umfpack.h>
 #include "fields.hpp"
 
-/*
- *********************** definitions for Field ********************************
- */
-void Field::resize(int x_sampl, int z_sampl, double dx, double dz, double _rmin, double _zmin)
-{
-    idx = 1.0/dx, idz = 1.0/dz;
-    rmin = _rmin, zmin = _zmin;
-    Matrix<double>::resize(x_sampl, z_sampl);
-}
-
-bool Field::hasnan()
-{
-    for(int j=0; j<jmax; j++)
-        for(int l=0; l<lmax; l++)
-            if(isnan(data[j][l]))
-                return true;
-    return false;
-}
-
-void Field::print( ostream & out , double factor)
-{
-    double dx=1.0/idx, dz=1.0/idz;
-    for(int j=0; j<jmax; j++)
-    {
-        for(int l=0; l<lmax; l++)
-            out << j*dx <<"\t"<< l*dz <<"\t"<< data[j][l]*factor <<endl;
-        out << endl;
-    }
-}
-
-void Field::print( const char * filename , double factor)
-{
-    ofstream out(filename);
-    print(out, factor);
-}
 
 
 /*
@@ -137,7 +102,13 @@ void Fields::u_smooth()
 
 }
 
-Fields::Fields(Param &param) : grid(param), u(param), uRF(param), uTmp(param), uAvg(param), rho(param), nsampl(0)
+Fields::Fields(Param &param) : grid(param),
+    u(param.x_sampl, param.z_sampl, param.dx, param.dz),
+    uRF(param.x_sampl, param.z_sampl, param.dx, param.dz),
+    uTmp(param.x_sampl, param.z_sampl, param.dx, param.dz),
+    uAvg(param.x_sampl, param.z_sampl, param.dx, param.dz),
+    rho(param.x_sampl, param.z_sampl, param.dx, param.dz),
+    nsampl(0)
 {
     //if(param.selfconsistent == false)
 //	return;

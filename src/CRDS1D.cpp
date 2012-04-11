@@ -11,7 +11,7 @@
 #include <boost/filesystem.hpp>
 #include <string>
 #include "output.cpp"
-#include "fields1d.hpp"
+#include "Field1D.hpp"
 using namespace std;
 namespace fs = boost::filesystem;
 
