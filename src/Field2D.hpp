@@ -76,6 +76,8 @@ inline void Field2D::grad(double x, double y, double &grad_x, double &grad_y) co
     double g1,g2,g3,g4;
     double fx,fy;
 
+    x -= xmin;
+    y -= ymin;
     /*
      * nejprve x-ova slozka
      */
