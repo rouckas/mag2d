@@ -25,60 +25,70 @@ void Fields::u_print(const char * fname)
     uAvg.print(fname,1.0/nsampl);
 }
 
-void Fields::u_smooth()
+void Fields::u_smooth(bool symmetry, double radius, Field2D * field)
 {
-    int ic = u.jmax-1;
-    int jc = u.lmax-1;
-    if(ic != jc)
-        throw std::runtime_error("Fields::u_smooth: smoothing of non-square matrix not implemented\n");
+    if(field == NULL)
+        field = &u;
 
+    double ** pu = field->data;
 
-    // this averages the symmetrical points in rotationally symetric
-    // geometry on a square cartesian grid
-    for(int i=0; i<=ic/2; i++)
-        for(int j=0; j<=i; j++)
-        {
-            double sum = 0;
+    int ic = field->jmax-1;
+    int jc = field->lmax-1;
 
-            //calculate the average
-            sum += u[i][j];
-            sum += u[ic-i][j];
-            sum += u[i][jc-j];
-            sum += u[ic-i][jc-j];
-            sum += u[jc-j][ic-i];
-            sum += u[j][i];
-            sum += u[jc-j][i];
-            sum += u[j][ic-i];
-            sum /= 8.0;
+    if(symmetry)
+    {
+        if(ic != jc)
+            throw std::runtime_error(
+                    "Fields::u_smooth: smoothing of non-square matrix not implemented\n");
 
-            //assign to corresponding cells
-            u[i][j] = sum;
-            u[ic-i][j] = sum;
-            u[i][jc-j] = sum;
-            u[ic-i][jc-j] = sum;
-            u[jc-j][ic-i] = sum;
-            u[j][i] = sum;
-            u[jc-j][i] = sum;
-            u[j][ic-i] = sum;
-        }
+        // this averages the symmetrical points in rotationally symetric
+        // geometry on a square cartesian grid
+        for(int i=0; i<=ic/2; i++)
+            for(int j=0; j<=i; j++)
+            {
+                double sum = 0;
+
+                //calculate the average
+                sum += pu[i][j];
+                sum += pu[ic-i][j];
+                sum += pu[i][jc-j];
+                sum += pu[ic-i][jc-j];
+                sum += pu[jc-j][ic-i];
+                sum += pu[j][i];
+                sum += pu[jc-j][i];
+                sum += pu[j][ic-i];
+                sum /= 8.0;
+
+                //assign to corresponding cells
+                pu[i][j] = sum;
+                pu[ic-i][j] = sum;
+                pu[i][jc-j] = sum;
+                pu[ic-i][jc-j] = sum;
+                pu[jc-j][ic-i] = sum;
+                pu[j][i] = sum;
+                pu[jc-j][i] = sum;
+                pu[j][ic-i] = sum;
+            }
+    }
     // TODO remove this magic constant :)
-    double radius = p_param->probe_radius;
+    //double radius = p_param->probe_radius;
 
     // avoid smoothing of the boundary region with sharp gradients
-    radius -= 2.0*p_param->dx;
+    //radius -= 2.0*p_param->dx;
 
     // precalculate something ;)
-    radius = sqr(radius/p_param->dx);
+    if(radius>0)
+        radius = sqr(radius/p_param->dx);
 
-    uTmp.assign(u);
+    uTmp.assign(*field);
 
     double icf = ic/2.0;
     double jcf = jc/2.0;
-    for(int i=0; i<=ic; i++)
-        for(int j=0; j<=jc; j++)
+    for(int i=1; i<field->jmax-1; i++)
+        for(int j=1; j<=field->lmax-1; j++)
         {
             double r = sqr(i-icf) + sqr(j-jcf);
-            if(r > radius) continue;
+            if(radius > 0 && r > radius) continue;
 
             // use the HCIC smoothing scheme of Hockney 1971 ?
             // http://dx.doi.org/10.1016/0021-9991(71)90032-5
@@ -97,7 +107,7 @@ void Fields::u_smooth()
                 uTmp[i-1][j+1]*0.25 +
                 uTmp[i+1][j+1]*0.25;
 
-            u[i][j] = sum/4.0;
+            pu[i][j] = sum/4.0;
         }
 
 }

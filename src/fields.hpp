@@ -85,7 +85,7 @@ class Fields
 	void u_sample();
 	void u_reset();
 	void u_print(const char * fname);
-        void u_smooth();
+        void u_smooth(bool symmetry = 0, double radius = -1., Field2D * field = NULL);
     private:
 	int nsampl;
 };
