@@ -66,8 +66,8 @@ void Field2D::load(const char * filename)
         }
     }
 
-    //find dx, xmin, rmax
-    double dx=0, xmin=xvec[0], rmax=xvec[xvec.size()-1];
+    //find dx, xmin, xmax
+    double dx=0, xmin=xvec[0], xmax=xvec[xvec.size()-1];
     unsigned int i=1;
     while(i<xvec.size() && xvec[i]-xvec[i-1] == 0.0)
         i++;
@@ -76,13 +76,14 @@ void Field2D::load(const char * filename)
     {
         dx = -dx;
         xmin = xvec[xvec.size()-1];
-        rmax = xvec[0];
+        xmax = xvec[0];
     }
-    double xsampl_d = (rmax-xmin)/dx+1;
-    unsigned int xsampl = double2int(xsampl_d);
+    double xsampl_d = (xmax-xmin)/dx+1;
+    unsigned int xsampl = double2int(xsampl_d, 1e-1);
+    // XXX think about recalculating dx based on double2int conversion
 
-    //find dy, ymin, zmax
-    double dy=0, ymin=yvec[0], zmax=yvec[xvec.size()-1];
+    //find dy, ymin, ymax
+    double dy=0, ymin=yvec[0], ymax=yvec[xvec.size()-1];
     i = 1;
     while(i<yvec.size() && yvec[i]-yvec[i-1] == 0.0)
         i++;
@@ -91,14 +92,14 @@ void Field2D::load(const char * filename)
     {
         dy = -dy;
         ymin = yvec[yvec.size()-1];
-        zmax = yvec[0];
+        ymax = yvec[0];
     }
-    double ysampl_d = (zmax-ymin)/dy+1;
-    unsigned int ysampl = double2int(ysampl_d);
+    double ysampl_d = (ymax-ymin)/dy+1;
+    unsigned int ysampl = double2int(ysampl_d, 1e-1);
 #ifdef DEBUG
     cout << "xvec.size " << xvec.size() <<endl;
-    cout << "xmin = " << xmin <<"  rmax = "<< rmax <<"  dx = "<<dx <<"  xsampl = "<<xsampl<<endl;
-    cout << "ymin = " << ymin <<"  zmax = "<< zmax <<"  dy = "<<dy <<"  ysampl = "<<ysampl <<endl;
+    cout << "xmin = " << xmin <<"  xmax = "<< xmax <<"  dx = "<<dx <<"  xsampl = "<<xsampl<<endl;
+    cout << "ymin = " << ymin <<"  ymax = "<< ymax <<"  dy = "<<dy <<"  ysampl = "<<ysampl <<endl;
 #endif
     if(xsampl*ysampl != xvec.size())
         throw std::runtime_error("Fields::load_magnetic_field() wrong size of input vector");
@@ -112,8 +113,8 @@ void Field2D::load(const char * filename)
     int xi, yi;
     for(i=0; i<xvec.size(); i++)
     {
-        xi = double2int((xvec[i]-xmin)/dx);
-        yi = double2int((yvec[i]-ymin)/dy);
+        xi = double2int((xvec[i]-xmin)/dx, 1e-1);
+        yi = double2int((yvec[i]-ymin)/dy, 1e-1);
         data[xi][yi] = fvec[i];
     }
 
