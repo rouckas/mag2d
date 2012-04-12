@@ -58,7 +58,8 @@ class Speclist
                 while(j<data.size() && vi[i]->primary != data[j]->name)
                     j++;
                 if(j== data.size())
-                    throw runtime_error("Speclist::Speclist: unrecognized primary species \"" + vi[i]->primary + "\" of interaction \"" + vi[i]->name + "\"\n");
+                    throw runtime_error("Speclist::Speclist: unrecognized primary species \""
+                            + vi[i]->primary + "\" of interaction \"" + vi[i]->name + "\"\n");
                 pi->primary = data[j];
                 data[j]->interactions.push_back(pi);
 
@@ -67,7 +68,8 @@ class Speclist
                 while(k<data.size() && vi[i]->secondary != data[k]->name)
                     k++;
                 if(k== data.size())
-                    throw runtime_error("Speclist::Speclist: unrecognized primary species \"" + vi[i]->secondary + "\" of interaction \"" + vi[i]->name + "\"\n");
+                    throw runtime_error("Speclist::Speclist: unrecognized primary species \""
+                            + vi[i]->secondary + "\" of interaction \"" + vi[i]->name + "\"\n");
                 pi->secondary = data[k];
                 data[j]->interactions_by_species[k].push_back(pi);
             }
@@ -114,7 +116,8 @@ class Pic
 	t_random rnd;
         Speclist<D> speclist;
 	unsigned long int iter;
-	Pic(Param & _param) : param(_param), field(param), speclist(_param.species_conf_file, _param, rnd, field), iter(0)
+	Pic(Param & _param) : param(_param), field(param),
+            speclist(_param.species_conf_file, _param, rnd, field), iter(0)
 	{
 	    field.reset();
 
@@ -128,8 +131,10 @@ class Pic
 		for(size_t ii=0; ii<speclist.size(); ii++)
 		    if( speclist[ii]->particle )
 		    {
-			speclist[ii]->load(param.particle_reload_dir + "/particles_" + speclist[ii]->name + ".dat");
-			speclist[ii]->source5_load(param.particle_reload_dir + "/particles_source_" + speclist[ii]->name + ".dat");
+			speclist[ii]->load(param.particle_reload_dir +
+                                "/particles_" + speclist[ii]->name + ".dat");
+			speclist[ii]->source5_load(param.particle_reload_dir +
+                                "/particles_source_" + speclist[ii]->name + ".dat");
 		    }
 
             if(!param.magnetic_field_const)
@@ -171,39 +176,47 @@ class Pic
                 {
                     if(toks.size() != 6)
                         throw runtime_error("Pic::run_initscript: wrong number of" +
-                               string(" parameters (") + int2string(toks.size()) + ") to " + toks[0] + "\n");
+                               string(" parameters (") + int2string(toks.size())
+                               + ") to " + toks[0] + "\n");
                     if(string2speciestype.find(toks[1])==string2speciestype.end())
-                        throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \""
+                                + toks[1] + "\"\n");
                     SpeciesType species = string2speciestype[toks[1]];
                     int nparticles = string2<int>(toks[2]);
                     double centerx = string2<double>(toks[3]);
                     double centery = string2<double>(toks[4]);
                     double radius = string2<double>(toks[5]);
                     speclist[species]->add_particles_bessel(nparticles, centerx, centery, radius);
-                    cout << speclist[species]->name <<" add bessel " <<centerx<<" "<< centery<<" "<<radius<< "\n";
+                    cout << speclist[species]->name <<" add bessel "
+                        <<centerx<<" "<< centery<<" "<<radius<< "\n";
                 }
                 if(toks[0] == "add_particles_on_disk")
                 {
                     if(toks.size() != 6)
                         throw runtime_error("Pic::run_initscript: wrong number of" +
-                               string(" parameters (") + int2string(toks.size()) + ") to " + toks[0] + "\n");
+                               string(" parameters (") + int2string(toks.size())
+                               + ") to " + toks[0] + "\n");
                     if(string2speciestype.find(toks[1])==string2speciestype.end())
-                        throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \""
+                                + toks[1] + "\"\n");
                     SpeciesType species = string2speciestype[toks[1]];
                     int nparticles = string2<int>(toks[2]);
                     double centerx = string2<double>(toks[3]);
                     double centery = string2<double>(toks[4]);
                     double radius = string2<double>(toks[5]);
                     speclist[species]->add_particles_on_disk(nparticles, centerx, centery, radius);
-                    cout << speclist[species]->name <<" add on disk " <<centerx<<" "<< centery<<" "<<radius<< "\n";
+                    cout << speclist[species]->name <<" add on disk "
+                        <<centerx<<" "<< centery<<" "<<radius<< "\n";
                 }
                 else if(toks[0] == "add_tracked_particle")
                 {
                     if(toks.size() != 7)
                         throw runtime_error("Pic::run_initscript: wrong number of" +
-                               string(" parameters (") + int2string(toks.size()) + ") to " + toks[0] + "\n");
+                               string(" parameters (") + int2string(toks.size())
+                               + ") to " + toks[0] + "\n");
                     if(string2speciestype.find(toks[1])==string2speciestype.end())
-                        throw runtime_error("Pic::run_initscript: unrecognized species type \"" + toks[1] + "\"\n");
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \""
+                                + toks[1] + "\"\n");
                     SpeciesType species = string2speciestype[toks[1]];
                     double x = string2<double>(toks[2]);
                     double y = string2<double>(toks[3]);
@@ -211,7 +224,8 @@ class Pic
                     double vy = string2<double>(toks[5]);
                     double vz = string2<double>(toks[6]);
                     speclist[species]->add_tracked_particle(x, y, vx, vy, vz);
-                    cout << speclist[species]->name <<" add tracked particle " <<x<<" "<< y<<" "<<" "<<vx<<" "<<vy<<" "<<vz<<endl;
+                    cout << speclist[species]->name <<" add tracked particle "
+                        <<x<<" "<< y<<" "<<" "<<vx<<" "<<vy<<" "<<vz<<endl;
                 }
             }
 
@@ -327,8 +341,10 @@ class Pic
 	    for(size_t ii=0; ii<speclist.size(); ii++)
 		if( speclist[ii]->particle )
 		{
-		    speclist[ii]->save(param.output_dir + "/particles_" + speclist[ii]->name + ".dat");
-		    speclist[ii]->source5_save(param.output_dir + "/particles_source_" + speclist[ii]->name + ".dat");
+		    speclist[ii]->save(param.output_dir + "/particles_"
+                            + speclist[ii]->name + ".dat");
+		    speclist[ii]->source5_save(param.output_dir + "/particles_source_"
+                            + speclist[ii]->name + ".dat");
 		}
 	};
 
@@ -374,7 +390,8 @@ class Pic
 	    for(size_t i=0; i<speclist.size(); i++)
 		if( speclist[i]->particle &&
 			speclist[i]->particles.size() > 0)
-		    gnuplot_plot_x(h2, &(speclist[i]->energy_dist[0]), speclist[i]->energy_dist.N_hist(),speclist[i]->name.c_str());
+		    gnuplot_plot_x(h2, &(speclist[i]->energy_dist[0]),
+                            speclist[i]->energy_dist.N_hist(),speclist[i]->name.c_str());
 	    //gnuplot_plot_x(h2, &(species_list[O_NEG]->source_energy_dist[0]), 
 		    //species_list[O_NEG]->source_energy_dist.N_hist(),(species_list[O_NEG]->name + "source").c_str());
 		usleep(100);
