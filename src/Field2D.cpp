@@ -13,6 +13,11 @@ void Field2D::resize(int x_sampl, int y_sampl, double _dx, double _dy, double _x
     Array2D<double>::resize(x_sampl, y_sampl);
 }
 
+void Field2D::resize(Field2D & f)
+{
+    resize(f.jmax, f.lmax, f.GetDx(), f.GetDy(), f.GetXMin(), f.GetYMin());
+}
+
 bool Field2D::hasnan()
 {
     for(int j=0; j<jmax; j++)

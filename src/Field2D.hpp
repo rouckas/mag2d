@@ -19,6 +19,7 @@ class Field2D : public Array2D<double>
             idx(1./dx), idy(1./dy), xmin(_xmin), ymin(_ymin) {};
         Field2D() : Array2D<double>(), idx(0), idy(0), xmin(0), ymin(0) {};
         void resize(int x_sampl, int z_sampl, double dx, double dz, double _xmin=0, double _ymin=0);
+        void resize(Field2D & f);
 	inline void accumulate(double charge, double x, double y);
         inline double interpolate(double r, double z) const;
         inline void grad(double x, double y, double &grad_x, double &grad_y) const;
@@ -28,6 +29,12 @@ class Field2D : public Array2D<double>
 	void print( ostream & out = std::cout , double factor = 1.0);
 	void print( const char * filename , double factor = 1.0);
 	void load( const char * filename);
+        double GetDx() { return dx;}
+        double GetDy() { return dy;}
+        double GetXMin() { return xmin;}
+        double GetYMin() { return ymin;}
+        double GetXMax() { return xmin + (jmax-1)*dx;}
+        double GetYMax() { return ymin + (lmax-1)*dy;}
     private:
         double dx, dy;
 	double idx, idy;
