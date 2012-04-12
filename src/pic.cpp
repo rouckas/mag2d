@@ -143,14 +143,41 @@ class Pic
 	    dist_reset();
 	    if(param.do_plot) plot_init();
 
-            field.boundary_solve_rf();
-            // rf field has to be pre-solved for selfconsistent as well,
-            // because it will not be recalculated afterwards
-	    if(!param.selfconsistent)
-	    {
-		field.boundary_solve();
-		field.reset();
-	    }
+            if(param.electric_field_from_file)
+            {
+                field.u.load(param.electric_field_static_file.c_str());
+                if(param.rf)
+                    field.uRF.load(param.electric_field_rf_file.c_str());
+
+                // we have to modify all fields to match the field loaded from file
+                field.uAvg.resize(field.u);
+                field.uTmp.resize(field.u);
+                field.rho.resize(field.u);
+                // XXX this is a mess, i should probably modify the values
+                // in Param, but lot of stuff depends on it....
+                // lets try it..
+                param.x_max = field.u.GetXMax();
+                param.x_min = field.u.GetXMin();
+                // careful that z is the second coord
+                param.z_max = field.u.GetYMax();
+                param.z_min = field.u.GetYMin();
+		for(size_t ii=0; ii<speclist.size(); ii++)
+                {
+                    speclist[ii]->rho.resize(field.u);
+                    speclist[ii]->rhoAverage.resize(field.u);
+                }
+            }
+            else
+            {
+                field.boundary_solve_rf();
+                // rf field has to be pre-solved for selfconsistent as well,
+                // because it will not be recalculated afterwards
+                if(!param.selfconsistent)
+                {
+                    field.boundary_solve();
+                    field.reset();
+                }
+            }
 	};
 	~Pic()
 	{

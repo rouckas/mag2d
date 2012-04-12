@@ -76,10 +76,11 @@ void BaseSpecies::load(const string filename)
         if(!fr.good()) cerr << "Species::load(): read error\n";
         // map particles back to working area if they left it during previous
         // nonselfconsistent simulation
-        if(particles[i].x < 0 || particles[i].x > p_param->x_max)
-            particles[i].x = p_param->x_max * rnd->uni();
-        if(particles[i].z < 0 || particles[i].z > p_param->z_max)
-            particles[i].z = p_param->z_max * rnd->uni();
+        cerr << "warning: BaseSpecies::load() needs testing x_min != 0\n";
+        if(particles[i].x < p_param->x_min || particles[i].x > p_param->x_max)
+            particles[i].x = (p_param->x_max - p_param->x_min) * rnd->uni() + p_param->x_min;
+        if(particles[i].z < p_param->z_min || particles[i].z > p_param->z_max)
+            particles[i].z = (p_param->z_max - p_param->z_min) * rnd->uni() + p_param->z_min;
     }
 
     empty.resize(0);
@@ -611,9 +612,9 @@ void Species<CARTESIAN>::add_particles_everywhere(int nparticles)
     for(int i=0; i<nparticles; i++)
     {
         int ii = insert();
-        particles[ii].x = p_param->x_max*(rnd->uni());
-        particles[ii].y = p_param->y_max*(rnd->uni());
-        particles[ii].z = p_param->z_max*(rnd->uni());
+        particles[ii].x = (p_param->x_max - p_param->x_min)*(rnd->uni()) + p_param->x_min;
+        particles[ii].y = (p_param->y_max - p_param->y_min)*(rnd->uni()) + p_param->y_min;
+        particles[ii].z = (p_param->z_max - p_param->z_min)*(rnd->uni()) + p_param->z_min;
         particles[ii].vx = rnd->rnor()*v_max/(M_SQRT2);
         particles[ii].vy = rnd->rnor()*v_max/(M_SQRT2);
         particles[ii].vz = rnd->rnor()*v_max/(M_SQRT2);
@@ -636,7 +637,8 @@ void Species<CARTESIAN>::add_particles_bessel(int nparticles, double centerx, do
         }while(r > 1.0 || rnd->uni() > std::tr1::cyl_bessel_j(0, r*bessel_root));
         x = x*radius + centerx;
         y = y*radius + centery;
-        if(x < 0 || x > p_param->x_max || y < 0 || y > p_param->z_max) continue;
+        if(x < p_param->x_min || x > p_param->x_max ||
+                y < p_param->z_min || y > p_param->z_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -657,7 +659,8 @@ void Species<CARTESIAN>::add_particles_on_disk(int nparticles, double centerx, d
         }while(SQR(x) + SQR(y) > 0.25 );
         x = x*2*radius + centerx;
         y = y*2*radius + centery;
-        if(x < 0 || x > p_param->x_max || y < 0 || y > p_param->z_max) continue;
+        if(x < p_param->x_min || x > p_param->x_max ||
+                y < p_param->z_min || y > p_param->z_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -678,7 +681,8 @@ void Species<CARTESIAN>::add_particle_beam_on_disk(int nparticles, double center
         }while(SQR(x) + SQR(y) > 0.25 );
         x = x*2*radius + centerx;
         y = y*2*radius + centery;
-        if(x < 0 || x > p_param->x_max || y < 0 || y > p_param->z_max) continue;
+        if(x < p_param->x_min || x > p_param->x_max ||
+                y < p_param->z_min || y > p_param->z_max) continue;
 
         int ii = insert();
         t_particle * pp = &(particles[ii]);
@@ -755,8 +759,8 @@ void Species<CARTESIAN>::advance()
 
         //if(p_param->selfconsistent)
         //{
-        if(I->x > p_param->x_max || I->x < 0
-                || I->z > p_param->z_max || I->z < 0 )
+        if(I->x < p_param->x_min || I->x > p_param->x_max ||
+                I->z < p_param->z_min || I->z > p_param->z_max)
         {
             if(p_param->boundary == Param::FREE)
             {
@@ -772,10 +776,13 @@ void Species<CARTESIAN>::advance()
             }
 
         }
-        if(!field->grid.is_free(I->x, I->z))
+        if(!p_param->electric_field_from_file)
         {
-            remove(I);
-            continue;
+            if(!field->grid.is_free(I->x, I->z))
+            {
+                remove(I);
+                continue;
+            }
         }
 
         /**

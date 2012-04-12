@@ -1,0 +1,95 @@
+# sample config file for plasma2d
+# comments start with #
+
+# coordinate system
+coord = CARTESIAN
+
+#boundary condition FREE or PERIODIC
+boundary = FREE
+
+# experiment geometry RF_22PT, RF_8PT, EMPTY...
+geometry = RF_HAITRAP
+
+# probe voltage
+u_probe =  0.0		#[V]
+
+# rf trap amplitude
+rf_amplitude = 180.0     #[V]
+
+# DC difference
+# between poles / 2
+rf_U0 = 0.0             #[V]
+
+#RF trap ?
+rf = 1
+
+#RF trap frequency
+rf_freq = 7e6
+
+# probe dimensions
+probe_radius = 1e-4		#[m]
+probe_length = 1e-2		#[m]
+
+# detect particles?
+has_probe = 1
+
+# x component of external field
+# this is actualll used in the haitrap simulation
+extern_field = 100.0		#[V/m]
+
+# load electric field from file ?
+electric_field_from_file = 1
+electric_field_rf_file = data/potAC-crop-asym-std.txt
+electric_field_static_file = data/potDC-crop-asym-std.txt
+
+#magnetic field
+#magnetic_field_file = MagPole.txt
+magnetic_field_const = 1
+Bt = 0.00
+
+# total number of particles in simulation
+n_particles_total = 40000
+macroparticle_factor = 1
+
+# mesh dimension
+x_sampl = 200
+y_sampl = 200
+z_sampl = 200
+
+# working area dimension
+r_max = 2e-2	#[m]
+z_max = 2e-2	#[m]
+
+# number of timesteps
+niter = 300000
+
+# the factor by which the source area is smaller
+# than working area, positive integer
+src_fact = 4
+
+# one for selfconsistent simulation, 0 for simulation
+# in constant homogenous extern_field
+selfconsistent = 0
+
+# simulation state is printed each t_print timesteps
+t_print = 2000
+
+# distributions of particles and electric potential are
+# printed each t_print_dist timesteps (expensive operations)
+t_print_dist = 10000
+
+# after t_equilib timesteps the results are averaged
+t_equilib = 200000
+
+# obvious
+do_plot = 0
+
+# if particle_reload==1 simulation state is reloaded
+# from directory particle reload_dir
+particle_reload = 0
+particle_reload_dir = 1e-10s
+
+# method of advancing particles, possible
+# values are 
+# ADVANCE2, ADVANCE2_EULER, ADVANCE_OLD, ADVANCE_PROB
+advancer = ADVANCE2_EULER
