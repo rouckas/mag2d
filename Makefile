@@ -52,9 +52,12 @@ test_particles_omp: tests/test_particles_omp.cpp src/random.cpp Makefile
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ tests/test_particles_omp.cpp $(OPTIM) $(OPENMP)
 gnuplot_i.o: gnuplot_i.h
 histogram.o: histogram.hpp
-particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp param.hpp fields.hpp parser.hpp
+particles.o: particles.hpp random.cpp mymath.cpp tabulate.cpp util.cpp param.hpp fields.hpp parser.hpp Field2D.hpp
 parser.o: parser.hpp
-fields.o: fields.hpp
+fields.o: fields.hpp Field2D.hpp
+Field1D.o: Field1D.hpp
+Field2D.o: Field2D.hpp
+Field3D.o: Field3D.hpp
 speclist.o: speclist.hpp
 input.o: input.hpp
 param.o: param.hpp
