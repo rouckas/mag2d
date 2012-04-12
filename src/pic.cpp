@@ -232,7 +232,7 @@ class Pic
                     double centery = string2<double>(toks[4]);
                     double radius = string2<double>(toks[5]);
                     speclist[species]->add_particles_on_disk(nparticles, centerx, centery, radius);
-                    cout << speclist[species]->name <<" add on disk "
+                    cout << speclist[species]->name <<" add on disk " << nparticles << " "
                         <<centerx<<" "<< centery<<" "<<radius<< "\n";
                 }
                 else if(toks[0] == "add_tracked_particle")
