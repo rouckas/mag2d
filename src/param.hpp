@@ -19,14 +19,22 @@ class Param
 {
     public:
         enum Boundary { FREE, PERIODIC, MIRROR };
-        enum Geometry { EMPTY, RF_22PT, RF_8PT, RF_HAITRAP, RF_QUAD, MAC, PENNING, PENNING_SIMPLE, TUBE };
+        enum Geometry { EMPTY, RF_22PT, RF_8PT, RF_HAITRAP, RF_QUAD, MAC,
+            PENNING, PENNING_SIMPLE, TUBE };
         double x_max, y_max, z_max;
+        double x_min, y_min, z_min;
         int x_sampl, y_sampl, z_sampl;
+
         double extern_field;
-        bool has_probe;
+        std::string electric_field_static_file;
+        std::string electric_field_rf_file;
+        bool electric_field_from_file;
+
         std::string magnetic_field_file;
         bool magnetic_field_const;
         double Br, Bz, Bt;
+
+        bool has_probe;
         double probe_radius;
         double probe_length;
         double u_probe;

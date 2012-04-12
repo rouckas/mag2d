@@ -20,6 +20,8 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     y_sampl = config("y_sampl",2);
     z_sampl = config("z_sampl",100);
 
+    x_min = y_min = z_min = 0;
+
     n_particles_total = config("n_particles_total",1e5);
     density_total = config("density_total",1e11);
 //	rho = config("rho",1e15);		// XXX rho must correspond to n_particles
@@ -30,6 +32,9 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     probe_length = config("probe_length",1e-2);
     u_probe = config("u_probe",-10.0);
     extern_field = config("extern_field",100.0);
+    electric_field_static_file = config("electric_field_static_file", "");
+    electric_field_rf_file = config("electric_field_rf_file", "");
+    electric_field_from_file = config("electric_field_from_file", 0);
 
     has_probe = config("has_probe", 0);
 
@@ -50,11 +55,12 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     rf_U0 = config("rf_U0", 0.0);
     rf_omega = 2*M_PI*config("rf_freq", 20e6);
     rf_omega = config("rf_omega", rf_omega);
+
     if(selfconsistent && rf)
-    {
-        printf("error: selfconsistent rf trap not implemented\n");
-        exit(1);
-    }
+        throw std::runtime_error("Param: selfconsistent rf trap not implemented\n");
+    if(selfconsistent && electric_field_from_file)
+        throw std::runtime_error(
+                "Param: selfconsistent with electric_field_from_file not implemented");
     string t_print_str = config("t_print","0");
     t_print = string2<unsigned long int>(t_print_str);
     string t_print_dist_str = config("t_print_dist","0");
