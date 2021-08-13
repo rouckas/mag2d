@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 	if(param.t_print_dist != 0 && i%param.t_print_dist == 0)
 	{
 	    pic.print_distribution();
+	    pic.print_field();
 	    if(param.do_plot) pic.plot();
 	}
 	if(param.t_print != 0 && i%param.t_print == 0)

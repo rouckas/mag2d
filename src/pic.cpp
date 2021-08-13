@@ -361,6 +361,9 @@ class Pic
 	    for(size_t i=0; i<speclist.size(); i++)
 		if( speclist[i]->particle)
 		    speclist[i]->print_distribution();
+        }
+        void print_field()
+        {
 	    field.u_print( (param.output_dir + "/potential.dat").c_str() );
         }
 	void save()
