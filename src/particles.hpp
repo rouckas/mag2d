@@ -72,7 +72,7 @@ class Interaction
         double E(double v_rel);
         double v_rel(double E);
         Interaction(InteractionParams * i_params, Param & _param) : name(i_params->name),
-            type(i_params->type), DE(i_params->DE), rate(i_params->rate), cutoff(i_params->cutoff), param(_param), cross_section_table(NULL)
+            type(i_params->type), DE(i_params->DE*_param.q_e), rate(i_params->rate), cutoff(i_params->cutoff), param(_param), cross_section_table(NULL)
         {
             if(i_params->CS_energy.size() > 0)
             {
