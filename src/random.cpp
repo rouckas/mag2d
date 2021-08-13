@@ -197,7 +197,6 @@ class t_random
             copy_tables(rnd);
         }
 
-    private:
         void initialize_seed(uint32 jsrseed)
         {
             jsr=123456789;
@@ -207,6 +206,8 @@ class t_random
             w=shr3();
             jcong=shr3(); 
         }
+
+    private:
         void initialize_tables()
         {
             mymath_test();
