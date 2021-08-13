@@ -32,7 +32,7 @@ double Interaction::coulomb_sigma(double E)
 void BaseSpecies::save(const string filename)
 {
     ofstream fw(filename.c_str(),ios::out | ios::binary);
-    if(fw==false)
+    if(!fw.is_open())
         throw runtime_error("Species::save(): failed opening file");
 
     int tmp;
@@ -61,7 +61,7 @@ void BaseSpecies::save(const string filename)
 void BaseSpecies::load(const string filename)
 {
     ifstream fr(filename.c_str(), ios::in | ios::binary);
-    if(fr==false)
+    if(!fr.is_open())
         throw runtime_error("Species::load(): failed opening file");
 
     int tmp;
@@ -109,7 +109,7 @@ void BaseSpecies::resize(unsigned int newsize)
 void BaseSpecies::source5_save(const string filename)
 {
     ofstream fw(filename.c_str(),ios::out | ios::binary);
-    if(fw==false)
+    if(!fw.is_open())
         throw runtime_error("Species::source_save(): failed opening file");
 
     int nparticles = source2_particles.size() ;
@@ -122,7 +122,7 @@ void BaseSpecies::source5_save(const string filename)
 void BaseSpecies::source5_load(const string filename)
 {
     ifstream fr(filename.c_str(), ios::in | ios::binary);
-    if(fr==false)
+    if(!fr.is_open())
     {
         cerr << " source5_load(): Warning: cannot open file " << filename <<endl;
         return;
