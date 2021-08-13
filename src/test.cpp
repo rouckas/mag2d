@@ -8,16 +8,11 @@
 #include "pic.cpp"
 
 #include <GetPot>
-#include <boost/filesystem.hpp>
 #include <string>
 #include "output.cpp"
 using namespace std;
-namespace fs = boost::filesystem;
 
 
-int t_plot = 10;
-int t_print = 20;
-int t_source_refresh = 0;
 int t_save = 0;
 
 int main(int argc, char *argv[])
@@ -86,15 +81,8 @@ int main(int argc, char *argv[])
 	    pic.save();
 	}
 
-	//XXX deprecated
-	if(t_source_refresh != 0 && i%t_source_refresh==0)
-	{
-	    //pic.species_list[ARGON_POS]->source5_refresh(SRC_FACT);
-	    //pic.species_list[ELECTRON]->source5_refresh(SRC_FACT);
-	}
 
     }
-    //getchar();
 
     return 0;
 }
