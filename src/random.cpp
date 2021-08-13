@@ -25,7 +25,7 @@ class t_random
 	float wn[128],fn[128], we[256],fe[256];
 	double mxw_data[MXW_SAMPLES];
 	double mxw_flux_data[MXW_FLUX_SAMPLES];
-	static const double mxw_factor = 5.0;
+	static constexpr double mxw_factor = 5.0;
         inline uint32 znew(){ return z=36969*(z&65535)+(z>>16); };
         inline uint32 wnew(){ return w=18000*(w&65535)+(w>>16); };
 
