@@ -265,59 +265,56 @@ void BaseSpecies::scatter(t_particle &particle)
     //cout << "interaction " << interaction->name << " of " <<
     //    interaction->primary->name << " with " << interaction->secondary->name <<endl;
     //cout << "interaction type " << interaction->type << " ELASTIC: " << ELASTIC <<endl;
+    tmp = 1.0/(mass+m2);
     switch(interaction->type)
     {
         case SUPERELASTIC:
             {
                 double E = interaction->E(v_rel) + interaction->DE;
-                double v1_cm = interaction->v_rel(E);
-                // fix this v_rel // v1_cm
+                double v_rel = interaction->v_rel(E);
                 // cout << E <<" "<< interaction->E(v_rel) << " " << "CRR"<<endl;
 
-                double v1_cm_x, v1_cm_z, v1_cm_y;
-                rnd->rot(v1_cm, v1_cm_x, v1_cm_z, v1_cm_y);
+                double v_rel_x, v_rel_z, v_rel_y;
+                rnd->rot(v_rel, v_rel_x, v_rel_z, v_rel_y);
 
-                particle.vx = v1_cm_x + (particle.vx*mass + vr2*m2)*tmp;
-                particle.vz = v1_cm_y + (particle.vz*mass + vz2*m2)*tmp;
-                particle.vy = v1_cm_z + (particle.vy*mass + vt2*m2)*tmp;
+                // v1_cm = v_rel * m2/(m1+m2)
+                // v1 = v1_cm + v_cm
+                particle.vx = (v_rel_x*m2 + particle.vx*mass + vr2*m2)*tmp;
+                particle.vz = (v_rel_y*m2 + particle.vz*mass + vz2*m2)*tmp;
+                particle.vy = (v_rel_z*m2 + particle.vy*mass + vt2*m2)*tmp;
             }
             break;
 
         case COULOMB:
         case ELASTIC:
             {
-                double tmp = 1.0/(mass+m2);
                 //transform to center of mass system
                 double v_cm_x = (particle.vx*mass + vr2*m2)*tmp;
                 double v_cm_z = (particle.vz*mass + vz2*m2)*tmp;
                 double v_cm_y = (particle.vy*mass + vt2*m2)*tmp;
-                double v1_cm_x = particle.vx - v_cm_x;
-                double v1_cm_z = particle.vz - v_cm_z;
-                double v1_cm_y = particle.vy - v_cm_y;
 
                 //isotropic random rotation
-                rnd->rot(v1_cm_x,v1_cm_y,v1_cm_z);
+                double v_rel_x, v_rel_z, v_rel_y;
+                rnd->rot(v_rel, v_rel_x, v_rel_y, v_rel_z);
                 //cout << "    v1 = " << v1_cm_x << " " << v1_cm_y << " " << v1_cm_z ;
 
                 //reverse transformation
-                //particle.vx = v1_cm_x + v_cm_x;
-                particle.vx = v1_cm_x + v_cm_x;
-                particle.vz = v1_cm_z + v_cm_z;
-                particle.vy = v1_cm_y + v_cm_y;
+                //v1 = v_rel*m2/(m1+m2) + v_cm;
+                particle.vx = v_rel_x*m2*tmp + v_cm_x;
+                particle.vz = v_rel_z*m2*tmp + v_cm_z;
+                particle.vy = v_rel_y*m2*tmp + v_cm_y;
                 //cout << "    v1 = " << particle.vx << " " << particle.vy << " " << particle.vz <<endl;
                 if(interaction->type == COULOMB)
                 {
-                    //v2 = (p_CM - p1)/m2
-                    partner->vx = (v_cm_x*(mass+m2) - mass*particle.vx)/m2;
-                    partner->vz = (v_cm_z*(mass+m2) - mass*particle.vz)/m2;
-                    partner->vy = (v_cm_y*(mass+m2) - mass*particle.vy)/m2;
+                    partner->vx = -v_rel_x*mass*tmp + v_cm_x;
+                    partner->vz = -v_rel_z*mass*tmp + v_cm_z;
+                    partner->vy = -v_rel_y*mass*tmp + v_cm_y;
                 }
             }
             break;
 
         case LANGEVIN:
             {
-                double tmp = 1.0/(mass+m2);
                 //transform to center of mass system
                 double v1_cm_x = (particle.vx - vr2)*m2*tmp;
                 double v1_cm_y = (particle.vz - vz2)*m2*tmp;
