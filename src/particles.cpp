@@ -271,6 +271,11 @@ void BaseSpecies::scatter(t_particle &particle)
         case SUPERELASTIC:
             {
                 double E = interaction->E(v_rel) + interaction->DE;
+                if(E<0)
+                {
+                    cout << "Negative E!!: Erel "<< interaction->E(v_rel) << "  DE " << interaction->DE <<
+                        "   sigmav " << interaction->sigma_v(v_rel) << endl;
+                }
                 double v_rel = interaction->v_rel(E);
                 // cout << E <<" "<< interaction->E(v_rel) << " " << "CRR"<<endl;
 
