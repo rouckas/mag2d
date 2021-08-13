@@ -122,6 +122,13 @@ inline void Fields::accumulate(double charge, double r, double z)
  */
 inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double time) const
 {
+    if(p_param->geometry == Param::EMPTY && p_param->selfconsistent == false)
+    {
+        grad_x = 0.;
+        grad_y = p_param->extern_field;
+        return;
+    }
+
     u.grad(x, y, grad_x, grad_y);
 
     if(p_param->rf)
