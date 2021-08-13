@@ -93,6 +93,16 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
     if(boundary == MIRROR)
         throw std::runtime_error("Param: MIRROR boundary condition not implemented\n");
 
+    string mover_str = config("mover","ADVANCE_BORIS");
+    map<string, Mover> string2mover {
+        {"ADVANCE_BORIS",  ADVANCE_BORIS},
+        {"ADVANCE_MULTICOLL",  ADVANCE_MULTICOLL}
+    };
+    if(string2mover.find(mover_str) == string2mover.end())
+        throw std::runtime_error("Param: unrecognized mover value " + mover_str + "\n");
+    else
+        mover = string2mover[mover_str];
+
     string geometry_str = config("geometry","EMPTY");
     map<string, Geometry> string2geo;
     string2geo["EMPTY"] = EMPTY;

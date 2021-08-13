@@ -4,7 +4,6 @@
 #include <GetPot>
 
 using namespace std;
-enum t_advancer { ADVANCE2, ADVANCE_OLD, ADVANCE_PROB, ADVANCE2_EULER };
 enum Coord { CARTESIAN, CYLINDRICAL, CARTESIAN3D };
 
 namespace physconst
@@ -19,6 +18,7 @@ class Param
 {
     public:
         enum Boundary { FREE, PERIODIC, MIRROR };
+        enum Mover { ADVANCE_BORIS, ADVANCE_MULTICOLL };
         enum Geometry { EMPTY, RF_22PT, RF_8PT, RF_HAITRAP, RF_QUAD, MAC,
             PENNING, PENNING_SIMPLE, TUBE };
         double x_max, y_max, z_max;
@@ -55,7 +55,7 @@ class Param
         double macroparticle_factor;
         double dt_elon;
         unsigned long int niter;
-        t_advancer advancer;
+        Mover mover;
         Coord coord;
         Boundary boundary;
         Geometry geometry;

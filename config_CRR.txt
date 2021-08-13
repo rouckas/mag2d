@@ -92,5 +92,5 @@ particle_reload_dir = 1e-10s
 
 # method of advancing particles, possible
 # values are 
-# ADVANCE2, ADVANCE2_EULER, ADVANCE_OLD, ADVANCE_PROB
-advancer = ADVANCE2_EULER
+# ADVANCE_BORIS, ADVANCE_MULTICOLL
+mover = ADVANCE_BORIS

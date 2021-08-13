@@ -496,6 +496,18 @@ void Species<CYLINDRICAL>::add_monoenergetic_particles_on_cylinder_cylindrical(i
 
 void Species<CYLINDRICAL>::advance()
 {
+    switch(p_param->mover)
+    {
+        case Param::ADVANCE_BORIS:
+            Species<CYLINDRICAL>::advance_boris();
+            break;
+        default:
+            throw runtime_error("Species<CYLINDRICAL>: advance method not implemented\n");
+    }
+
+}
+void Species<CYLINDRICAL>::advance_boris()
+{
     double fr, fz;      //force vector
     double Bx, By, Bz;  //magnetic field vector
     double qmdt = charge/mass*dt;       //auxilliary constant
@@ -691,6 +703,62 @@ void Species<CARTESIAN>::add_particle_beam_on_disk(int nparticles, double center
 }
 
 void Species<CARTESIAN>::advance()
+{
+    switch(p_param->mover)
+    {
+        case Param::ADVANCE_BORIS:
+            advance_boris();
+            break;
+        case Param::ADVANCE_MULTICOLL:
+            advance_multicoll();
+            break;
+        default:
+            throw runtime_error("Species<CARTESIAN>: advance method not implemented\n");
+    }
+
+}
+void Species<CARTESIAN>::advance_multicoll()
+{
+    double fr, fz;      //force vector
+    double Bx, By, Bz;  //magnetic field vector
+
+    field->B(0., 0., Bx, Bz, By);
+    if(Bx != 0. || Bz != 0. || By != 0.)
+        throw runtime_error("Species<CARTESIAN>::advance_multicoll() implemented for zero B only\n");
+
+    if(p_param->selfconsistent || p_param->geometry != Param::EMPTY)
+        throw runtime_error("Species<CARTESIAN>::advance_multicoll() implemented for const extern field only:\n\tset selfconsistent=0 and geometry=EMPTY\n");
+
+    field->E(0., 0., fr, fz, 0.);
+    const double qm = charge/mass;       //auxilliary constant
+
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+        // (r, t, z) ~ (x, y, z)
+        if(I->empty==true) continue;
+
+        // advance velocities
+        // Currently the method is only suitable for simulation of EEDF
+        // in constant homogeneous external field. We don't care about positions
+        double local_time = 0.;
+        while(local_time + I->time_to_death < dt)
+        {
+            I->vx -= fr*qm*I->time_to_death;
+            I->vz -= fz*qm*I->time_to_death;
+            local_time += I->time_to_death;
+
+            scatter(*I);
+            I->time_to_death = lifetime*rnd->rexp();
+        }
+
+        I->vx -= fr*qm*(dt-local_time);
+        I->vz -= fz*qm*(dt-local_time);
+        I->time_to_death -= dt - local_time;
+    }
+    niter++;
+    t += dt;
+}
+void Species<CARTESIAN>::advance_boris()
 {
     double fr, fz;      //force vector
     double Bx, By, Bz;  //magnetic field vector

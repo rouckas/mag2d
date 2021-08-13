@@ -279,6 +279,8 @@ class Species<CARTESIAN> : public BaseSpecies
             BaseSpecies(params, param, rnd), field(&_field) {};
 
 	void advance();
+	void advance_boris();
+	void advance_multicoll();
         void accumulate();
 
         void add_particles_everywhere(int nparticles);
@@ -313,6 +315,7 @@ class Species<CYLINDRICAL> : public BaseSpecies
             BaseSpecies(params, param, rnd), field(&_field) {};
 
 	void advance();
+	void advance_boris();
         void accumulate();
 	void probe_collect(t_particle *I);
 
