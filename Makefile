@@ -1,7 +1,7 @@
 SRCDIR=src
 VPATH=$(SRCDIR)
 
-INC = -I/home/rouckas/include
+INC = -I$(HOME)/include
 LIB = -lumfpack -lm -lamd -llapack -lpthread -lboost_filesystem -lboost_system
 DEFINES = -DAMD64
 
@@ -10,7 +10,9 @@ CFLAGS =  -Wall
 CFLAGS = -g -pg -Wall
 
 OPTIM=-march=core2 -mfpmath=sse -O3 -ffast-math -msse
-OPTIM=-march=core2 -mfpmath=sse -O3 -ffast-math -msse
+OPTIM=-march=native -mfpmath=sse -O3 -ffast-math -msse -flto
+OPTIM=-march=native -mfpmath=sse -O3 -msse
+OPTIM=-march=native -Ofast
 OPENMP=
 OPENMP=-fopenmp
 
@@ -22,16 +24,18 @@ OPENMP=-fopenmp
 
 SOURCES = Makefile random.cpp tabulate.cpp input.cpp pic.cpp param.cpp output.cpp matrix.cpp timer.hpp
 
-OBJ = gnuplot_i.o histogram.o particles.o fields.o speclist.o input.o param.o parser.o Field2D.o
+OBJ = gnuplot_i.o histogram.o particles.o fields.o input.o param.o parser.o Field2D.o
 OBJ3D = Field3D.o fields3d.o species3d.o
 
 plasma2d: test.cpp $(SOURCES) $(OBJ)
-	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/test.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/test.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
+test_MCC: test_MCC.cpp $(SOURCES) $(OBJ)
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/test_MCC.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
 plasma3d: plasma3d.cpp $(SOURCES) $(OBJ) $(OBJ3D)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/plasma3d.cpp $(OBJ) $(OBJ3D) $(OPTIM) $(INC) $(LIB)
 
 penning: penning.cpp $(SOURCES) $(OBJ)
-	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/penning.cpp $(OBJ) $(OPTIM) $(INC) $(LIB) 
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/penning.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
 CRDS: CRDS.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/CRDS.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
 CRDS1D: CRDS1D.cpp $(SOURCES) $(OBJ)
@@ -39,7 +43,7 @@ CRDS1D: CRDS1D.cpp $(SOURCES) $(OBJ)
 MAC: MAC.cpp $(SOURCES) $(OBJ)
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ $(SRCDIR)/MAC.cpp $(OBJ) $(OPTIM) $(INC) $(LIB)
 #test_scatter_speed: test_scatter_speed.cpp particles.cpp gnuplot_i.c argon.cpp elon.cpp Makefile random.cpp tabulate.cpp input.cpp elonO2.cpp
-#	$(CC) $(CFLAGS) -o $@ test_scatter_speed.cpp gnuplot_i.c histogram.cpp $(OPTIM) $(INC) $(LIB) 
+#	$(CC) $(CFLAGS) -o $@ test_scatter_speed.cpp gnuplot_i.c histogram.cpp $(OPTIM) $(INC) $(LIB)
 #test_flux: test_flux.cpp random.c random.h
 #	$(CC) $(CFLAGS) $(OPTIM) -o ../$@ test_flux.cpp random.c histogram.cpp
 #rot_test: rot_test.cpp random.c random.h
