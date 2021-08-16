@@ -279,11 +279,9 @@ void Fields::boundary_solve()
 {
     if( p_param->coord == CYLINDRICAL )
     {
-        int k;
         for(int i=0; i<grid.M; i++)		//cislo radku
             for(int j=0; j<grid.N; j++)	//cislo sloupce
             {
-                k = j + grid.N*i;
                 double dx = p_param->dx;
                 double dz = p_param->dz;
                 if(grid.mask[i][j] == FIXED)
@@ -298,11 +296,9 @@ void Fields::boundary_solve()
     }
     else
     {
-        int k;
         for(int i=0; i<grid.M; i++)		//cislo radku
             for(int j=0; j<grid.N; j++)	//cislo sloupce
             {
-                k = j + grid.N*i;
                 if(grid.mask[i][j] == FIXED)
                     rho[i][j] = grid.voltage[i][j];
                 else if(grid.mask[i][j] == FIXED_RF)
@@ -319,11 +315,9 @@ void Fields::boundary_solve_rf()
 {// XXX this should be later merged to Fields::boundary_solve
     if( p_param->coord == CYLINDRICAL )
     {
-        int k;
         for(int i=0; i<grid.M; i++)		//cislo radku
             for(int j=0; j<grid.N; j++)	//cislo sloupce
             {
-                k = j + grid.N*i;
                 double dx = p_param->dx;
                 double dz = p_param->dz;
                 if(grid.mask[i][j] == FIXED)
@@ -338,11 +332,9 @@ void Fields::boundary_solve_rf()
     }
     else
     {
-        int k;
         for(int i=0; i<grid.M; i++)		//cislo radku
             for(int j=0; j<grid.N; j++)	//cislo sloupce
             {
-                k = j + grid.N*i;
                 if(grid.mask[i][j] == FIXED)
                     rho[i][j] = 0;
                 else if(grid.mask[i][j] == FIXED_RF)
