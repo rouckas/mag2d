@@ -83,6 +83,8 @@ void config_parse(string fname, vector<SpeciesParams*> & species_params, vector<
                 last->dt = string2<double>(line[1]);
             else if(line[0] == "TEMPERATURE")
                 last->temperature = string2<double>(line[1]);
+            else if(line[0] == "EMAX")
+                last->E_max = string2<double>(line[1]);
             else
                 throw runtime_error("config_parse: unrecognized species  parameter \"" + line[0] + "\"");
         }

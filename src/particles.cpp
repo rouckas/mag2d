@@ -139,19 +139,19 @@ void BaseSpecies::source5_load(const string filename)
     }
 }
 
-void BaseSpecies::lifetime_init(double Emax)
+void BaseSpecies::lifetime_init()
 {
     /* the energy cutoff should be rather small -
-     * using large Emax will calculate lifetime correctly for high energy particles,
-     * however, if dt is comparable to lifetime, high lifetime will cause underestimating
-     * of collisions even for low energy particles. Therefore, decreasing Emax will improve
+     * using large E_max will calculate lifetime correctly for high energy particles,
+     * however, if dt is comparable to lifetime, short lifetime will cause underestimating
+     * of collisions even for low energy particles. Therefore, decreasing E_max will improve
      * collisions of low energy particles. The influence on high energy particles might
      * be positive or negative (this is valid for roughly constant cross section)
      */
     double rate = 0;
     for(size_t i=0; i<rates_by_species.size(); i++)
     {
-        rates_by_species[i] = svmax_find(interactions_by_species[i], veV(Emax)) * speclist[i]->density;
+        rates_by_species[i] = svmax_find(interactions_by_species[i], veV(E_max)) * speclist[i]->density;
         rate += rates_by_species[i];
     }
 

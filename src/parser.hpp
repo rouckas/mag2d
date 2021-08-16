@@ -24,6 +24,7 @@ class SpeciesParams
         double density;
         double temperature;
         double polarizability;
+        double E_max;
 };
 
 class InteractionParams

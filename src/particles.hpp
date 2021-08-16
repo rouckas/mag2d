@@ -119,6 +119,7 @@ class BaseSpecies
 	double lifetime;
 	double temperature;
         double polarizability;
+        double E_max;
 	double density;
 	double v_max;
 	double dt;
@@ -158,13 +159,14 @@ class BaseSpecies
             lifetime(INFINITY),
             temperature(params->temperature),
             polarizability(params->polarizability),
+            E_max(params->E_max > 0. ? params->E_max : params->temperature*param.k_B/param.q_e*10.0),
             density(params->density),
             dt(params->dt),
             t(0),
             rho(param.x_sampl, param.z_sampl, param.dx, param.dz),
-            energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
-            source_energy_dist(100,0.0,temperature*param.k_B/param.q_e*10.0),
-            probe_energy_dist(100,0.0,temperature*param.k_B/param.q_e*20.0),
+            energy_dist(200,0.0, E_max),
+            source_energy_dist(100,0.0, E_max),
+            probe_energy_dist(100,0.0, E_max),
             probe_angular_dist(30,0.0,M_PI*0.5),
             probe_angular_normalized_dist(30,0.0,M_PI*0.5),
             probe_current(0),
@@ -248,7 +250,7 @@ class BaseSpecies
 	void source5_save(const string filename);
 	void source5_load(const string filename);
 	int source5_factor;
-	void lifetime_init(double Emax=5.0);
+	void lifetime_init();
     protected:
 	void load_CS(const string & fname, vector<vec_interpolate*> & CS, vector<double> & Loss,
 	       	const vector<string> & CSnames, const string & tag="", int ncols=3);
