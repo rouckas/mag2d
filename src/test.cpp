@@ -63,7 +63,9 @@ int main(int argc, char *argv[])
         }
 	if(i%param.t_dist_sample==0) pic.dist_sample();
 
-	if(param.t_print_dist != 0 && i%param.t_print_dist == 0)
+	if(
+                (param.t_print_dist != 0 && i%param.t_print_dist == 0) || i == param.niter
+          )
 	{
 	    pic.print_distribution();
 	    pic.print_field();
