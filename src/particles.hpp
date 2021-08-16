@@ -221,7 +221,7 @@ class BaseSpecies
 	void remove(int n)
 	{
 	    if(particles[n].empty == true)
-		throw runtime_error("removing empty particle");
+		throw runtime_error("removing empty particle from " + name);
 	    else
 	    {
 		particles[n].empty = true;
