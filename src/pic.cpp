@@ -436,8 +436,10 @@ class Pic
 	    //gnuplot_cmd(h1, cmd.c_str());
 	    //gnuplot_cmd(h1, "set zrange [-1e-15:5e-13]");
 	    //gnuplot_splot_grid(h1, field.u[0], param.x_sampl, param.z_sampl, "potencial");
+            Field2D rho_tmp(speclist["ELECTRON"]->rho);
 	    speclist["ELECTRON"]->rho.reset();
 	    speclist["ELECTRON"]->accumulate();
 	    gnuplot_splot_grid(h1, speclist["ELECTRON"]->rho[0], param.x_sampl, param.z_sampl, "rho");
+	    speclist["ELECTRON"]->rho.assign(rho_tmp);
 	}
 };
