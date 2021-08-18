@@ -318,6 +318,15 @@ void BaseSpecies::scatter(t_particle &particle)
             }
             break;
 
+        case CX:
+            {
+                // in the resonant charge exchange, just swap velocities
+                particle.vx = vr2;
+                particle.vz = vz2;
+                particle.vy = vt2;
+            }
+            break;
+
         case LANGEVIN:
             {
                 //transform to center of mass system
