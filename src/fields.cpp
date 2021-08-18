@@ -379,6 +379,9 @@ t_grid::t_grid(Param &param) :  M(param.x_sampl), N(param.z_sampl),
 			
     switch(param.geometry)
     {
+        case Param::PROBE:
+            probe();
+            break;
         case Param::PENNING_SIMPLE:
             penning_trap_simple();
             break;
@@ -428,6 +431,44 @@ void t_grid::empty()
 	    {
 		mask[i][j] = FREE;
 	    }
+	}
+}
+
+void t_grid::probe()
+{
+    int i, j;
+    /*
+     * Vytvoreni sondy
+     */
+    for(i=0; i<M; i++)
+	for(j=0; j<N; j++)
+	{
+	    if(i==0 || i==M-1 || j==0 || j==N-1)
+	    {
+		mask[i][j] = FIXED;
+		voltage[i][j] = p_param->extern_field*dz*(j-N/2);
+	    }else
+	    {
+		mask[i][j] = FREE;
+	    }
+	}
+
+    double xcenter = (M-1)*dx/2;
+    double zcenter = (N-1)*dz/2;
+    double radius = p_param->probe_radius;
+    circle_electrode(xcenter, zcenter, radius, p_param->u_probe, FIXED);
+
+    for(i=2;i<M-2;i++)
+	for(j=2;j<N-2;j++)
+	{
+	    if( ( mask[i-1][j] == FIXED ||
+			mask[i+1][j] == FIXED ||
+			mask[i][j-1] == FIXED ||
+			mask[i][j+1] == FIXED ) &&
+		    mask[i][j] != FIXED )
+            {
+		mask[i][j] = BOUNDARY;
+            }
 	}
 }
 

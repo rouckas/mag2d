@@ -38,6 +38,7 @@ class t_grid
 	Array2D<double> voltage;
 	t_grid(Param &param);
 	Param *p_param;
+        void probe();
         void penning_trap();
         void penning_trap_simple(double trap_voltage = -1.0);
         double U_trap;
