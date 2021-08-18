@@ -21,6 +21,10 @@ class Array2D
 	    for(int j=1; j<jmax; j++) 
 		data[j] = data[j-1] + lmax;
 	}
+        Array2D(Array2D const &matrix) : Array2D(matrix.jmax, matrix.lmax)
+        {
+            this->assign(matrix);
+        }
         void resize(int _jmax, int _lmax)
         {
             this->~Array2D();
