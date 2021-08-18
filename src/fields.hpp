@@ -144,6 +144,9 @@ inline void Fields::E(double x, double y, double &grad_x, double &grad_y, double
         grad_y += grad_rf_y*phase;
     }
 
+    //E = -grad(U)
+    grad_x = -grad_x;
+    grad_y = -grad_y;
 }
 
 inline void Fields::B(double x, double y, double &_Br, double &_Bz, double &_Bt) const

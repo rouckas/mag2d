@@ -541,8 +541,8 @@ void Species<CYLINDRICAL>::advance_boris()
         // advance velocities as in cartesian coords
         // use HARHA in magnetic field
         // half acceleration:
-        I->vx -= fr*qmdt/2.0;
-        I->vz -= fz*qmdt/2.0;
+        I->vx += fr*qmdt/2.0;
+        I->vz += fz*qmdt/2.0;
 
         // rotation
         //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
@@ -567,8 +567,8 @@ void Species<CYLINDRICAL>::advance_boris()
         I->vz = I->vz + vprime_r*sy - vprime_t*sx;
 
         // half acceleration:
-        I->vx -= fr*qmdt/2.0;
-        I->vz -= fz*qmdt/2.0;
+        I->vx += fr*qmdt/2.0;
+        I->vz += fz*qmdt/2.0;
 
         //advance position (Birdsall pp. 338):
         double x2 = I->x + I->vx*dt;
@@ -757,16 +757,16 @@ void Species<CARTESIAN>::advance_multicoll()
         double local_time = 0.;
         while(local_time + I->time_to_death < dt)
         {
-            I->vx -= fr*qm*I->time_to_death;
-            I->vz -= fz*qm*I->time_to_death;
+            I->vx += fr*qm*I->time_to_death;
+            I->vz += fz*qm*I->time_to_death;
             local_time += I->time_to_death;
 
             scatter(*I);
             I->time_to_death = lifetime*rnd->rexp();
         }
 
-        I->vx -= fr*qm*(dt-local_time);
-        I->vz -= fz*qm*(dt-local_time);
+        I->vx += fr*qm*(dt-local_time);
+        I->vz += fz*qm*(dt-local_time);
         I->time_to_death -= dt - local_time;
     }
     niter++;
@@ -794,8 +794,8 @@ void Species<CARTESIAN>::advance_boris()
         // advance velocities as in cartesian coords
         // use HARHA in magnetic field
         // half acceleration:
-        I->vx -= fr*qmdt/2.0;
-        I->vz -= fz*qmdt/2.0;
+        I->vx += fr*qmdt/2.0;
+        I->vz += fz*qmdt/2.0;
 
         // rotation
         //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
@@ -822,8 +822,8 @@ void Species<CARTESIAN>::advance_boris()
         I->vz = I->vz - vprime_r*sy + vprime_t*sx;
 
         // half acceleration:
-        I->vx -= fr*qmdt/2.0;
-        I->vz -= fz*qmdt/2.0;
+        I->vx += fr*qmdt/2.0;
+        I->vz += fz*qmdt/2.0;
 
         //advance position (Birdsall pp. 338):
         I->x += I->vx*dt;
@@ -1004,8 +1004,8 @@ void Species<CARTESIAN>::source()
     double qm = charge/mass;
     double src_z_max = K*p_param->z_max;
     double src_x_max = K*p_param->x_max;
-    double fx=-p_param->extern_field;
-    double fy=0;
+    double fx=0;
+    double fz=p_param->extern_field;
     double qmdt = qm*dt;
 
     //cout << "source\n";
@@ -1013,8 +1013,8 @@ void Species<CARTESIAN>::source()
     for(vector<t_particle>::iterator I=source2_particles.begin(); I != source2_particles.end(); I++)
     {
 
-        I->vx -= fx*qmdt;
-        I->vz -= fy*qmdt;
+        I->vx += fx*qmdt;
+        I->vz += fy*qmdt;
         I->x += I->vx * dt;
         I->z += I->vz * dt;
 

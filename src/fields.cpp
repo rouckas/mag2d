@@ -426,7 +426,7 @@ void t_grid::empty()
 	    if(i==0 || i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
-		voltage[i][j] = 0.0;
+		voltage[i][j] = -p_param->extern_field*dz*(j-N/2);
 	    }else
 	    {
 		mask[i][j] = FREE;
@@ -446,7 +446,7 @@ void t_grid::probe()
 	    if(i==0 || i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
-		voltage[i][j] = p_param->extern_field*dz*(j-N/2);
+		voltage[i][j] = -p_param->extern_field*dz*(j-N/2);
 	    }else
 	    {
 		mask[i][j] = FREE;
@@ -530,7 +530,7 @@ void t_grid::rf_8PT()
 	    if(i==0 || i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
-		voltage[i][j] = p_param->extern_field*dz*(j-N/2);
+		voltage[i][j] = -p_param->extern_field*dz*(j-N/2);
 	    }else
 	    {
 		mask[i][j] = FREE;
@@ -575,7 +575,7 @@ void t_grid::rf_haitrap()
 	    if(i==0 || i==M-1 || j==0 || j==N-1)
 	    {
 		mask[i][j] = FIXED;
-		voltage[i][j] = p_param->extern_field*dz*(j-N/2);
+		voltage[i][j] = -p_param->extern_field*dz*(j-N/2);
 	    }else
 	    {
 		mask[i][j] = FREE;
