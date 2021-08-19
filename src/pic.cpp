@@ -217,6 +217,20 @@ class Pic
                     cout << speclist[species]->name <<" add bessel "
                         <<centerx<<" "<< centery<<" "<<radius<< "\n";
                 }
+                if(toks[0] == "add_particles_everywhere")
+                {
+                    if(toks.size() != 3)
+                        throw runtime_error("Pic::run_initscript: wrong number of" +
+                               string(" parameters (") + int2string(toks.size())
+                               + ") to " + toks[0] + "\n");
+                    if(string2speciestype.find(toks[1])==string2speciestype.end())
+                        throw runtime_error("Pic::run_initscript: unrecognized species type \""
+                                + toks[1] + "\"\n");
+                    SpeciesType species = string2speciestype[toks[1]];
+                    int nparticles = string2<int>(toks[2]);
+                    speclist[species]->add_particles_everywhere(nparticles);
+                    cout << speclist[species]->name <<" add everywhere " << nparticles << endl;
+                }
                 if(toks[0] == "add_particles_on_disk")
                 {
                     if(toks.size() != 6)
