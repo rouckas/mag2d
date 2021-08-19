@@ -282,6 +282,7 @@ class Species<CARTESIAN> : public BaseSpecies
 
 	void advance();
 	void advance_boris();
+	void advance_boris(vector<t_particle> & what, bool extern_field);
 	void advance_multicoll();
         void accumulate();
 

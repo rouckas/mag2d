@@ -772,29 +772,38 @@ void Species<CARTESIAN>::advance_multicoll()
     niter++;
     t += dt;
 }
-void Species<CARTESIAN>::advance_boris()
+
+void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_fields)
 {
-    double fr, fz;      //force vector
-    double Bx, By, Bz;  //magnetic field vector
+    //force vector
+    double fx = 0;
+    double fz = p_param->extern_field;
+    //
+    //magnetic field vector
+    double Bx = p_param->Br;
+    double Bz = p_param->Bz;
+    double By = p_param->Bt;
+
     const double qmdt = charge/mass*dt;       //auxilliary constant
     const double prob = 1.0-exp(-dt/lifetime);
 
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
     {
         // (r, t, z) ~ (x, y, z)
         if(I->empty==true) continue;
 
         //compute field at (I->x, I->z)
-        field->E(I->x, I->z, fr, fz, niter*dt);
-        field->B(I->x, I->z, Bx, Bz, By);
-        //XXX osetrit castice mimo prac oblast !!!
-        //fr=fz=0;
+        if(!extern_fields)
+        {
+            field->E(I->x, I->z, fx, fz, niter*dt);
+            field->B(I->x, I->z, Bx, Bz, By);
+        }
 
 
         // advance velocities as in cartesian coords
         // use HARHA in magnetic field
         // half acceleration:
-        I->vx += fr*qmdt/2.0;
+        I->vx += fx*qmdt/2.0;
         I->vz += fz*qmdt/2.0;
 
         // rotation
@@ -822,7 +831,7 @@ void Species<CARTESIAN>::advance_boris()
         I->vz = I->vz - vprime_r*sy + vprime_t*sx;
 
         // half acceleration:
-        I->vx += fr*qmdt/2.0;
+        I->vx += fx*qmdt/2.0;
         I->vz += fz*qmdt/2.0;
 
         //advance position (Birdsall pp. 338):
@@ -834,10 +843,19 @@ void Species<CARTESIAN>::advance_boris()
         {
             scatter(*I);
         }
-        // OKRAJOVE PODMINKY
+    }
+}
 
-        //if(p_param->selfconsistent)
-        //{
+void Species<CARTESIAN>::advance_boris()
+{
+
+    advance_boris(particles, false);
+
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+        if(I->empty) continue;
+
+        // OKRAJOVE PODMINKY
         if(I->x < p_param->x_min || I->x > p_param->x_max ||
                 I->z < p_param->z_min || I->z > p_param->z_max)
         {
