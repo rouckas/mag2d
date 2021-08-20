@@ -337,9 +337,7 @@ class Pic
 		field.reset();
 		for(size_t i=0; i<speclist.size(); i++)
                     if(speclist[i]->particle && speclist[i]->n_particles() > 0)
-		{
-		    speclist[i]->rho.reset();
-		}
+                        speclist[i]->rho.reset();
 	    }
 
 	    for(size_t i=0; i<speclist.size(); i++)
@@ -357,6 +355,32 @@ class Pic
 	    timer.stop();
 
 	    iter++;
+	}
+	void advance_init()
+	{
+	    if(param.selfconsistent)
+	    {
+                // calculate forces for the first time
+                for(size_t i=0; i<speclist.size(); i++)
+                    if(speclist[i]->particle && speclist[i]->n_particles() > 0)
+                    {
+                        speclist[i]->accumulate();
+                        field.rho.add(speclist[i]->rho);
+                    }
+
+		field.boundary_solve();
+                if(param.u_smooth) field.u_smooth();
+
+                // boundary_solve modifies rho in-place, so we recreate rho
+                // for next iteration below:
+		field.reset();
+                for(size_t i=0; i<speclist.size(); i++)
+                    if(speclist[i]->particle && speclist[i]->n_particles() > 0)
+                        field.rho.add(speclist[i]->rho);
+	    }
+
+	    for(size_t i=0; i<speclist.size(); i++)
+		speclist[i]->advance_init();
 	}
         void emit()
         {

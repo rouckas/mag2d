@@ -18,7 +18,7 @@ class Param
 {
     public:
         enum Boundary { FREE, PERIODIC, MIRROR };
-        enum Mover { ADVANCE_BORIS, ADVANCE_MULTICOLL };
+        enum Mover { ADVANCE_BORIS, ADVANCE_MULTICOLL, ADVANCE_LEAPFROG };
         enum Geometry { EMPTY, PROBE, RF_22PT, RF_8PT, RF_HAITRAP, RF_QUAD, MAC,
             PENNING, PENNING_SIMPLE, TUBE };
         double x_max, y_max, z_max;

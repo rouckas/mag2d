@@ -51,9 +51,12 @@ int main(int argc, char *argv[])
     pic.check_params();
 
     pic.run_initscript(initscript);
-    for(size_t i=0; i<pic.speclist.size(); i++)
-        if( pic.speclist[i]->particle )
-            pic.speclist[i]->source5_refresh(param.src_fact);
+    pic.advance_init();
+
+    if(param.use_source)
+        for(size_t i=0; i<pic.speclist.size(); i++)
+            if( pic.speclist[i]->particle )
+                pic.speclist[i]->source5_refresh(param.src_fact);
 
 
     ofstream fw((param.output_dir+"/out.dat").c_str());

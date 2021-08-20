@@ -282,9 +282,15 @@ class Species<CARTESIAN> : public BaseSpecies
             BaseSpecies(params, param, rnd), field(&_field) {};
 
 	void advance();
-	void advance_boris();
+	void advance_position(vector<t_particle> & what, bool extern_field);
+	void advance_position_init(vector<t_particle> & what, bool extern_field);
+	void advance_boundary();
+	void advance_init();
+	void advance_leapfrog(vector<t_particle> & what, bool extern_field);
+	void advance_leapfrog_init(vector<t_particle> & what, bool extern_field);
 	void advance_boris(vector<t_particle> & what, bool extern_field);
-	void advance_multicoll();
+	void advance_boris_init(vector<t_particle> & what, bool extern_field);
+	void advance_multicoll(vector<t_particle> & what, bool extern_field);
         void accumulate();
 
         void add_particles_everywhere(int nparticles);
@@ -319,7 +325,12 @@ class Species<CYLINDRICAL> : public BaseSpecies
             BaseSpecies(params, param, rnd), field(&_field) {};
 
 	void advance();
-	void advance_boris();
+	void advance_position(vector<t_particle> & what, bool extern_field);
+	void advance_position_init(vector<t_particle> & what, bool extern_field);
+	void advance_boundary();
+	void advance_init();
+	void advance_boris(vector<t_particle> & what, bool extern_field);
+	void advance_boris_init(vector<t_particle> & what, bool extern_field);
         void accumulate();
 	void probe_collect(t_particle *I);
 

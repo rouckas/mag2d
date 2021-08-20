@@ -507,33 +507,66 @@ void Species<CYLINDRICAL>::add_monoenergetic_particles_on_cylinder_cylindrical(i
 
 void Species<CYLINDRICAL>::advance()
 {
+    advance_position(particles, false);
+    advance_boundary();
+    niter++;
+    t += dt;
+}
+
+void Species<CYLINDRICAL>::advance_init()
+{
+    advance_position_init(particles, false);
+}
+
+void Species<CYLINDRICAL>::advance_position(vector<t_particle> & what, bool extern_fields)
+{
     switch(p_param->mover)
     {
         case Param::ADVANCE_BORIS:
-            Species<CYLINDRICAL>::advance_boris();
+            advance_boris(what, extern_fields);
             break;
         default:
             throw runtime_error("Species<CYLINDRICAL>: advance method not implemented\n");
     }
-
 }
-void Species<CYLINDRICAL>::advance_boris()
-{
-    double fr, fz;      //force vector
-    double Bx, By, Bz;  //magnetic field vector
-    double qmdt = charge/mass*dt;       //auxilliary constant
-    double prob = 1.0-exp(-dt/lifetime);
 
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+void Species<CYLINDRICAL>::advance_position_init(vector<t_particle> & what, bool extern_fields)
+{
+    switch(p_param->mover)
     {
+        case Param::ADVANCE_BORIS:
+            advance_boris_init(what, extern_fields);
+            break;
+        default:
+            throw runtime_error("Species<CYLINDRICAL>: advance method not implemented\n");
+    }
+}
+
+void Species<CYLINDRICAL>::advance_boris(vector<t_particle> & what, bool extern_fields)
+{
+    //force vector
+    double fr = 0;
+    double fz = p_param->extern_field;
+
+    //magnetic field vector
+    double Bx = p_param->Br;
+    double Bz = p_param->Bz;
+    double By = p_param->Bt;
+
+    const double qmdt = charge/mass*dt;       //auxilliary constant
+    const double prob = 1.0-exp(-dt/lifetime);
+
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
+    {
+        // (r, t, z) ~ (x, y, z)
         if(I->empty==true) continue;
 
         //compute field at (I->x, I->z)
-        field->E(I->x, I->z, fr, fz);
-        field->B(I->x, I->z, Bx, Bz, By);
-        //XXX osetrit castice mimo prac oblast !!!
-        //fr=fz=0;
-
+        if(!extern_fields)
+        {
+            field->E(I->x, I->z, fr, fz, niter*dt);
+            field->B(I->x, I->z, Bx, Bz, By);
+        }
 
         // advance velocities as in cartesian coords
         // use HARHA in magnetic field
@@ -589,7 +622,71 @@ void Species<CYLINDRICAL>::advance_boris()
         {
             scatter(*I);
         }
+    }
+}
 
+void Species<CYLINDRICAL>::advance_boris_init(vector<t_particle> & what, bool extern_fields)
+{
+    //force vector
+    double fr = 0;
+    double fz = p_param->extern_field;
+
+    //magnetic field vector
+    double Bx = p_param->Br;
+    double Bz = p_param->Bz;
+    double By = p_param->Bt;
+
+    // -1.0 half-accel - init
+    const double qmdt = -1.0*charge/mass*dt;
+
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
+    {
+        // (r, t, z) ~ (x, y, z)
+        if(I->empty==true) continue;
+
+        //compute field at (I->x, I->z)
+        if(!extern_fields)
+        {
+            field->E(I->x, I->z, fr, fz, niter*dt);
+            field->B(I->x, I->z, Bx, Bz, By);
+        }
+
+        // -0.5 rotation - initialization
+        //use Boris' algorithm (Birdsall & Langdon pp. 62) for arbitrary B direction
+        double tmp = -0.5*charge*dt/(2.0*mass);
+        double tx = Bx*tmp;
+        double ty = By*tmp;
+        double tz = Bz*tmp;
+
+        //XXX check orientation
+        // use (r, theta, z)
+        double vprime_r = I->vx + I->vy*tz - I->vz*ty;
+        double vprime_t = I->vy + I->vz*tx - I->vx*tz;
+        double vprime_z = I->vz + I->vx*ty - I->vy*tx;
+
+        tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
+        double sx = tx*tmp;
+        double sy = ty*tmp;
+        double sz = tz*tmp;
+
+        I->vx = I->vx + vprime_t*sz - vprime_z*sy;
+        I->vy = I->vy + vprime_z*sx - vprime_r*sz;
+        I->vz = I->vz + vprime_r*sy - vprime_t*sx;
+
+        // half acceleration:
+        I->vx += fr*qmdt/2.0;
+        I->vz += fz*qmdt/2.0;
+
+        //rotate the speed vector
+        // XXX we do not advance position, so I think the v rotation is not needed ????
+    }
+}
+
+void Species<CYLINDRICAL>::advance_boundary()
+{
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+        if(I->empty==true) continue;
         // OKRAJOVE PODMINKY
         if(I->x > p_param->x_max || I->x < 0
                 || I->z > p_param->z_max || I->z < 0 )
@@ -607,10 +704,9 @@ void Species<CYLINDRICAL>::advance_boris()
         }
 
         // SUMACE NABOJE
-        rho.accumulate(charge, I->x, I->z);
+        if(p_param->selfconsistent)
+            rho.accumulate(charge, I->x, I->z);
     }
-    niter++;
-    t += dt;
 }
 
 void Species<CYLINDRICAL>::accumulate()
@@ -713,22 +809,55 @@ void Species<CARTESIAN>::add_particle_beam_on_disk(int nparticles, double center
     }
 }
 
-void Species<CARTESIAN>::advance()
+void Species<CARTESIAN>::advance_position(vector<t_particle> & what, bool extern_fields)
 {
     switch(p_param->mover)
     {
+        case Param::ADVANCE_LEAPFROG:
+            advance_leapfrog(what, extern_fields);
+            break;
         case Param::ADVANCE_BORIS:
-            advance_boris();
+            advance_boris(what, extern_fields);
             break;
         case Param::ADVANCE_MULTICOLL:
-            advance_multicoll();
+            advance_multicoll(what, extern_fields);
             break;
         default:
             throw runtime_error("Species<CARTESIAN>: advance method not implemented\n");
     }
-
 }
-void Species<CARTESIAN>::advance_multicoll()
+
+void Species<CARTESIAN>::advance_position_init(vector<t_particle> & what, bool extern_fields)
+{
+    switch(p_param->mover)
+    {
+        case Param::ADVANCE_LEAPFROG:
+            advance_leapfrog_init(what, extern_fields);
+            break;
+        case Param::ADVANCE_BORIS:
+            advance_boris_init(what, extern_fields);
+            break;
+        case Param::ADVANCE_MULTICOLL:
+            break;
+        default:
+            throw runtime_error("Species<CARTESIAN>: advance method not implemented\n");
+    }
+}
+
+void Species<CARTESIAN>::advance()
+{
+    advance_position(particles, false);
+    advance_boundary();
+    niter++;
+    t += dt;
+}
+
+void Species<CARTESIAN>::advance_init()
+{
+    advance_position_init(particles, false);
+}
+
+void Species<CARTESIAN>::advance_multicoll(vector<t_particle> & what, bool extern_fields)
 {
     double fx, fz;      //force vector
     double Bx, By, Bz;  //magnetic field vector
@@ -743,7 +872,7 @@ void Species<CARTESIAN>::advance_multicoll()
     field->E(0., 0., fx, fz, 0.);
     const double qm = charge/mass;       //auxilliary constant
 
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
     {
         // (r, t, z) ~ (x, y, z)
         if(I->empty==true) continue;
@@ -776,12 +905,73 @@ void Species<CARTESIAN>::advance_multicoll()
     t += dt;
 }
 
+void Species<CARTESIAN>::advance_leapfrog(vector<t_particle> & what, bool extern_fields)
+{
+    //force vector
+    double fx = 0;
+    double fz = p_param->extern_field;
+
+    double Bx, By, Bz;  //magnetic field vector
+    field->B(0., 0., Bx, Bz, By);
+    if(Bx != 0. || Bz != 0. || By != 0.)
+        throw runtime_error("Species<CARTESIAN>::advance_leapfrog() implemented for zero B only\n");
+    const double qmdt = charge/mass*dt;       //auxilliary constant
+    const double prob = 1.0-exp(-dt/lifetime);
+
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
+    {
+        // (r, t, z) ~ (x, y, z)
+        if(I->empty==true) continue;
+
+        //compute field at (I->x, I->z)
+        if(!extern_fields)
+            field->E(I->x, I->z, fx, fz, niter*dt);
+
+        // advance velocities
+        I->vx += fx*qmdt;
+        I->vz += fz*qmdt;
+
+        //advance position
+        I->x += I->vx*dt;
+        I->z += I->vz*dt;
+
+        if( rnd->uni() < prob)
+        {
+            scatter(*I);
+        }
+    }
+}
+
+void Species<CARTESIAN>::advance_leapfrog_init(vector<t_particle> & what, bool extern_fields)
+{
+    //force vector
+    double fx = 0;
+    double fz = p_param->extern_field;
+
+    // move velocity by -0.5*dt
+    const double qmdt = -0.5*charge/mass*dt;       //auxilliary constant
+
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
+    {
+        // (r, t, z) ~ (x, y, z)
+        if(I->empty==true) continue;
+
+        //compute field at (I->x, I->z)
+        if(!extern_fields)
+            field->E(I->x, I->z, fx, fz, niter*dt);
+
+        // advance velocities
+        I->vx += fx*qmdt;
+        I->vz += fz*qmdt;
+    }
+}
+
 void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
     double fx = 0;
     double fz = p_param->extern_field;
-    //
+
     //magnetic field vector
     double Bx = p_param->Br;
     double Bz = p_param->Bz;
@@ -801,7 +991,6 @@ void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_fi
             field->E(I->x, I->z, fx, fz, niter*dt);
             field->B(I->x, I->z, Bx, Bz, By);
         }
-
 
         // advance velocities as in cartesian coords
         // use HARHA in magnetic field
@@ -849,10 +1038,63 @@ void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_fi
     }
 }
 
-void Species<CARTESIAN>::advance_boris()
+void Species<CARTESIAN>::advance_boris_init(vector<t_particle> & what, bool extern_fields)
+{
+    //force vector
+    double fx = 0;
+    double fz = p_param->extern_field;
+
+    //magnetic field vector
+    double Bx = p_param->Br;
+    double Bz = p_param->Bz;
+    double By = p_param->Bt;
+
+    // -1 acceleration (we do only one half-accel)
+    const double qmdt = -charge/mass*dt;
+
+    for(vector<t_particle>::iterator I = what.begin(); I != what.end(); ++I)
+    {
+        // (r, t, z) ~ (x, y, z)
+        if(I->empty==true) continue;
+
+        //compute field at (I->x, I->z)
+        if(!extern_fields)
+        {
+            field->E(I->x, I->z, fx, fz, niter*dt);
+            field->B(I->x, I->z, Bx, Bz, By);
+        }
+
+        // Initiation of Boris algorithm
+        //  - half backwards rotation + half backwards accel.
+
+        // -0.5 rotation to move velocity backwards by 0.5dt (Birdsall & Langdon pp 15.)
+        double tmp = -0.5*charge*dt/(2.0*mass);
+        double tx = Bx*tmp;
+        double ty = By*tmp;
+        double tz = Bz*tmp;
+
+        double vprime_r = I->vx - I->vy*tz + I->vz*ty;
+        double vprime_z = I->vz - I->vx*ty + I->vy*tx;
+        double vprime_t = I->vy - I->vz*tx + I->vx*tz;
+
+        tmp = 2.0/(1+SQR(tx)+SQR(ty)+SQR(tz));
+        double sx = tx*tmp;
+        double sy = ty*tmp;
+        double sz = tz*tmp;
+
+        I->vx = I->vx - vprime_t*sz + vprime_z*sy;
+        I->vy = I->vy - vprime_z*sx + vprime_r*sz;
+        I->vz = I->vz - vprime_r*sy + vprime_t*sx;
+
+        // half acceleration:
+        I->vx += fx*qmdt/2.0;
+        I->vz += fz*qmdt/2.0;
+    }
+}
+
+void Species<CARTESIAN>::advance_boundary()
 {
 
-    advance_boris(particles, false);
 
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
     {
@@ -896,11 +1138,10 @@ void Species<CARTESIAN>::advance_boris()
           */
 
         // SUMACE NABOJE
-        rho.accumulate(charge, I->x, I->z);
+        if(p_param->selfconsistent)
+            rho.accumulate(charge, I->x, I->z);
         //}
     }
-    niter++;
-    t += dt;
 }
 
 void Species<CARTESIAN>::accumulate()
@@ -936,6 +1177,9 @@ void Species<CARTESIAN>::source5_refresh(unsigned int factor)
         source2_particles[i].vy = rnd->rnor()*v_max/(M_SQRT2);
         source2_particles[i].time_to_death = rnd->rexp()*lifetime;
     }
+
+    advance_position_init(source2_particles, true);
+
     cout << name <<" source initialized:  "<< source2_particles.size() <<" particles  @  " <<density <<" particle/m3"<< endl;
 }
 
@@ -1020,29 +1264,12 @@ void Species<CARTESIAN>::source_old()
 void Species<CARTESIAN>::source()
 {
     double K = 1.0/source5_factor;
-    vector<t_particle>::iterator J;
     int j;
-    //double qm2 = charge/mass*0.5;
     double src_z_max = K*p_param->z_max;
     double src_x_max = K*p_param->x_max;
 
-    //cout << "source\n";
-    //cout << "diff: " << source2_particles.begin() - source2_particles.end() << endl;
-    advance_boris(source2_particles, true);
-        /*
-        I->vx -= fx*qmdt;
-        I->vz -= fy*qmdt;
-        I->x += I->vx * dt;
-        I->z += I->vz * dt;
+    advance_position(source2_particles, true);
 
-        if( I->time_to_death < dt)
-        {
-            scatter(*I);
-            I->time_to_death += rnd->rexp()*lifetime;
-        }
-        I->time_to_death -= dt;
-
-         */
     for(vector<t_particle>::iterator I=source2_particles.begin(); I != source2_particles.end(); I++)
     {
 
