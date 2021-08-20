@@ -730,7 +730,7 @@ void Species<CARTESIAN>::advance()
 }
 void Species<CARTESIAN>::advance_multicoll()
 {
-    double fr, fz;      //force vector
+    double fx, fz;      //force vector
     double Bx, By, Bz;  //magnetic field vector
 
     field->B(0., 0., Bx, Bz, By);
@@ -740,7 +740,7 @@ void Species<CARTESIAN>::advance_multicoll()
     if(p_param->selfconsistent || p_param->geometry != Param::EMPTY)
         throw runtime_error("Species<CARTESIAN>::advance_multicoll() implemented for const extern field only:\n\tset selfconsistent=0 and geometry=EMPTY\n");
 
-    field->E(0., 0., fr, fz, 0.);
+    field->E(0., 0., fx, fz, 0.);
     const double qm = charge/mass;       //auxilliary constant
 
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
@@ -752,19 +752,25 @@ void Species<CARTESIAN>::advance_multicoll()
         // Currently the method is only suitable for simulation of EEDF
         // in constant homogeneous external field. We don't care about positions
         double local_time = 0.;
+        double ttd;
         while(local_time + I->time_to_death < dt)
         {
-            I->vx += fr*qm*I->time_to_death;
-            I->vz += fz*qm*I->time_to_death;
+            ttd = I->time_to_death;
+            I->vx += fx*qm*ttd;
+            I->vz += fz*qm*ttd;
+            I->x += (I->vx + 0.5*fx*qm*ttd)*ttd;
+            I->z += (I->vz + 0.5*fz*qm*ttd)*ttd;
             local_time += I->time_to_death;
 
             scatter(*I);
             I->time_to_death = lifetime*rnd->rexp();
         }
-
-        I->vx += fr*qm*(dt-local_time);
-        I->vz += fz*qm*(dt-local_time);
-        I->time_to_death -= dt - local_time;
+        ttd = dt-local_time;
+        I->vx += fx*qm*ttd;
+        I->vz += fz*qm*ttd;
+        I->x += (I->vx + 0.5*fx*qm*ttd)*ttd;
+        I->z += (I->vz + 0.5*fz*qm*ttd)*ttd;
+        I->time_to_death -= ttd;
     }
     niter++;
     t += dt;
