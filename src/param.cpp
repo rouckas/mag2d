@@ -130,13 +130,11 @@ Param::Param(GetPot & config) : eps_0(physconst::eps_0), k_B(physconst::k_B), q_
 
     config.set_prefix("");
     macroparticle_factor = config("macroparticle_factor",1e4);
-    cout << "macroparticle_factor " << macroparticle_factor <<endl;
     V = n_particles_total/density_total;
 
     dV = V/((x_sampl-1)*(z_sampl-1));
     dy = dV/(dx*dz);
 
-    cout << "param: V = "<<V<<"  dV = "<<dV<<"  dy = "<<dy<<endl;
     if(coord == CYLINDRICAL)
         dy = 2*M_PI/macroparticle_factor;
 

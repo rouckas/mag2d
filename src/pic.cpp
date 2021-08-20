@@ -78,6 +78,14 @@ class Speclist
                 data[i]->lifetime_init();
 
         };
+        auto begin()
+        {
+            return data.begin();
+        };
+        auto end()
+        {
+            return data.end();
+        };
         Species<D> * operator [] (size_t i)
         {
             return data[i];
@@ -183,6 +191,53 @@ class Pic
 	{
 	    if(param.do_plot) plot_destroy();
 	}
+        void check_params()
+        {
+            cout << endl;
+            cout << "**************** parameter validation ***************\n";
+            cout << "V = "<<param.V<<" m3   dV = "<<param.dV<<
+                " m3   dy = "<<param.dy<<" m"<<endl;
+            cout << endl;
+            for(auto I = speclist.begin(); I != speclist.end(); I++)
+            {
+                BaseSpecies * J = *I;
+                if(J->type == NEUTRAL) continue;
+
+                cout << "**************** " << J->name << " parameters ***************\n";
+
+                double omega_p = sqrt(J->density * J->charge * J->charge/
+                        (J->mass * physconst::eps_0));
+                double lambda_D = sqrt(physconst::eps_0 * physconst::k_B * J->temperature / (J->density * J->charge * J->charge));
+                double v_thermal = sqrt(physconst::k_B * J->temperature / J->mass);
+                double maxdx = max(field.grid.dx, field.grid.dz);
+                double mindx = min(field.grid.dx, field.grid.dz);
+
+                if (J->dt/J->lifetime > 0.2)
+                    cout << " *** WARNING dt > collisional  lifetime * 0.2 ***\n *** ";
+                cout << " lifetime = " << J->lifetime <<
+                    "    dt/lifetime = " << J->dt/J->lifetime <<endl;
+
+                if (J->dt*omega_p/(2*M_PI) > 0.2)
+                    cout << " *** WARNING dt > plasma period * 0.2 ***\n *** ";
+                cout << " omega_p  = " << omega_p <<
+                    "    dt/period = " << omega_p/(2*M_PI)*J->dt <<endl;
+
+                if (maxdx/lambda_D > 0.2)
+                    cout << " *** WARNING max grid spacing > lambda_D * 0.2 ***\n *** ";
+                cout << " lambda_D = " << lambda_D <<
+                    "    dx/lambda_D = " << maxdx/lambda_D <<endl;
+
+                if (J->density*param.dV < 20)
+                    cout << " *** WARNING particles per cell < 20 ***\n *** ";
+                cout << " particles / cell = " << J->density*param.dV << endl;
+
+                if (v_thermal*J->dt / mindx > 0.2)
+                    cout << " *** WARNING v_thermal*dt > min(dx) ***\n *** ";
+                cout << " vth*dt / dx = " << v_thermal*J->dt / mindx << endl;
+
+                cout << endl;
+            }
+        };
         void run_initscript(string filename)
         {
             ifstream fr(filename.c_str());

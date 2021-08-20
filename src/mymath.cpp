@@ -27,9 +27,6 @@ inline T sqr(T x){return x*x;};
 template<class T>
 inline T cube(T x){return x*x*x;};
 
-template<class T>
-inline T max(T x, T y){return x>y ? x : y ;};
-
 union intdouble{
     long int i;
     double d;

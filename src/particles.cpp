@@ -160,9 +160,6 @@ void BaseSpecies::lifetime_init()
     else
         lifetime = INFINITY;
 
-    if(lifetime < 5*dt)
-        cout << "Warning: " << name << " lifetime is shorter than 5*dt: tau/dt = " << lifetime/dt << endl;
-
     for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); I++)
         if( I->empty == false)
             I->time_to_death = rnd->rexp()*lifetime;

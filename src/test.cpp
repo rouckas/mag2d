@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
 
     // initialize the PIC model !
     Pic<CARTESIAN> pic(param);
+    pic.check_params();
 
     pic.run_initscript(initscript);
 
