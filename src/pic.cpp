@@ -345,8 +345,8 @@ class Pic
 	    for(size_t i=0; i<speclist.size(); i++)
 	    {
 		speclist[i]->advance();
-		//if(param.selfconsistent)
-		  //  species_list[i]->source();
+		if(param.use_source)
+		    speclist[i]->source();
 	    }
 
 	    for(size_t i=0; i<speclist.size(); i++)

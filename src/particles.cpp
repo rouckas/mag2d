@@ -930,6 +930,7 @@ void Species<CARTESIAN>::source5_refresh(unsigned int factor)
         source2_particles[i].vy = rnd->rnor()*v_max/(M_SQRT2);
         source2_particles[i].time_to_death = rnd->rexp()*lifetime;
     }
+    cout << name <<" source initialized:  "<< source2_particles.size() <<" particles  @  " <<density <<" particle/m3"<< endl;
 }
 
 
@@ -1016,20 +1017,15 @@ void Species<CARTESIAN>::source()
     vector<t_particle>::iterator J;
     int j;
     //double qm2 = charge/mass*0.5;
-    double qm = charge/mass;
     double src_z_max = K*p_param->z_max;
     double src_x_max = K*p_param->x_max;
-    double fx=0;
-    double fz=p_param->extern_field;
-    double qmdt = qm*dt;
 
     //cout << "source\n";
     //cout << "diff: " << source2_particles.begin() - source2_particles.end() << endl;
-    for(vector<t_particle>::iterator I=source2_particles.begin(); I != source2_particles.end(); I++)
-    {
-
-        I->vx += fx*qmdt;
-        I->vz += fy*qmdt;
+    advance_boris(source2_particles, true);
+        /*
+        I->vx -= fx*qmdt;
+        I->vz -= fy*qmdt;
         I->x += I->vx * dt;
         I->z += I->vz * dt;
 
@@ -1039,6 +1035,10 @@ void Species<CARTESIAN>::source()
             I->time_to_death += rnd->rexp()*lifetime;
         }
         I->time_to_death -= dt;
+
+         */
+    for(vector<t_particle>::iterator I=source2_particles.begin(); I != source2_particles.end(); I++)
+    {
 
         if(I->x > src_x_max)
             while(I->x > src_x_max)

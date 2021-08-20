@@ -61,6 +61,7 @@ class Param
         Geometry geometry;
         int src_fact;
         bool selfconsistent;
+        bool use_source;
         bool u_smooth;
         bool rf;
         double rf_amplitude;

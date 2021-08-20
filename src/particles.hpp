@@ -111,6 +111,7 @@ class BaseSpecies
         vector< vector<Interaction *> > interactions_by_species;
         vector<double> rates_by_species;
 	vector<t_particle> particles;
+	vector<t_particle> source2_particles;
 	SpeciesType type;
 	string name;
         bool particle;
@@ -152,6 +153,7 @@ class BaseSpecies
             empty(0), niter(0),
             p_param(&param), rnd(&_rnd),
             particles(0),
+            source2_particles(0),
             type(params->type),
             name(params->name),
             particle(true), //XXX
@@ -246,7 +248,6 @@ class BaseSpecies
 	int n_particles(){ return particles.size() - empty.size();}
         void resize(unsigned int newsize);
 
-	vector<t_particle> source2_particles;
 	void source5_save(const string filename);
 	void source5_load(const string filename);
 	int source5_factor;
