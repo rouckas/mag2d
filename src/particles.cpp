@@ -425,6 +425,8 @@ void BaseSpecies::source_energy_dist_compute()
 /*
  * ****************** definitions for Species<CYLINDRICAL> *******************
  */
+
+template <>
 void Species<CYLINDRICAL>::probe_collect(t_particle *I)
 {
     if(!(I->z > 395e-3 && I->x < 45e-3)) return;
@@ -454,6 +456,7 @@ void Species<CYLINDRICAL>::probe_collect(t_particle *I)
     probe_charge += charge;
 }
 
+template <>
 void Species<CYLINDRICAL>::add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius)
 {
     double x, y, r;
@@ -479,6 +482,7 @@ void Species<CYLINDRICAL>::add_particle_beam_on_disk_cylindrical(int nparticles,
     }
 }
 
+template <>
 void Species<CYLINDRICAL>::add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height)
 {
     double x, y, r;
@@ -505,19 +509,8 @@ void Species<CYLINDRICAL>::add_monoenergetic_particles_on_cylinder_cylindrical(i
     }
 }
 
-void Species<CYLINDRICAL>::advance()
-{
-    advance_position(particles, false);
-    advance_boundary();
-    niter++;
-    t += dt;
-}
 
-void Species<CYLINDRICAL>::advance_init()
-{
-    advance_position_init(particles, false);
-}
-
+template <>
 void Species<CYLINDRICAL>::advance_position(vector<t_particle> & what, bool extern_fields)
 {
     switch(p_param->mover)
@@ -530,6 +523,7 @@ void Species<CYLINDRICAL>::advance_position(vector<t_particle> & what, bool exte
     }
 }
 
+template <>
 void Species<CYLINDRICAL>::advance_position_init(vector<t_particle> & what, bool extern_fields)
 {
     switch(p_param->mover)
@@ -542,6 +536,7 @@ void Species<CYLINDRICAL>::advance_position_init(vector<t_particle> & what, bool
     }
 }
 
+template <>
 void Species<CYLINDRICAL>::advance_boris(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
@@ -625,6 +620,7 @@ void Species<CYLINDRICAL>::advance_boris(vector<t_particle> & what, bool extern_
     }
 }
 
+template <>
 void Species<CYLINDRICAL>::advance_boris_init(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
@@ -682,47 +678,11 @@ void Species<CYLINDRICAL>::advance_boris_init(vector<t_particle> & what, bool ex
     }
 }
 
-void Species<CYLINDRICAL>::advance_boundary()
-{
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-    {
-        if(I->empty==true) continue;
-        // OKRAJOVE PODMINKY
-        if(I->x > p_param->x_max || I->x < 0
-                || I->z > p_param->z_max || I->z < 0 )
-        {
-            remove(I);
-            continue;
-        }
-        if(!field->grid.is_free(I->x, I->z))
-        {
-            if(p_param->has_probe)
-                probe_collect(&*I);
-
-            remove(I);
-            continue;
-        }
-
-        // SUMACE NABOJE
-        if(p_param->selfconsistent)
-            rho.accumulate(charge, I->x, I->z);
-    }
-}
-
-void Species<CYLINDRICAL>::accumulate()
-{
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-    {
-        if(I->empty==true) continue;
-            // SUMACE NABOJE
-            rho.accumulate(charge, I->x, I->z);
-    }
-}
-
-
 /*
  * ******************** Species<CARTESIAN> definitions *********************
  */
+
+template <>
 void Species<CARTESIAN>::add_particles_everywhere(int nparticles)
 {
     for(int i=0; i<nparticles; i++)
@@ -738,6 +698,7 @@ void Species<CARTESIAN>::add_particles_everywhere(int nparticles)
     }
 }
 
+template <>
 void Species<CARTESIAN>::add_particles_bessel(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;
@@ -764,6 +725,7 @@ void Species<CARTESIAN>::add_particles_bessel(int nparticles, double centerx, do
     }
 }
 
+template <>
 void Species<CARTESIAN>::add_particles_on_disk(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;
@@ -786,6 +748,7 @@ void Species<CARTESIAN>::add_particles_on_disk(int nparticles, double centerx, d
     }
 }
 
+template <>
 void Species<CARTESIAN>::add_particle_beam_on_disk(int nparticles, double centerx, double centery, double radius)
 {
     double x, y;
@@ -809,6 +772,7 @@ void Species<CARTESIAN>::add_particle_beam_on_disk(int nparticles, double center
     }
 }
 
+template <>
 void Species<CARTESIAN>::advance_position(vector<t_particle> & what, bool extern_fields)
 {
     switch(p_param->mover)
@@ -827,6 +791,7 @@ void Species<CARTESIAN>::advance_position(vector<t_particle> & what, bool extern
     }
 }
 
+template <>
 void Species<CARTESIAN>::advance_position_init(vector<t_particle> & what, bool extern_fields)
 {
     switch(p_param->mover)
@@ -844,19 +809,7 @@ void Species<CARTESIAN>::advance_position_init(vector<t_particle> & what, bool e
     }
 }
 
-void Species<CARTESIAN>::advance()
-{
-    advance_position(particles, false);
-    advance_boundary();
-    niter++;
-    t += dt;
-}
-
-void Species<CARTESIAN>::advance_init()
-{
-    advance_position_init(particles, false);
-}
-
+template <>
 void Species<CARTESIAN>::advance_multicoll(vector<t_particle> & what, bool extern_fields)
 {
     double fx, fz;      //force vector
@@ -905,6 +858,7 @@ void Species<CARTESIAN>::advance_multicoll(vector<t_particle> & what, bool exter
     t += dt;
 }
 
+template <>
 void Species<CARTESIAN>::advance_leapfrog(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
@@ -942,6 +896,7 @@ void Species<CARTESIAN>::advance_leapfrog(vector<t_particle> & what, bool extern
     }
 }
 
+template <>
 void Species<CARTESIAN>::advance_leapfrog_init(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
@@ -966,6 +921,7 @@ void Species<CARTESIAN>::advance_leapfrog_init(vector<t_particle> & what, bool e
     }
 }
 
+template <>
 void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
@@ -1038,6 +994,7 @@ void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_fi
     }
 }
 
+template <>
 void Species<CARTESIAN>::advance_boris_init(vector<t_particle> & what, bool extern_fields)
 {
     //force vector
@@ -1092,68 +1049,7 @@ void Species<CARTESIAN>::advance_boris_init(vector<t_particle> & what, bool exte
     }
 }
 
-void Species<CARTESIAN>::advance_boundary()
-{
-
-
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-    {
-        if(I->empty) continue;
-
-        // OKRAJOVE PODMINKY
-        if(I->x < p_param->x_min || I->x > p_param->x_max ||
-                I->z < p_param->z_min || I->z > p_param->z_max)
-        {
-            if(p_param->boundary == Param::FREE)
-            {
-                remove(I);
-                continue;
-            }
-            else if(p_param->boundary == Param::PERIODIC)
-            {
-                I->x = fmod(I->x, p_param->x_max);
-                if(I->x < 0) I->x += p_param->x_max;
-                I->z = fmod(I->z, p_param->z_max);
-                if(I->z < 0) I->z += p_param->z_max;
-            }
-
-        }
-        if(!p_param->electric_field_from_file)
-        {
-            if(!field->grid.is_free(I->x, I->z))
-            {
-                remove(I);
-                continue;
-            }
-        }
-
-        /**
-          if(SQR(I->x-center_r)+SQR(I->z-center_z) < sqpp)
-          {
-          probe_collect(&*I);
-          remove(I);
-          probe_current += charge;
-          continue;
-          }
-          */
-
-        // SUMACE NABOJE
-        if(p_param->selfconsistent)
-            rho.accumulate(charge, I->x, I->z);
-        //}
-    }
-}
-
-void Species<CARTESIAN>::accumulate()
-{
-    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
-    {
-        if(I->empty==true) continue;
-            // SUMACE NABOJE
-            rho.accumulate(charge, I->x, I->z);
-    }
-}
-
+template <>
 void Species<CARTESIAN>::source5_refresh(unsigned int factor)
 {
     source5_factor = factor;
@@ -1183,12 +1079,10 @@ void Species<CARTESIAN>::source5_refresh(unsigned int factor)
     cout << name <<" source initialized:  "<< source2_particles.size() <<" particles  @  " <<density <<" particle/m3"<< endl;
 }
 
-
-
-
 /*
  * not working currently
  */
+template <>
 void Species<CARTESIAN>::source_old()
 {
 
@@ -1261,6 +1155,7 @@ void Species<CARTESIAN>::source_old()
     }
 }
 
+template <>
 void Species<CARTESIAN>::source()
 {
     double K = 1.0/source5_factor;

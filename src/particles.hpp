@@ -271,10 +271,7 @@ class BaseSpecies
 };
 
 template <int D>
-class Species : public BaseSpecies {};
-
-template <>
-class Species<CARTESIAN> : public BaseSpecies
+class Species : public BaseSpecies
 {
     public:
         Fields * field;
@@ -314,30 +311,105 @@ class Species<CARTESIAN> : public BaseSpecies
 	void source();
 	void source_old();
 	void source5_refresh(unsigned int factor);
-};
-
-template <>
-class Species<CYLINDRICAL> : public BaseSpecies
-{
-    public:
-        Fields * field;
-        Species(SpeciesParams * params, Param &param, t_random &rnd, Fields & _field):
-            BaseSpecies(params, param, rnd), field(&_field) {};
-
-	void advance();
-	void advance_position(vector<t_particle> & what, bool extern_field);
-	void advance_position_init(vector<t_particle> & what, bool extern_field);
-	void advance_boundary();
-	void advance_init();
-	void advance_boris(vector<t_particle> & what, bool extern_field);
-	void advance_boris_init(vector<t_particle> & what, bool extern_field);
-        void accumulate();
-	void probe_collect(t_particle *I);
-
+	void probe_collect(t_particle *I) {};
         void add_particle_beam_on_disk_cylindrical(int nparticles, double centerz, double radius);
         void add_monoenergetic_particles_on_cylinder_cylindrical(int nparticles, double energy, double centerz, double radius, double height = 0.0);
 
 };
+
+
+template <>
+void Species<CYLINDRICAL>::advance_boris(vector<t_particle> & what, bool extern_field);
+
+template <>
+void Species<CYLINDRICAL>::advance_boris_init(vector<t_particle> & what, bool extern_field);
+
+template <>
+void Species<CARTESIAN>::advance_leapfrog(vector<t_particle> & what, bool extern_field);
+
+template <>
+void Species<CARTESIAN>::advance_leapfrog_init(vector<t_particle> & what, bool extern_field);
+
+template <>
+void Species<CARTESIAN>::advance_multicoll(vector<t_particle> & what, bool extern_field);
+
+template <>
+void Species<CARTESIAN>::advance_boris(vector<t_particle> & what, bool extern_field);
+
+template <>
+void Species<CARTESIAN>::advance_boris_init(vector<t_particle> & what, bool extern_field);
+
+template <int D>
+void Species<D>::advance()
+{
+    advance_position(particles, false);
+    advance_boundary();
+    niter++;
+    t += dt;
+};
+
+template <int D>
+void Species<D>::advance_init()
+{
+    advance_position_init(particles, false);
+};
+
+
+template <int D>
+void Species<D>::accumulate()
+{
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+        if(I->empty==true) continue;
+            // SUMACE NABOJE
+            rho.accumulate(charge, I->x, I->z);
+    }
+}
+
+
+template <int D>
+void Species<D>::advance_boundary()
+{
+    for(vector<t_particle>::iterator I = particles.begin(); I != particles.end(); ++I)
+    {
+        if(I->empty) continue;
+
+        // OKRAJOVE PODMINKY
+        if(I->x < p_param->x_min || I->x > p_param->x_max ||
+                I->z < p_param->z_min || I->z > p_param->z_max)
+        {
+            if(p_param->boundary == Param::FREE)
+            {
+                remove(I);
+                continue;
+            }
+            else if(p_param->boundary == Param::PERIODIC)
+            {
+                I->x = fmod(I->x, p_param->x_max);
+                if(I->x < 0) I->x += p_param->x_max;
+                I->z = fmod(I->z, p_param->z_max);
+                if(I->z < 0) I->z += p_param->z_max;
+            }
+
+        }
+        if(!p_param->electric_field_from_file)
+        {
+            if(!field->grid.is_free(I->x, I->z))
+            {
+                if(p_param->has_probe)
+                    probe_collect(&*I);
+
+                remove(I);
+                continue;
+            }
+        }
+
+        // SUMACE NABOJE
+        if(p_param->selfconsistent)
+            rho.accumulate(charge, I->x, I->z);
+    }
+}
+
 
 
 inline double Interaction::EeV(double v_rel)
